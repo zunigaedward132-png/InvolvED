@@ -5,1114 +5,1157 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InvolvED — Your skills. Your proof.</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --navy: #1C3A8A;
-  --navy-light: #2d4ea3;
-  --teal: #1D9E75;
-  --teal-light: #22b584;
-  --bg: #EEF1F8;
-  --card: #ffffff;
-  --text: #111827;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.09);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.09);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1C3A8A;--teal:#1D9E75;
+  --pri:#6D28D9;--pri2:#7C3AED;--pri3:#8B5CF6;
+  --orange:#F97316;--orange2:#FB923C;
+  --cyan:#0891B2;--cyan2:#06B6D4;
+  --pink:#DB2777;--pink2:#EC4899;
+  --green:#059669;--green2:#10B981;
+  --amber:#D97706;--amber2:#F59E0B;
+  --red:#DC2626;--red2:#EF4444;
+  --bg:#F0EBFF;--bg2:#E8E0FF;--card:#fff;
+  --text:#1E0F40;--muted:#7B6FA4;--border:#DDD6FE;
+  --r:16px;--rsm:12px;--rxs:8px;
+  --sh:0 2px 10px rgba(109,40,217,.09);
+  --shmd:0 6px 24px rgba(109,40,217,.14);
 }
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+#app{min-height:100vh;display:flex;flex-direction:column}
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.5;
-}
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,#4C1D95 0%,#5B21B6 60%,#4338CA 100%);color:#fff;padding:0 20px;height:62px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 3px 12px rgba(76,29,149,.35)}
+.logo{font-size:21px;font-weight:900;letter-spacing:-.5px;flex-shrink:0}
+.logo-t{color:var(--teal)}
+.streak-chip{display:flex;align-items:center;gap:5px;background:rgba(251,191,36,.18);border:1.5px solid rgba(251,191,36,.35);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:700;color:#FDE68A;flex-shrink:0}
+.streak-fire{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.xp-section{flex:1;max-width:220px;margin:0 8px}
+.xp-label{font-size:10px;opacity:.75;margin-bottom:3px;display:flex;justify-content:space-between}
+.xp-track{height:7px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber2));border-radius:4px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.lvl-badge{background:linear-gradient(135deg,var(--orange),var(--amber2));color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;flex-shrink:0}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 14px 4px 4px}
+.u-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.u-name{font-size:13px;font-weight:600}
+.role-pill{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.role-pill.member{background:rgba(16,185,129,.25);color:#6EE7B7}
+.role-pill.officer{background:rgba(251,191,36,.25);color:#FDE68A}
+.role-pill.advisor{background:rgba(167,139,250,.25);color:#DDD6FE}
+.icon-btn{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:18px;padding:4px;line-height:1;transition:color .15s}
+.icon-btn:hover{color:#fff}
 
-#app { min-height: 100vh; display: flex; flex-direction: column; }
+/* LAYOUT */
+.app-body{display:flex;flex:1}
+.sidebar{width:210px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);padding:10px 0;height:calc(100vh - 62px);position:sticky;top:62px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);border-left:3px solid transparent;transition:all .15s;user-select:none}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{color:var(--pri);border-left-color:var(--pri);background:#F5F0FF;font-weight:700}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:auto;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:24px 28px;max-width:1000px}
 
-/* ── TOPBAR ── */
-.topbar {
-  background: var(--navy);
-  color: white;
-  padding: 0 24px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-}
-.logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; flex-shrink: 0; }
-.logo-teal { color: var(--teal); }
-.xp-section { flex: 1; max-width: 260px; margin: 0 16px; }
-.xp-label { font-size: 11px; opacity: 0.75; margin-bottom: 4px; display: flex; justify-content: space-between; }
-.xp-bar-track { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
-.xp-bar-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.5s ease; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.user-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border-radius: 999px; padding: 5px 14px 5px 5px; }
-.user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--teal); color: white; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.user-name { font-size: 13px; font-weight: 600; }
-.role-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.role-badge.member { background: rgba(29,158,117,0.3); color: #6decbe; }
-.role-badge.officer { background: rgba(251,191,36,0.3); color: #fde68a; }
-.role-badge.advisor { background: rgba(167,139,250,0.3); color: #ddd6fe; }
-.icon-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 20px; padding: 4px; line-height: 1; transition: color 0.15s; }
-.icon-btn:hover { color: white; }
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.stat-card{background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);box-shadow:var(--sh);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:-10px;right:-10px;width:60px;height:60px;border-radius:50%;opacity:.08}
+.stat-val{font-size:30px;font-weight:900;line-height:1}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-ico{font-size:20px;margin-bottom:6px}
 
-/* ── LAYOUT ── */
-.app-body { display: flex; flex: 1; }
-.sidebar { width: 216px; flex-shrink: 0; background: white; border-right: 1px solid var(--border); padding: 12px 0; height: calc(100vh - 64px); position: sticky; top: 64px; overflow-y: auto; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 18px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); border-left: 3px solid transparent; transition: all 0.15s; user-select: none; }
-.nav-item:hover { background: var(--bg); color: var(--text); }
-.nav-item.active { color: var(--navy); border-left-color: var(--navy); background: #EEF2FF; font-weight: 600; }
-.nav-icon { font-size: 17px; width: 22px; text-align: center; }
-.main-content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+/* SQUARE TASK CARDS */
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:20px}
+.tcard{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s;min-height:230px;border:1px solid var(--border)}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--shmd)}
+.tcard-top{height:6px}
+.tcard-body{padding:14px;display:flex;flex-direction:column;flex:1}
+.tcard-cat-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.tcard-cat-icon{font-size:20px}
+.tcard-cat-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.tcard-title{font-size:14px;font-weight:800;line-height:1.35;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tcard-desc{font-size:12px;color:var(--muted);flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px}
+.tcard-skills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.tcard-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;gap:6px}
+.tcard-cap{font-size:11px;color:var(--muted);font-weight:600}
 
-/* ── CARDS ── */
-.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; border: 1px solid var(--border); }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-bottom: 24px; }
-.stat-card { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-.stat-value { font-size: 32px; font-weight: 800; color: var(--navy); line-height: 1; }
-.stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.stat-icon { font-size: 22px; margin-bottom: 8px; }
+/* STATUS + SKILL CHIPS */
+.s-chip{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0}
+.s-open{background:#EDE9FE;color:#5B21B6}
+.s-claimed{background:#FEF3C7;color:#92400E}
+.s-review{background:#E0F2FE;color:#0369A1}
+.s-approved{background:#D1FAE5;color:#065F46}
+.s-full{background:#F3F4F6;color:#4B5563}
+.sk-tag{font-size:10px;padding:2px 7px;border-radius:999px;background:#EDE9FE;color:var(--pri);font-weight:600}
+.xp-chip{font-size:11px;padding:3px 9px;border-radius:999px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);color:var(--orange);font-weight:800;border:1px solid #FECACA}
 
-/* ── PAGE HEADERS ── */
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
-.page-title { font-size: 24px; font-weight: 800; color: var(--navy); }
-.page-sub { font-size: 14px; color: var(--muted); margin-top: 3px; }
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.section-title { font-size: 17px; font-weight: 700; color: var(--navy); }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--rsm);font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s;line-height:1;font-family:inherit}
+.btn-pri{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;box-shadow:0 3px 10px rgba(109,40,217,.3)}
+.btn-pri:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(109,40,217,.35)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),var(--green2));color:#fff;box-shadow:0 3px 10px rgba(5,150,105,.25)}
+.btn-teal:hover{transform:translateY(-1px)}
+.btn-orange{background:linear-gradient(135deg,var(--orange),var(--amber2));color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.3)}
+.btn-orange:hover{transform:translateY(-1px)}
+.btn-ghost{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg2)}
+.btn-danger{background:#FEE2E2;color:var(--red)}
+.btn-danger:hover{background:#FECACA}
+.btn-ai{background:linear-gradient(135deg,#7C3AED,#DB2777);color:#fff;box-shadow:0 3px 10px rgba(124,58,237,.3)}
+.btn-ai:hover{transform:translateY(-1px)}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
 
-/* ── BUTTONS ── */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; line-height: 1; font-family: inherit; }
-.btn-primary { background: var(--navy); color: white; }
-.btn-primary:hover { background: var(--navy-light); }
-.btn-teal { background: var(--teal); color: white; }
-.btn-teal:hover { background: var(--teal-light); }
-.btn-outline { background: white; color: var(--navy); border: 1.5px solid var(--navy); }
-.btn-outline:hover { background: #EEF2FF; }
-.btn-ghost { background: var(--bg); color: var(--text); }
-.btn-ghost:hover { background: var(--border); }
-.btn-danger { background: #fee2e2; color: #dc2626; }
-.btn-danger:hover { background: #fecaca; }
-.btn-sm { padding: 6px 12px; font-size: 13px; }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* FILTER TABS */
+.filter-row{display:flex;gap:4px;margin-bottom:18px;background:#fff;padding:4px;border-radius:var(--rsm);border:1px solid var(--border);width:fit-content}
+.ftab{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);font-family:inherit;transition:all .15s}
+.ftab.active{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff}
+.ftab:hover:not(.active){background:var(--bg);color:var(--text)}
 
-/* ── TASK CARDS ── */
-.task-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-.task-card { background: var(--card); border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: box-shadow 0.2s; }
-.task-card:hover { box-shadow: var(--shadow-md); }
-.task-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.task-title { font-size: 15px; font-weight: 700; }
-.task-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.task-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.skill-tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #EEF2FF; color: var(--navy); font-weight: 600; }
-.xp-tag { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: #D1FAE5; color: #065F46; font-weight: 700; }
+/* BADGES */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.badge-card{border-radius:var(--r);padding:18px 12px;text-align:center;border:2px solid var(--border);transition:all .2s;position:relative;overflow:hidden}
+.badge-card.earned{border-color:transparent;animation:badgePop .4s cubic-bezier(.34,1.56,.64,1)}
+.badge-icon-big{font-size:34px;margin-bottom:8px}
+.badge-name{font-size:12px;font-weight:800;margin-bottom:3px}
+.badge-desc{font-size:11px;color:var(--muted)}
+.badge-card:not(.earned) .badge-icon-big{filter:grayscale(1);opacity:.3}
+.badge-card:not(.earned) .badge-name{color:var(--muted)}
+.earned-tick{font-size:10px;font-weight:800;margin-top:5px;color:#059669}
+@keyframes badgePop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
 
-/* ── STATUS BADGES ── */
-.status-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; flex-shrink: 0; white-space: nowrap; }
-.status-open { background: #DBEAFE; color: #1D4ED8; }
-.status-claimed { background: #FEF3C7; color: #92400E; }
-.status-submitted { background: #EDE9FE; color: #5B21B6; }
-.status-approved { background: #D1FAE5; color: #065F46; }
+/* LEADERBOARD */
+.lb-list{display:flex;flex-direction:column;gap:8px}
+.lb-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh)}
+.lb-row.you{border-color:var(--pri3);background:linear-gradient(135deg,#F5F0FF,#FAF5FF)}
+.rank{font-size:20px;font-weight:900;width:32px;text-align:center;color:var(--muted)}
+.rank-1{color:#F59E0B}.rank-2{color:#9CA3AF}.rank-3{color:#CD7C2F}
+.lb-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
+.lb-name{font-weight:700;font-size:15px}
+.lb-sub{font-size:12px;color:var(--muted)}
+.lb-xp{font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--orange),var(--amber2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lb-xplbl{font-size:10px;color:var(--muted)}
 
-/* ── FILTER TABS ── */
-.filter-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border); width: fit-content; }
-.filter-tab { padding: 7px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--muted); transition: all 0.15s; font-family: inherit; }
-.filter-tab.active { background: var(--navy); color: white; }
-.filter-tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+/* RESUME */
+.skill-bank{display:flex;flex-wrap:wrap;gap:8px}
+.skill-bank-tag{background:linear-gradient(135deg,#EDE9FE,#F5F0FF);color:var(--pri);border:1.5px solid var(--pri3);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}
+.pe-card{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--border);margin-bottom:10px}
+.pe-title{font-weight:800;margin-bottom:4px}
+.pe-text{font-size:13px;color:var(--muted);margin-bottom:8px}
+.pe-empty{font-size:13px;color:var(--pri3);font-style:italic;margin-bottom:8px}
+.file-attached{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--cyan);font-weight:600;background:#ECFEFF;padding:4px 10px;border-radius:999px;cursor:pointer}
 
-/* ── BADGES ── */
-.badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 12px; }
-.badge-card { background: var(--card); border-radius: var(--radius); padding: 16px 12px; text-align: center; border: 2px solid var(--border); }
-.badge-card.earned { border-color: var(--teal); background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
-.badge-icon { font-size: 30px; margin-bottom: 7px; }
-.badge-name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
-.badge-desc { font-size: 11px; color: var(--muted); }
-.badge-card:not(.earned) .badge-icon { filter: grayscale(1); opacity: 0.35; }
-.badge-card:not(.earned) .badge-name { color: var(--muted); }
-.badge-earned-label { font-size: 10px; color: var(--teal); font-weight: 700; margin-top: 5px; }
+/* MEMBERS */
+.member-list{display:flex;flex-direction:column;gap:10px}
+.m-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh)}
+.m-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;flex-shrink:0}
+.m-name{font-weight:700;font-size:15px}
+.m-sub{font-size:12px;color:var(--muted)}
+.m-stats{margin-left:auto;display:flex;gap:18px}
+.mstat{text-align:center}
+.mstat-v{font-weight:900;font-size:17px;color:var(--pri)}
+.mstat-l{font-size:10px;color:var(--muted)}
 
-/* ── LEADERBOARD ── */
-.leaderboard-list { display: flex; flex-direction: column; gap: 8px; }
-.lb-row { display: flex; align-items: center; gap: 14px; background: var(--card); border-radius: var(--radius); padding: 14px 18px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-.lb-row.you { border-color: var(--teal); background: linear-gradient(135deg, #f0fdf4, #f7fffe); }
-.rank-num { font-size: 20px; font-weight: 800; color: var(--muted); width: 34px; text-align: center; }
-.rank-1 { color: #F59E0B; }
-.rank-2 { color: #9CA3AF; }
-.rank-3 { color: #CD7C2F; }
-.lb-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: white; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.lb-name { font-weight: 700; font-size: 15px; }
-.lb-sub { font-size: 12px; color: var(--muted); }
-.lb-xp { font-size: 20px; font-weight: 800; color: var(--teal); }
-.lb-xp-label { font-size: 10px; color: var(--muted); }
+/* ATTENDANCE */
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.att-card{background:var(--card);border-radius:var(--r);padding:20px;border:1px solid var(--border);box-shadow:var(--sh)}
+.att-card-open{border-color:var(--green2);background:linear-gradient(135deg,#F0FDF4,#ECFDF5)}
+.att-event-name{font-size:16px;font-weight:800;margin-bottom:4px}
+.att-event-meta{font-size:12px;color:var(--muted);margin-bottom:12px}
+.att-code{display:inline-block;font-family:monospace;font-size:22px;font-weight:900;color:var(--pri);background:#EDE9FE;padding:8px 16px;border-radius:var(--rxs);letter-spacing:2px;margin-bottom:12px}
+.qr-img{border-radius:var(--rxs);border:3px solid var(--border);display:block}
+.att-count{font-size:13px;color:var(--muted);font-weight:600}
+.checkin-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.checkin-chip{font-size:11px;padding:3px 9px;background:#D1FAE5;color:#065F46;border-radius:999px;font-weight:600}
 
-/* ── INVOAI ── */
-.ai-wrap { display: flex; flex-direction: column; gap: 12px; }
-.ai-messages { min-height: 320px; max-height: 420px; overflow-y: auto; padding: 16px; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
-.message { max-width: 78%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.55; }
-.message.user { align-self: flex-end; background: var(--navy); color: white; border-bottom-right-radius: 4px; }
-.message.ai { align-self: flex-start; background: white; color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; box-shadow: var(--shadow); }
-.ai-label { font-size: 10px; font-weight: 700; color: var(--teal); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-.ai-input-row { display: flex; gap: 8px; }
-.ai-input { flex: 1; padding: 11px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: white; outline: none; transition: border-color 0.2s; }
-.ai-input:focus { border-color: var(--navy); }
-.ai-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.ai-chip { background: white; border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.ai-chip:hover { border-color: var(--navy); color: var(--navy); background: #EEF2FF; }
-.api-key-banner { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: var(--radius); padding: 16px 20px; }
-.api-key-row { display: flex; gap: 8px; margin-top: 10px; }
-.api-key-input { flex: 1; padding: 9px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: monospace; outline: none; }
-.api-key-input:focus { border-color: var(--navy); }
+/* CHECKIN (member) */
+.event-list{display:flex;flex-direction:column;gap:10px}
+.event-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:var(--r);padding:14px 18px;border:1px solid var(--border);box-shadow:var(--sh)}
+.event-open-row{border-color:var(--green2);background:linear-gradient(135deg,#F0FDF4,#ECFDF5)}
 
-/* ── RESUME ── */
-.skills-bank { display: flex; flex-wrap: wrap; gap: 8px; }
-.skill-bank-tag { background: #EEF2FF; color: var(--navy); border: 1.5px solid #c7d3f5; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
-.portfolio-entry { background: var(--card); border-radius: var(--radius); padding: 16px 18px; border: 1px solid var(--border); margin-bottom: 10px; }
-.pe-title { font-weight: 700; margin-bottom: 4px; }
-.pe-text { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-.pe-empty { font-size: 13px; color: var(--teal); font-style: italic; margin-bottom: 8px; }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(30,15,64,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:var(--r);width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(76,29,149,.25);animation:slideUp .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hdr{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-ttl{font-size:18px;font-weight:800}
+.modal-body{padding:18px 22px}
+.modal-ftr{padding:0 22px 18px;display:flex;gap:8px;justify-content:flex-end}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
 
-/* ── MEMBERS ── */
-.member-row { display: flex; align-items: center; gap: 14px; background: var(--card); border-radius: var(--radius); padding: 14px 18px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-.member-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--navy); color: white; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.member-name { font-weight: 700; font-size: 15px; }
-.member-sub { font-size: 12px; color: var(--muted); }
-.member-stats { margin-left: auto; display: flex; gap: 20px; align-items: center; }
-.mstat-val { font-weight: 800; font-size: 17px; color: var(--navy); text-align: center; }
-.mstat-label { font-size: 10px; color: var(--muted); text-align: center; }
+/* FORMS */
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--text);text-transform:uppercase;letter-spacing:.4px}
+.fi,.fta,.fsel{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--rsm);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;background:#fff}
+.fi:focus,.fta:focus,.fsel:focus{border-color:var(--pri)}
+.fta{min-height:90px;resize:vertical}
+.skill-picks{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border:2px solid var(--border);border-radius:var(--rsm);background:var(--bg)}
+.skill-pick-toggle{padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid var(--border);background:#fff;color:var(--muted);font-family:inherit;transition:all .15s}
+.skill-pick-toggle.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.skill-pick-toggle:hover:not(.on){border-color:var(--pri);color:var(--pri)}
+.ai-skill-chip{padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid var(--green2);background:#D1FAE5;color:#065F46;font-family:inherit;transition:all .15s}
+.ai-skill-chip.off{background:#F3F4F6;color:var(--muted);border-color:var(--border)}
+.file-input-wrap{border:2px dashed var(--border);border-radius:var(--rsm);padding:16px;text-align:center;cursor:pointer;transition:border-color .2s}
+.file-input-wrap:hover{border-color:var(--pri)}
+.file-input-wrap input{display:none}
+.ai-suggestion-box{background:linear-gradient(135deg,#F5F0FF,#FDF2F8);border:1.5px solid var(--pri3);border-radius:var(--rsm);padding:14px;margin-top:10px;font-size:13px;line-height:1.6}
+.ai-loading-row{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--pri3);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.2);opacity:1}}
 
-/* ── MODAL ── */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-.modal { background: white; border-radius: var(--radius); width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-.modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-size: 18px; font-weight: 700; }
-.modal-body { padding: 20px 24px; }
-.modal-footer { padding: 0 24px 20px; display: flex; gap: 10px; justify-content: flex-end; }
-.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); line-height: 1; }
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(140deg,#2E1065 0%,#4C1D95 45%,#1E3A8A 100%);padding:20px;position:relative;overflow:hidden}
+.login-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 70%,rgba(109,40,217,.4),transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(6,182,212,.25),transparent 50%)}
+.login-card{background:#fff;border-radius:24px;padding:36px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(0,0,0,.35);position:relative;z-index:1}
+.login-logo{font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+.login-tagline{color:var(--muted);font-size:14px;margin-bottom:24px}
+.login-section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.pick-btn{display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;transition:all .15s;background:#fff;font-family:inherit;text-align:left}
+.pick-btn:hover{border-color:var(--pri);background:#F5F0FF}
+.pick-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.pick-name{font-weight:700;font-size:13px}
+.pick-role{font-size:11px;color:var(--muted);text-transform:capitalize}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.or-text{text-align:center;font-size:12px;color:var(--muted);margin:14px 0;position:relative}
+.or-text::before,.or-text::after{content:'';position:absolute;top:50%;width:44%;height:1px;background:var(--border)}
+.or-text::before{left:0}.or-text::after{right:0}
 
-/* ── FORMS ── */
-.form-group { margin-bottom: 16px; }
-.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.form-input, .form-textarea, .form-select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; background: white; }
-.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--navy); }
-.form-textarea { min-height: 100px; resize: vertical; }
-.skill-checks { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
-.skill-check-label { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.1s; }
-.skill-check-label:hover { background: white; }
+/* FLOATING AI */
+.ai-fab{position:fixed;bottom:22px;right:22px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pink));box-shadow:0 6px 20px rgba(109,40,217,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:900;transition:transform .2s,box-shadow .2s;border:none}
+.ai-fab:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(109,40,217,.5)}
+.ai-panel{position:fixed;bottom:90px;right:22px;width:340px;max-height:500px;background:#fff;border-radius:var(--r);box-shadow:0 20px 60px rgba(30,15,64,.25);z-index:900;display:none;flex-direction:column;overflow:hidden;border:1px solid var(--border);animation:slideUp .2s ease}
+.ai-panel.open{display:flex}
+.ai-ph{background:linear-gradient(135deg,var(--pri),var(--pink));padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.ai-ph-title{font-size:15px;font-weight:800}
+.ai-ph-sub{font-size:11px;opacity:.8}
+.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:#FAFAFA}
+.ai-msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.5}
+.ai-msg.user{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
+.ai-msg.ai{align-self:flex-start;background:#fff;color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px;box-shadow:var(--sh)}
+.ai-msg-lbl{font-size:9px;font-weight:800;color:var(--pink);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ai-ir{display:flex;gap:6px;padding:10px}
+.ai-input{flex:1;padding:9px 13px;border:2px solid var(--border);border-radius:var(--rsm);font-size:13px;font-family:inherit;outline:none}
+.ai-input:focus{border-color:var(--pri)}
+.ai-chips-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 8px}
+.ai-chip{background:#fff;border:1.5px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.ai-chip:hover{border-color:var(--pri);color:var(--pri)}
+.api-key-area{padding:14px}
+.api-key-banner{background:#FFF7ED;border:2px solid #FED7AA;border-radius:var(--rsm);padding:14px}
 
-/* ── LOGIN ── */
-.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, #1C3A8A 0%, #16325a 55%, #0f2445 100%); padding: 20px; }
-.login-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 28px 80px rgba(0,0,0,0.3); }
-.login-logo { font-size: 36px; font-weight: 900; letter-spacing: -1px; margin-bottom: 4px; }
-.login-tagline { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-.login-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 10px; }
-.user-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.user-pick { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: white; text-align: left; font-family: inherit; width: 100%; }
-.user-pick:hover { border-color: var(--navy); background: #EEF2FF; }
-.up-avatar { width: 36px; height: 36px; border-radius: 50%; color: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.up-name { font-weight: 700; font-size: 13px; text-align: left; }
-.up-role { font-size: 11px; color: var(--muted); text-transform: capitalize; }
-.login-divider { text-align: center; color: var(--muted); font-size: 12px; margin: 16px 0; position: relative; }
-.login-divider::before, .login-divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border); }
-.login-divider::before { left: 0; }
-.login-divider::after { right: 0; }
+/* PAGE HEADERS */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
+.page-title{font-size:24px;font-weight:900;color:var(--pri);letter-spacing:-.3px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.sec-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:12px}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 
-/* ── MISC ── */
-.divider { height: 1px; background: var(--border); margin: 20px 0; }
-.empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
-.empty-icon { font-size: 44px; margin-bottom: 10px; }
-.empty-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
-.empty-desc { font-size: 13px; }
-.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.toast { background: #1a1a2e; color: white; padding: 11px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-md); animation: slideIn 0.25s ease; display: flex; align-items: center; gap: 8px; pointer-events: all; }
-.toast.success { background: var(--teal); }
-.toast.error { background: #DC2626; }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-.loading-dots { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-.loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: bounce 1.2s infinite; }
-.loading-dot:nth-child(2) { animation-delay: 0.2s; }
-.loading-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce { 0%,80%,100% { transform: scale(0.8); opacity: 0.5; } 40% { transform: scale(1.2); opacity: 1; } }
-.mascot { width: 76px; height: 76px; object-fit: contain; }
-.notification-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #DC2626; margin-left: auto; }
+/* TOAST */
+.toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
+.toast{background:#1E0F40;color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;font-weight:600;box-shadow:var(--shmd);animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);pointer-events:all}
+.toast.ok{background:linear-gradient(135deg,var(--green),var(--green2))}
+.toast.err{background:linear-gradient(135deg,var(--red),var(--red2))}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main-content { padding: 16px; }
-  .card-grid { grid-template-columns: repeat(2, 1fr); }
-  .user-picks { grid-template-columns: 1fr; }
-  .member-stats { gap: 12px; }
-  .xp-section { display: none; }
-}
+/* XP FLOAT ANIM */
+.xp-float{position:fixed;z-index:4000;font-size:20px;font-weight:900;color:var(--orange);pointer-events:none;animation:xpRise 1.4s ease-out forwards;text-shadow:0 2px 8px rgba(249,115,22,.4)}
+@keyframes xpRise{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty-ico{font-size:44px;margin-bottom:10px}
+.empty-ttl{font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px}
+
+/* DASHBOARD STREAKS */
+.streak-banner{background:linear-gradient(135deg,#7C2D12,#EA580C,#F97316);border-radius:var(--r);padding:18px 22px;color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.streak-num{font-size:42px;font-weight:900;line-height:1}
+.streak-lbl{font-size:14px;opacity:.9;font-weight:600}
+.daily-goal{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--border);margin-bottom:20px}
+.daily-goal-bar{height:10px;background:var(--bg2);border-radius:5px;margin-top:8px;overflow:hidden}
+.daily-goal-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber2));border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+
+@media(max-width:768px){.sidebar{display:none}.main{padding:14px}.task-grid{grid-template-columns:1fr 1fr}.picks{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-wrap" id="toasts"></div>
+<button class="ai-fab" id="aiFab" onclick="toggleAI()">🤖</button>
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-ph">
+    <div><div class="ai-ph-title">🤖 InvoAI</div><div class="ai-ph-sub">Your career coach</div></div>
+    <button onclick="toggleAI()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1">×</button>
+  </div>
+  <div id="aiMsgs" class="ai-msgs">
+    <div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Hi! Ask me about your skills, resume bullets, or which tasks to take on next. 🚀</div>
+  </div>
+  <div class="ai-chips-row" id="aiChips"></div>
+  <div class="ai-ir">
+    <input class="ai-input" id="aiInput" placeholder="Ask InvoAI..." onkeydown="if(event.key==='Enter')sendAI()">
+    <button class="btn btn-ai btn-sm" onclick="sendAI()">→</button>
+  </div>
+</div>
 
 <script>
-// ═══════════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════════
-const BADGES = [
-  { id: 'first-step',   icon: '🌱', name: 'First Step',   desc: 'Complete your first task' },
-  { id: 'go-getter',    icon: '🚀', name: 'Go-Getter',    desc: 'Complete 3 tasks' },
-  { id: 'team-player',  icon: '🤝', name: 'Team Player',  desc: 'Claim any task' },
-  { id: 'all-rounder',  icon: '⭐', name: 'All-Rounder',  desc: 'Earn skills in 3+ categories' },
-  { id: 'researcher',   icon: '🔍', name: 'Researcher',   desc: 'Complete a research task' },
-  { id: 'creative',     icon: '🎨', name: 'Creative',     desc: 'Complete a creative task' },
-  { id: 'leader',       icon: '👑', name: 'Leader',       desc: 'Approve 5 tasks (officers)' },
-  { id: 'resume-ready', icon: '📄', name: 'Resume Ready', desc: 'Add your first portfolio entry' },
+// ── CONSTANTS ──────────────────────────────────────────
+const CAT={
+  research:     {c:'#2563EB',bg:'#EFF6FF',icon:'🔬',lbl:'Research'},
+  creative:     {c:'#DB2777',bg:'#FDF2F8',icon:'🎨',lbl:'Creative'},
+  leadership:   {c:'#EA580C',bg:'#FFF7ED',icon:'🚀',lbl:'Leadership'},
+  administrative:{c:'#7C3AED',bg:'#F5F3FF',icon:'📋',lbl:'Admin'},
+  tech:         {c:'#0891B2',bg:'#ECFEFF',icon:'💻',lbl:'Tech'},
+  general:      {c:'#4B5563',bg:'#F9FAFB',icon:'📌',lbl:'General'},
+};
+
+const BADGES=[
+  {id:'first-step',  icon:'🌱',name:'First Step',  desc:'Complete your first task',  grad:'linear-gradient(135deg,#D1FAE5,#A7F3D0)'},
+  {id:'go-getter',   icon:'🚀',name:'Go-Getter',   desc:'Complete 3 tasks',           grad:'linear-gradient(135deg,#FEF3C7,#FDE68A)'},
+  {id:'team-player', icon:'🤝',name:'Team Player', desc:'Claim a task',               grad:'linear-gradient(135deg,#DBEAFE,#BFDBFE)'},
+  {id:'all-rounder', icon:'⭐',name:'All-Rounder', desc:'Earn skills in 3+ categories',grad:'linear-gradient(135deg,#EDE9FE,#DDD6FE)'},
+  {id:'researcher',  icon:'🔬',name:'Researcher',  desc:'Complete a research task',   grad:'linear-gradient(135deg,#E0F2FE,#BAE6FD)'},
+  {id:'creative',    icon:'🎨',name:'Creative',    desc:'Complete a creative task',   grad:'linear-gradient(135deg,#FCE7F3,#FBCFE8)'},
+  {id:'leader',      icon:'👑',name:'Leader',      desc:'Approve 5 tasks (officers)', grad:'linear-gradient(135deg,#FEF9C3,#FEF08A)'},
+  {id:'resume-ready',icon:'📄',name:'Resume Ready',desc:'Add your first portfolio entry',grad:'linear-gradient(135deg,#F3E8FF,#E9D5FF)'},
 ];
 
-const SKILL_CATS = {
-  'Research': 'research', 'Analysis': 'research', 'Data': 'research',
-  'Writing': 'comms', 'Communication': 'comms', 'Editing': 'comms', 'Public Speaking': 'comms',
-  'Design': 'creative', 'Creativity': 'creative', 'Visual Communication': 'creative', 'Marketing': 'creative', 'Social Media': 'creative', 'Photography': 'creative',
-  'Leadership': 'leadership', 'Organization': 'leadership', 'Management': 'leadership', 'Event Planning': 'leadership',
-  'Technology': 'tech', 'Programming': 'tech', 'Web Development': 'tech', 'Data Analysis': 'tech',
+const SKILL_CATS={
+  'Research':'research','Analysis':'research','Data':'research',
+  'Writing':'comms','Communication':'comms','Editing':'comms','Public Speaking':'comms',
+  'Design':'creative','Creativity':'creative','Visual Communication':'creative','Marketing':'creative','Social Media':'creative',
+  'Leadership':'leadership','Organization':'leadership','Management':'leadership','Event Planning':'leadership',
+  'Technology':'tech','Programming':'tech','Web Development':'tech','Data Analysis':'tech',
+};
+const ALL_SKILLS=Object.keys(SKILL_CATS);
+const XP_PER_LEVEL=200;
+const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+
+// ── STATE ──────────────────────────────────────────────
+const S={
+  uid:null,
+  apiKey:localStorage.getItem('invoKey')||'',
+  view:'login',
+  filter:'all',
+  modal:null,
+  modalData:null,
+  aiOpen:false,
+  aiLoading:false,
+  pendingFile:null,  // {name,size,dataUrl}
+  pendingAISkills:[], // chips shown in submit modal
+  modalAILoading:false,
+  users:[
+    {id:'u1',name:'Alex Rivera',  role:'member', xp:340,skills:['Research','Writing','Communication','Organization'],badges:['first-step','go-getter','team-player'],portfolioEntries:[],tasksApproved:0,streak:5},
+    {id:'u2',name:'Jordan Lee',   role:'member', xp:150,skills:['Design','Creativity','Visual Communication'],      badges:['first-step','team-player','creative'],  portfolioEntries:[],tasksApproved:0,streak:2},
+    {id:'u3',name:'Sam Chen',     role:'officer',xp:800,skills:['Leadership','Organization','Communication'],        badges:['first-step','go-getter','leader','team-player','all-rounder'],portfolioEntries:[],tasksApproved:6,streak:8},
+    {id:'u4',name:'Dr. Martinez', role:'advisor',xp:0,  skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0},
+  ],
+  tasks:[
+    {id:'t1',title:'Design Club Flyer for Spring Event',   desc:'Create a flyer for our spring networking event with date, time, location, and club logo. Submit as PDF or image.',           skills:['Design','Creativity','Visual Communication'],cat:'creative',     xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*2,submissions:[]},
+    {id:'t2',title:'Research Grant Opportunities',         desc:'Find 5 grants for community college clubs. Compile report with deadlines, amounts, and eligibility.',                         skills:['Research','Writing','Analysis'],              cat:'research',     xp:200,capacity:2, createdBy:'u3',createdAt:Date.now()-86400000*3,submissions:[{userId:'u2',status:'claimed',work:null,fileName:null,fileDataUrl:null,aiSkills:[]}]},
+    {id:'t3',title:'Write Meeting Minutes',                desc:"Document key decisions, action items, and attendance from this month's general meeting.",                                   skills:['Writing','Communication','Organization'],     cat:'administrative',xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*5,submissions:[{userId:'u1',status:'pending_review',work:'Completed March meeting minutes. Documented 15 attendees, 4 key decisions, 8 action items.',fileName:null,fileDataUrl:null,aiSkills:['Written Communication','Active Listening','Organization']}]},
+    {id:'t4',title:'Social Media Post Series',            desc:'Create 3 posts for LinkedIn and Instagram promoting our workshop. Include custom graphics.',                                  skills:['Writing','Creativity','Social Media','Marketing'],cat:'creative',   xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*7,submissions:[{userId:'u1',status:'approved',  work:'Created 3 posts with Canva graphics. LinkedIn got 45 impressions, Instagram 23 likes.',fileName:null,fileDataUrl:null,aiSkills:['Content Creation','Social Media Marketing','Visual Design']}]},
+    {id:'t5',title:'Plan Club Fundraiser',                 desc:'Draft a full fundraiser plan: activities, budget, volunteer roles, timeline. Present at next meeting.',                     skills:['Leadership','Organization','Event Planning'], cat:'leadership',   xp:200,capacity:3, createdBy:'u3',createdAt:Date.now()-86400000*1,submissions:[]},
+  ],
+  attendance:{
+    events:[
+      {id:'ev1',name:'Spring Kickoff Meeting',date:'Today',location:'Room 204',code:'SPR24A',createdBy:'u3',isOpen:true},
+      {id:'ev2',name:'Workshop Prep Session', date:'Mon May 12',location:'Library B',code:'WKSHP2',createdBy:'u3',isOpen:false},
+    ],
+    records:{'ev2':['u1','u2']}
+  },
 };
 
-const ALL_SKILLS = Object.keys(SKILL_CATS);
-const XP_PER_LEVEL = 200;
+// ── UTILS ──────────────────────────────────────────────
+const getUser=id=>S.users.find(u=>u.id===id);
+const me=()=>getUser(S.uid);
+const lvl=xp=>Math.floor(xp/XP_PER_LEVEL)+1;
+const xpInLvl=xp=>xp%XP_PER_LEVEL;
+const xpPct=xp=>(xpInLvl(xp)/XP_PER_LEVEL)*100;
+const initials=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avColor=role=>role==='advisor'?'#7C3AED':role==='officer'?'#D97706':'#5B21B6';
 
-const state = {
-  currentUserId: null,
-  apiKey: localStorage.getItem('invoApiKey') || '',
-  activeView: 'login',
-  activeFilter: 'all',
-  activeModal: null,
-  modalData: null,
-  invoMessages: [],
-  aiLoading: false,
-  users: [
-    { id: 'u1', name: 'Alex Rivera',   role: 'member',  xp: 340, skills: ['Research','Writing','Communication','Organization'], badges: ['first-step','go-getter','team-player'], portfolioEntries: [], tasksApproved: 0 },
-    { id: 'u2', name: 'Jordan Lee',    role: 'member',  xp: 150, skills: ['Design','Creativity','Visual Communication'],         badges: ['first-step','team-player','creative'],  portfolioEntries: [], tasksApproved: 0 },
-    { id: 'u3', name: 'Sam Chen',      role: 'officer', xp: 800, skills: ['Leadership','Organization','Communication','Management'], badges: ['first-step','go-getter','leader','team-player','all-rounder'], portfolioEntries: [], tasksApproved: 6 },
-    { id: 'u4', name: 'Dr. Martinez',  role: 'advisor', xp: 0,   skills: [], badges: [], portfolioEntries: [], tasksApproved: 0 },
-  ],
-  tasks: [
-    { id: 't1', title: 'Design Club Flyer for Spring Event',    desc: 'Create a visually appealing flyer for our spring networking event. Must include date, time, location, and club logo. Submit as PDF or image.',         skills: ['Design','Creativity','Visual Communication'], cat: 'creative',       xp: 200, status: 'open',      createdBy: 'u3', claimedBy: null, work: null, approvedBy: null, createdAt: Date.now()-86400000*2 },
-    { id: 't2', title: 'Research Grant Opportunities',           desc: 'Find 5 grant opportunities available to community college clubs. Compile a report with deadlines, amounts, and eligibility requirements.',               skills: ['Research','Writing','Analysis'],               cat: 'research',       xp: 200, status: 'claimed',   createdBy: 'u3', claimedBy: 'u2', work: null, approvedBy: null, createdAt: Date.now()-86400000*3 },
-    { id: 't3', title: 'Write Meeting Minutes',                  desc: "Document the key decisions, action items, and attendance from this month's general meeting.",                                                            skills: ['Writing','Communication','Organization'],      cat: 'administrative', xp: 200, status: 'submitted', createdBy: 'u3', claimedBy: 'u1', work: 'Completed meeting minutes for the March general meeting. Documented 15 attendees, 4 key decisions, and 8 action items with owners and due dates.', approvedBy: null, createdAt: Date.now()-86400000*5 },
-    { id: 't4', title: 'Social Media Post Series',               desc: 'Create 3 engaging posts for LinkedIn and Instagram promoting our upcoming workshop. Include custom graphics.',                                            skills: ['Writing','Creativity','Social Media','Marketing'], cat: 'creative',    xp: 200, status: 'approved',  createdBy: 'u3', claimedBy: 'u1', work: 'Created 3 posts with custom Canva graphics. LinkedIn post reached 45 impressions, Instagram got 23 likes within 48 hours.', approvedBy: 'u3', createdAt: Date.now()-86400000*7 },
-    { id: 't5', title: 'Plan Club Fundraiser',                   desc: 'Draft a complete fundraiser plan including activities, budget estimate, volunteer roles, and a timeline. Present to officers at next meeting.',           skills: ['Leadership','Organization','Event Planning'],  cat: 'leadership',     xp: 200, status: 'open',      createdBy: 'u3', claimedBy: null, work: null, approvedBy: null, createdAt: Date.now()-86400000*1 },
-  ],
-};
-
-// ═══════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════
-const getUser = id => state.users.find(u => u.id === id);
-const me = () => getUser(state.currentUserId);
-const level = xp => Math.floor(xp / XP_PER_LEVEL) + 1;
-const xpInLevel = xp => xp % XP_PER_LEVEL;
-const xpPct = xp => (xpInLevel(xp) / XP_PER_LEVEL) * 100;
-const initials = name => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-const completedBy = uid => state.tasks.filter(t => t.status === 'approved' && t.claimedBy === uid);
-const members = () => state.users.filter(u => u.role === 'member');
-
-function toast(msg, type = '') {
-  const c = document.getElementById('toastContainer');
-  const d = document.createElement('div');
-  d.className = `toast ${type}`;
-  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-  d.textContent = icon + ' ' + msg;
-  c.appendChild(d);
-  setTimeout(() => { d.style.opacity = '0'; d.style.transition = 'opacity 0.3s'; setTimeout(() => d.remove(), 300); }, 3500);
+function approvedByUser(uid){
+  return S.tasks.flatMap(t=>t.submissions.filter(s=>s.userId===uid&&s.status==='approved').map(()=>t));
 }
 
-function awardBadges(uid) {
-  const u = getUser(uid);
-  if (!u) return [];
-  const earned = [];
-  const done = completedBy(uid);
-  const cats = new Set(done.flatMap(t => t.skills.map(s => SKILL_CATS[s]).filter(Boolean)));
-  const has = id => u.badges.includes(id);
-  const give = (id, cond) => { if (cond && !has(id)) { u.badges.push(id); earned.push(id); } };
+function taskStatus(t){
+  const active=t.submissions.filter(s=>s.status!=='rejected');
+  if(active.some(s=>s.status==='pending_review'))return 'review';
+  if(active.length>=t.capacity)return 'full';
+  if(active.length>0)return 'claimed';
+  return 'open';
+}
+function mySubmission(t){return t.submissions.find(s=>s.userId===S.uid)}
+function members(){return S.users.filter(u=>u.role==='member')}
 
-  give('first-step',   done.length >= 1);
-  give('go-getter',    done.length >= 3);
-  give('team-player',  state.tasks.some(t => t.claimedBy === uid));
-  give('all-rounder',  cats.size >= 3);
-  give('researcher',   done.some(t => t.cat === 'research'));
-  give('creative',     done.some(t => t.cat === 'creative'));
-  if (u.role === 'officer') give('leader', u.tasksApproved >= 5);
-  give('resume-ready', u.portfolioEntries.length > 0);
-
+function awardBadges(uid){
+  const u=getUser(uid);if(!u)return[];
+  const earned=[];const done=approvedByUser(uid);
+  const cats=new Set(done.flatMap(t=>t.skills.map(s=>SKILL_CATS[s]).filter(Boolean)));
+  const give=(id,cond)=>{if(cond&&!u.badges.includes(id)){u.badges.push(id);earned.push(id)}};
+  give('first-step',done.length>=1);
+  give('go-getter',done.length>=3);
+  give('team-player',S.tasks.some(t=>t.submissions.some(s=>s.userId===uid)));
+  give('all-rounder',cats.size>=3);
+  give('researcher',done.some(t=>t.cat==='research'));
+  give('creative',done.some(t=>t.cat==='creative'));
+  if(u.role==='officer')give('leader',u.tasksApproved>=5);
+  give('resume-ready',u.portfolioEntries.length>0);
   return earned;
 }
 
-const statusLabel = s => ({ open:'Open', claimed:'Claimed', submitted:'Submitted', approved:'Approved' }[s] || s);
-
-// ═══════════════════════════════════════════════
-// RENDER: LOGIN
-// ═══════════════════════════════════════════════
-function renderLogin() {
-  const avatarColor = r => r === 'advisor' ? '#8B5CF6' : r === 'officer' ? '#D97706' : 'var(--navy)';
-  return `
-  <div class="login-page">
-    <div class="login-card">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-        <img src="https://i.imgur.com/KaSEx7u.png" class="mascot" alt="InvolvED Mascot" onerror="this.style.display='none'">
-        <div>
-          <div class="login-logo"><span style="color:var(--navy)">Involv</span><span style="color:var(--teal)">Ed</span></div>
-          <div class="login-tagline">Your skills. Your proof.</div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div class="login-section-label">Continue as a demo user</div>
-      <div class="user-picks">
-        ${state.users.map(u => `
-        <button class="user-pick" onclick="login('${u.id}')">
-          <div class="up-avatar" style="background:${avatarColor(u.role)}">${initials(u.name)}</div>
-          <div><div class="up-name">${u.name}</div><div class="up-role">${u.role}</div></div>
-        </button>`).join('')}
-      </div>
-      <div class="login-divider">or join as a new member</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <input class="form-input" id="customName" placeholder="Your full name" />
-        <div style="display:flex;gap:8px;">
-          <select class="form-select" id="customRole">
-            <option value="member">Member</option>
-            <option value="officer">Officer</option>
-            <option value="advisor">Advisor</option>
-          </select>
-          <button class="btn btn-primary" onclick="loginCustom()">Join →</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
+function toast(msg,type=''){
+  const w=document.getElementById('toasts');
+  const d=document.createElement('div');
+  d.className=`toast ${type}`;
+  const ico=type==='ok'?'✅':type==='err'?'❌':'ℹ️';
+  d.textContent=ico+' '+msg;
+  w.appendChild(d);
+  setTimeout(()=>{d.style.opacity='0';d.style.transform='translateY(10px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300)},3200);
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: TOPBAR
-// ═══════════════════════════════════════════════
-function renderTopbar() {
-  const u = me();
-  const showXP = u.role !== 'advisor';
-  return `
-  <div class="topbar">
-    <div class="logo">Involv<span class="logo-teal">Ed</span></div>
-    ${showXP ? `
-    <div class="xp-section">
-      <div class="xp-label"><span>Level ${level(u.xp)}</span><span>${xpInLevel(u.xp)} / ${XP_PER_LEVEL} XP</span></div>
-      <div class="xp-bar-track"><div class="xp-bar-fill" style="width:${xpPct(u.xp)}%"></div></div>
-    </div>` : '<div style="flex:1"></div>'}
-    <div class="topbar-right">
-      <div class="user-chip">
-        <div class="user-avatar">${initials(u.name)}</div>
-        <span class="user-name">${u.name.split(' ')[0]}</span>
-        <span class="role-badge ${u.role}">${u.role}</span>
-      </div>
-      <button class="icon-btn" onclick="logout()" title="Switch user">⇄</button>
-    </div>
-  </div>`;
+function showXPGain(xp){
+  const el=document.createElement('div');
+  el.className='xp-float';el.textContent='+'+xp+' XP!';
+  el.style.cssText=`right:80px;bottom:100px`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1400);
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: SIDEBAR
-// ═══════════════════════════════════════════════
-function renderSidebar() {
-  const u = me();
-  const navs = {
-    member:  [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['resume','📄','Resume Ready'],['leaderboard','🏆','Leaderboard'],['invoai','🤖','InvoAI']],
-    officer: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['leaderboard','🏆','Leaderboard'],['invoai','🤖','InvoAI']],
-    advisor: [['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['leaderboard','🏆','Leaderboard']],
+// ── RENDER LOGIN ──────────────────────────────────────
+function renderLogin(){
+  return`<div class="login-page">
+  <div class="login-card">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+      <img src="https://i.imgur.com/KaSEx7u.png" style="width:70px;height:70px;object-fit:contain" onerror="this.style.display='none'">
+      <div><div class="login-logo"><span style="color:var(--navy)">Involv</span><span style="color:var(--teal)">Ed</span></div><div class="login-tagline">Your skills. Your proof.</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="login-section-lbl">Jump in as a demo user</div>
+    <div class="picks">
+      ${S.users.map(u=>`<button class="pick-btn" onclick="login('${u.id}')">
+        <div class="pick-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
+        <div><div class="pick-name">${u.name}</div><div class="pick-role">${u.role}</div></div>
+      </button>`).join('')}
+    </div>
+    <div class="or-text">or join as new</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input class="fi" id="cName" placeholder="Your full name">
+      <div style="display:flex;gap:8px">
+        <select class="fsel" id="cRole"><option value="member">Member</option><option value="officer">Officer</option><option value="advisor">Advisor</option></select>
+        <button class="btn btn-pri" onclick="loginCustom()">Join →</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── RENDER TOPBAR ─────────────────────────────────────
+function renderTopbar(){
+  const u=me();const showXP=u.role!=='advisor';
+  return`<div class="topbar">
+  <div class="logo">Involv<span class="logo-t">Ed</span></div>
+  ${u.streak>0&&u.role!=='advisor'?`<div class="streak-chip"><span class="streak-fire">🔥</span>${u.streak} streak</div>`:''}
+  ${showXP?`<div class="xp-section">
+    <div class="xp-label"><span>Lv ${lvl(u.xp)}</span><span>${xpInLvl(u.xp)}/${XP_PER_LEVEL} XP</span></div>
+    <div class="xp-track"><div class="xp-fill" style="width:${xpPct(u.xp)}%"></div></div>
+  </div>
+  <div class="lvl-badge">LVL ${lvl(u.xp)}</div>`:'<div style="flex:1"></div>'}
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="u-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
+      <span class="u-name">${u.name.split(' ')[0]}</span>
+      <span class="role-pill ${u.role}">${u.role}</span>
+    </div>
+    <button class="icon-btn" onclick="logout()" title="Switch">⇄</button>
+  </div>
+</div>`;
+}
+
+// ── RENDER SIDEBAR ────────────────────────────────────
+function renderSidebar(){
+  const u=me();
+  const navs={
+    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['leaderboard','🏆','Leaderboard']],
+    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard']],
+    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard']],
   };
-  const pending = state.tasks.filter(t => t.status === 'submitted').length;
-  return `
-  <div class="sidebar">
-    ${(navs[u.role] || navs.member).map(([v, icon, label]) => `
-    <div class="nav-item ${state.activeView === v ? 'active' : ''}" onclick="navigate('${v}')">
-      <span class="nav-icon">${icon}</span>
-      ${label}
-      ${v === 'tasks' && u.role === 'officer' && pending ? `<span class="notification-dot"></span>` : ''}
-    </div>`).join('')}
-  </div>`;
+  const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
+  return`<div class="sidebar">
+  ${(navs[u.role]||navs.member).map(([v,ic,lbl])=>`
+  <div class="nav-item ${S.view===v?'active':''}" onclick="nav('${v}')">
+    <span class="nav-icon">${ic}</span>${lbl}
+    ${v==='tasks'&&u.role==='officer'&&pending?`<span class="nav-dot"></span>`:''}
+  </div>`).join('')}
+</div>`;
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: DASHBOARD
-// ═══════════════════════════════════════════════
-function renderDashboard() {
-  const u = me();
-  const done = completedBy(u.id);
-
-  if (u.role === 'member') {
-    const active = state.tasks.filter(t => t.claimedBy === u.id && t.status !== 'approved');
-    const open = state.tasks.filter(t => t.status === 'open');
-    return `
-    <div class="page-title">Welcome back, ${u.name.split(' ')[0]}! 👋</div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Here's your progress at a glance.</p>
-    <div class="card-grid">
-      <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-value" style="color:var(--teal)">${u.xp}</div><div class="stat-label">Total XP Earned</div></div>
-      <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-value">${done.length}</div><div class="stat-label">Tasks Completed</div></div>
-      <div class="stat-card"><div class="stat-icon">🛠️</div><div class="stat-value">${u.skills.length}</div><div class="stat-label">Skills Earned</div></div>
-      <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value">${u.badges.length}</div><div class="stat-label">Badges Unlocked</div></div>
+// ── RENDER DASHBOARD ──────────────────────────────────
+function renderDashboard(){
+  const u=me();const done=approvedByUser(u.id);
+  if(u.role==='member'){
+    const active=S.tasks.filter(t=>t.submissions.some(s=>s.userId===u.id&&s.status!=='approved'&&s.status!=='rejected'));
+    const open=S.tasks.filter(t=>taskStatus(t)==='open');
+    const todayXP=xpInLvl(u.xp);
+    return`
+    ${u.streak>=3?`<div class="streak-banner"><div class="streak-num">🔥${u.streak}</div><div><div class="streak-lbl">Day Streak!</div><div style="font-size:12px;opacity:.8">You're on fire! Keep it up.</div></div></div>`:''}
+    <div class="page-hdr"><div><div class="page-title">Hey ${u.name.split(' ')[0]}! 👋</div><div class="page-sub">Keep building — every task is proof of your skills.</div></div></div>
+    <div class="daily-goal">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:14px">⚡ Daily XP Goal</span><span style="font-size:13px;color:var(--muted)">${todayXP} / ${XP_PER_LEVEL} XP</span></div>
+      <div class="daily-goal-bar"><div class="daily-goal-fill" style="width:${xpPct(u.xp)}%"></div></div>
     </div>
-    ${active.length ? `<div class="section-header"><div class="section-title">🔥 Active Tasks</div></div><div class="task-list">${active.map(t => taskCard(t)).join('')}</div>` : ''}
-    ${open.length ? `
-    <div class="section-header">
-      <div class="section-title">📋 Open Tasks</div>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('tasks')">View all →</button>
+    <div class="stat-grid">
+      <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">⚡</div><div class="stat-val" style="color:var(--orange)">${u.xp}</div><div class="stat-lbl">Total XP</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">🎯</div><div class="stat-val" style="color:var(--green)">${done.length}</div><div class="stat-lbl">Completed</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--pri)">${u.skills.length}</div><div class="stat-lbl">Skills</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--pink)"><div class="stat-ico">🏅</div><div class="stat-val" style="color:var(--pink)">${u.badges.length}</div><div class="stat-lbl">Badges</div></div>
     </div>
-    <div class="task-list">${open.slice(0,2).map(t => taskCard(t)).join('')}</div>` : ''}
-    <div class="section-header" style="margin-top:8px;"><div class="section-title">🏅 Badges</div></div>
-    ${badgeGrid(u)}`;
+    ${active.length?`<div class="sec-title">🔥 Your Active Tasks</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
+    ${open.length?`<div class="sec-row"><div class="sec-title">📋 Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('tasks')">View all →</button></div><div class="task-grid">${open.slice(0,3).map(t=>taskCard(t)).join('')}</div>`:''}
+    <div class="sec-title">🏅 Your Badges</div>${badgeGrid(u)}`;
   }
-
-  if (u.role === 'officer') {
-    const pending = state.tasks.filter(t => t.status === 'submitted');
-    return `
-    <div class="page-title">Officer Dashboard</div>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Manage tasks and track member progress.</p>
-    <div class="card-grid">
-      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value">${state.tasks.length}</div><div class="stat-label">Total Tasks</div></div>
-      <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value" style="color:#7C3AED">${pending.length}</div><div class="stat-label">Awaiting Approval</div></div>
-      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${members().length}</div><div class="stat-label">Active Members</div></div>
-      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">${state.tasks.filter(t=>t.status==='approved').length}</div><div class="stat-label">Tasks Approved</div></div>
+  if(u.role==='officer'){
+    const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
+    return`
+    <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Create tasks, review work, grow your club.</div></div></div>
+    <div class="stat-grid">
+      <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--cyan)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--cyan)">${pending}</div><div class="stat-lbl">Awaiting Review</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
+      <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--orange)">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Approved</div></div>
     </div>
-    ${pending.length ? `
-    <div class="section-header">
-      <div class="section-title" style="color:#7C3AED">⏳ Needs Your Approval</div>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('tasks');setFilter('submitted')">View all →</button>
-    </div>
-    <div class="task-list">${pending.slice(0,3).map(t => taskCard(t)).join('')}</div>` : ''}
-    <div class="section-header" style="margin-top:8px;"><div class="section-title">🏅 Your Badges</div></div>
-    ${badgeGrid(u)}`;
+    ${pending?`<div class="sec-row"><div class="sec-title" style="color:var(--cyan)">⏳ Needs Review</div></div><div class="task-grid">${S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review')).slice(0,3).map(t=>taskCard(t)).join('')}</div>`:''}
+    <div class="sec-title">🏅 Your Badges</div>${badgeGrid(u)}`;
   }
-
   // advisor
-  const ms = members();
-  const totalXP = ms.reduce((s, m) => s + m.xp, 0);
-  const totalDone = state.tasks.filter(t => t.status === 'approved').length;
-  const totalSkills = [...new Set(ms.flatMap(m => m.skills))].length;
-  return `
-  <div class="page-title">Advisor Overview</div>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Monitor club activity and member progress.</p>
-  <div class="card-grid">
-    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">${ms.length}</div><div class="stat-label">Total Members</div></div>
-    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">${totalDone}</div><div class="stat-label">Tasks Completed</div></div>
-    <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-value" style="color:var(--teal)">${totalXP}</div><div class="stat-label">Total XP Earned</div></div>
-    <div class="stat-card"><div class="stat-icon">🛠️</div><div class="stat-value">${totalSkills}</div><div class="stat-label">Unique Skills Banked</div></div>
+  const ms=members();const totalXP=ms.reduce((s,m)=>s+m.xp,0);
+  return`
+  <div class="page-hdr"><div><div class="page-title">Advisor Overview</div><div class="page-sub">Monitor club progress and member development.</div></div></div>
+  <div class="stat-grid">
+    <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">👥</div><div class="stat-val">${ms.length}</div><div class="stat-lbl">Members</div></div>
+    <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">✅</div><div class="stat-val">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Tasks Done</div></div>
+    <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">⚡</div><div class="stat-val" style="color:var(--orange)">${totalXP}</div><div class="stat-lbl">Total XP</div></div>
+    <div class="stat-card" style="border-top:4px solid var(--cyan)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--cyan)">${[...new Set(ms.flatMap(m=>m.skills))].length}</div><div class="stat-lbl">Unique Skills</div></div>
   </div>
-  <div class="section-header"><div class="section-title">👥 Member Progress</div></div>
-  <div style="display:flex;flex-direction:column;gap:10px;">${ms.map(memberRow).join('')}</div>`;
+  <div class="sec-title">👥 Member Progress</div>
+  <div class="member-list">${ms.map(memberRow).join('')}</div>`;
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: TASKS
-// ═══════════════════════════════════════════════
-function renderTasks() {
-  const u = me();
-  const f = state.activeFilter;
-  let tasks = [...state.tasks].sort((a,b) => b.createdAt - a.createdAt);
-  const pending = tasks.filter(t => t.status === 'submitted').length;
+// ── TASK CARD (SQUARE) ────────────────────────────────
+function taskCard(task){
+  const u=me();const cat=CAT[task.cat]||CAT.general;
+  const st=taskStatus(task);const mySub=mySubmission(task);
+  const active=task.submissions.filter(s=>s.status!=='rejected');
+  const spotsLeft=task.capacity-active.length;
 
-  if (u.role === 'member') {
-    if (f === 'open') tasks = tasks.filter(t => t.status === 'open');
-    else if (f === 'mine') tasks = tasks.filter(t => t.claimedBy === u.id);
-  } else {
-    if (f === 'submitted') tasks = tasks.filter(t => t.status === 'submitted');
-    else if (f === 'open') tasks = tasks.filter(t => t.status === 'open');
-    else if (f === 'approved') tasks = tasks.filter(t => t.status === 'approved');
+  let stChip='',action='';
+  if(st==='open')stChip=`<span class="s-chip s-open">Open</span>`;
+  else if(st==='claimed')stChip=`<span class="s-chip s-claimed">In Progress</span>`;
+  else if(st==='review')stChip=`<span class="s-chip s-review">Needs Review</span>`;
+  else if(st==='approved')stChip=`<span class="s-chip s-approved">Done</span>`;
+  else stChip=`<span class="s-chip s-full">Full</span>`;
+
+  if(u.role==='member'){
+    if(!mySub&&st==='open')action=`<button class="btn btn-teal btn-sm" onclick="claimTask('${task.id}')">Claim</button>`;
+    else if(mySub?.status==='claimed')action=`<button class="btn btn-pri btn-sm" onclick="openModal('submit','${task.id}')">Submit</button>`;
+    else if(mySub?.status==='pending_review')action=`<button class="btn btn-ghost btn-sm" disabled>⏳ In Review</button>`;
+    else if(mySub?.status==='approved')action=`<button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">+ Portfolio</button>`;
+  }else if(u.role==='officer'){
+    const reviewCount=task.submissions.filter(s=>s.status==='pending_review').length;
+    if(reviewCount)action=`<button class="btn btn-pri btn-sm" onclick="openModal('review','${task.id}')">Review (${reviewCount})</button>`;
+    else if(st==='open')action=`<button class="btn btn-danger btn-sm" onclick="delTask('${task.id}')">Delete</button>`;
   }
 
-  const filters = u.role === 'member'
-    ? [['all','All Tasks'],['open','Open'],['mine','My Tasks']]
-    : [['all','All'],[`submitted`, `Needs Approval${pending ? ` (${pending})` : ''}`],['open','Open'],['approved','Approved']];
-
-  return `
-  <div class="page-header">
-    <div>
-      <div class="page-title">Tasks</div>
-      <div class="page-sub">${u.role === 'member' ? 'Claim tasks to earn XP and build real skills.' : u.role === 'officer' ? 'Create tasks and approve member submissions.' : 'Monitor all club tasks.'}</div>
+  return`<div class="tcard">
+  <div class="tcard-top" style="background:${cat.c}"></div>
+  <div class="tcard-body">
+    <div class="tcard-cat-row">
+      <span class="tcard-cat-icon">${cat.icon}</span>
+      <span class="tcard-cat-lbl" style="color:${cat.c}">${cat.lbl}</span>
+      <span style="margin-left:auto">${stChip}</span>
     </div>
-    ${u.role === 'officer' ? `<button class="btn btn-primary" onclick="openModal('createTask')">+ Create Task</button>` : ''}
-  </div>
-  <div class="filter-tabs">
-    ${filters.map(([k,l]) => `<button class="filter-tab ${f===k?'active':''}" onclick="setFilter('${k}')">${l}</button>`).join('')}
-  </div>
-  ${tasks.length === 0
-    ? `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No tasks here</div><div class="empty-desc">Try a different filter or check back later.</div></div>`
-    : `<div class="task-list">${tasks.map(t => taskCard(t)).join('')}</div>`}`;
-}
-
-function taskCard(task) {
-  const u = me();
-  const claimer = task.claimedBy ? getUser(task.claimedBy) : null;
-  const isMe = task.claimedBy === u.id;
-  let action = '';
-
-  if (u.role === 'member') {
-    if (task.status === 'open')
-      action = `<button class="btn btn-teal btn-sm" onclick="claimTask('${task.id}')">Claim Task</button>`;
-    else if (task.status === 'claimed' && isMe)
-      action = `<button class="btn btn-primary btn-sm" onclick="openModal('submitWork','${task.id}')">Submit Work</button>`;
-    else if (task.status === 'submitted' && isMe)
-      action = `<button class="btn btn-ghost btn-sm" disabled>⏳ Pending Review</button>`;
-    else if (task.status === 'approved' && isMe)
-      action = `<button class="btn btn-outline btn-sm" onclick="openModal('portfolioEntry','${task.id}')">+ Portfolio</button>`;
-  } else if (u.role === 'officer') {
-    if (task.status === 'submitted')
-      action = `<button class="btn btn-primary btn-sm" onclick="openModal('approveTask','${task.id}')">Review</button>`;
-    else if (task.status === 'open')
-      action = `<button class="btn btn-danger btn-sm" onclick="deleteTask('${task.id}')">Delete</button>`;
-  }
-
-  return `
-  <div class="task-card">
-    <div class="task-card-header">
-      <div class="task-title">${task.title}</div>
-      <span class="status-badge status-${task.status}">${statusLabel(task.status)}</span>
-    </div>
-    <div class="task-desc">${task.desc}</div>
-    <div class="task-footer">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-        ${task.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
-        <span class="xp-tag">+${task.xp} XP</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        ${claimer && u.role !== 'member' ? `<span style="font-size:12px;color:var(--muted)">👤 ${claimer.name.split(' ')[0]}</span>` : ''}
-        ${action}
-      </div>
-    </div>
-  </div>`;
-}
-
-// ═══════════════════════════════════════════════
-// RENDER: MEMBERS
-// ═══════════════════════════════════════════════
-function renderMembers() {
-  const u = me();
-  const list = state.users.filter(m => m.role !== 'advisor');
-  return `
-  <div class="page-title">${u.role === 'advisor' ? 'All Members' : 'Members'}</div>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Track member progress and skills.</p>
-  <div style="display:flex;flex-direction:column;gap:10px;">${list.map(memberRow).join('')}</div>`;
-}
-
-function memberRow(m) {
-  const done = completedBy(m.id).length;
-  const roleColor = m.role === 'officer' ? '#D97706' : 'var(--navy)';
-  return `
-  <div class="member-row">
-    <div class="member-avatar" style="background:${roleColor}">${initials(m.name)}</div>
-    <div>
-      <div class="member-name">${m.name}</div>
-      <div class="member-sub">${m.role} · Level ${level(m.xp)} · ${m.skills.slice(0,3).join(', ')}${m.skills.length > 3 ? ' +' + (m.skills.length - 3) : ''}</div>
-    </div>
-    <div class="member-stats">
-      <div><div class="mstat-val">${m.xp}</div><div class="mstat-label">XP</div></div>
-      <div><div class="mstat-val">${done}</div><div class="mstat-label">Tasks</div></div>
-      <div><div class="mstat-val">${m.badges.length}</div><div class="mstat-label">Badges</div></div>
-    </div>
-  </div>`;
-}
-
-// ═══════════════════════════════════════════════
-// RENDER: RESUME READY
-// ═══════════════════════════════════════════════
-function renderResume() {
-  const u = me();
-  const done = completedBy(u.id);
-  return `
-  <div class="page-header">
-    <div>
-      <div class="page-title">Resume Ready</div>
-      <div class="page-sub">Your skills and portfolio — built through real work, ready to export.</div>
-    </div>
-    <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
-  </div>
-  <div class="card" style="margin-bottom:24px;">
-    <div class="section-header" style="margin-bottom:12px;">
-      <div><div class="section-title">🛠️ Skills Bank</div><div style="font-size:12px;color:var(--muted);">Auto-earned from approved tasks</div></div>
-    </div>
-    ${u.skills.length
-      ? `<div class="skills-bank">${u.skills.map(s => `<span class="skill-bank-tag">${s}</span>`).join('')}</div>`
-      : `<div class="empty-state" style="padding:24px;"><div class="empty-icon">🌱</div><div class="empty-title">No skills yet</div><div class="empty-desc">Complete tasks to earn skills.</div></div>`}
-  </div>
-  <div class="section-header">
-    <div><div class="section-title">📁 Portfolio Entries</div><div style="font-size:12px;color:var(--muted);">Write what you did, quantify your impact</div></div>
-  </div>
-  ${done.length === 0
-    ? `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No completed tasks yet</div><div class="empty-desc">Get tasks approved to add portfolio entries.</div></div>`
-    : done.map(task => {
-        const entry = u.portfolioEntries.find(e => e.taskId === task.id);
-        return `
-        <div class="portfolio-entry">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-            <div style="flex:1;">
-              <div class="pe-title">${task.title}</div>
-              ${entry ? `<div class="pe-text">${entry.text}</div>` : `<div class="pe-empty">No entry yet — describe what you did and its impact!</div>`}
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="openModal('portfolioEntry','${task.id}')">${entry ? 'Edit' : '+ Add'}</button>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
-            ${task.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
-            <span class="xp-tag">+${task.xp} XP</span>
-          </div>
-        </div>`;
-      }).join('')}`;
-}
-
-// ═══════════════════════════════════════════════
-// RENDER: LEADERBOARD
-// ═══════════════════════════════════════════════
-function renderLeaderboard() {
-  const u = me();
-  const ranked = members().sort((a,b) => b.xp - a.xp);
-  const medals = ['🥇','🥈','🥉'];
-  return `
-  <div class="page-title">🏆 Leaderboard</div>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Top members ranked by XP — earned through real work, not just attendance.</p>
-  <div class="leaderboard-list">
-    ${ranked.map((m, i) => `
-    <div class="lb-row ${m.id === u.id ? 'you' : ''}">
-      <div class="rank-num ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${medals[i] || i+1}</div>
-      <div class="lb-avatar">${initials(m.name)}</div>
+    <div class="tcard-title">${task.title}</div>
+    <div class="tcard-desc">${task.desc}</div>
+    <div class="tcard-skills">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
+    <div class="tcard-footer">
       <div>
-        <div class="lb-name">${m.name}${m.id === u.id ? ' (you)' : ''}</div>
-        <div class="lb-sub">Level ${level(m.xp)} · ${completedBy(m.id).length} tasks · ${m.badges.length} badges</div>
+        <span class="xp-chip">⚡${task.xp} XP</span>
+        ${task.capacity>1?`<span class="tcard-cap" style="margin-left:6px">👥 ${spotsLeft}/${task.capacity} spots</span>`:''}
       </div>
-      <div style="margin-left:auto;text-align:right;">
-        <div class="lb-xp">${m.xp} XP</div>
-        <div class="lb-xp-label">${m.skills.slice(0,2).join(', ') || 'No skills yet'}</div>
-      </div>
-    </div>`).join('')}
-  </div>`;
+      ${action}
+    </div>
+  </div>
+</div>`;
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: INVOAI
-// ═══════════════════════════════════════════════
-function renderInvoAI() {
-  const hasKey = !!state.apiKey;
-  const chips = [
-    'What skills am I building?',
-    'Help me write a resume bullet for my last task',
-    'What tasks should I tackle next?',
-    'How do I talk about club work in interviews?',
-  ];
-  return `
-  <div class="page-title">🤖 InvoAI</div>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">Your AI career coach — ask about skills, resume language, and next steps.</p>
-  ${!hasKey ? `
-  <div class="api-key-banner">
-    <strong>🔑 Connect your Anthropic API Key</strong>
-    <div style="font-size:13px;color:var(--muted);margin-top:3px;">Get yours at console.anthropic.com — stored in your browser only. Never sent anywhere except Anthropic.</div>
-    <div class="api-key-row">
-      <input class="api-key-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." />
-      <button class="btn btn-primary btn-sm" onclick="saveKey()">Connect</button>
-    </div>
-  </div>` : `
-  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-    <span style="color:var(--teal);font-weight:600;">● API key active</span>
-    <button onclick="clearKey()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;text-decoration:underline;">Change</button>
-  </div>`}
-  <div class="ai-wrap">
-    <div class="ai-chips">${chips.map(c => `<button class="ai-chip" onclick="sendChip(${JSON.stringify(c)})">${c}</button>`).join('')}</div>
-    <div class="ai-messages" id="aiMessages">
-      ${state.invoMessages.length === 0 ? `
-      <div style="text-align:center;padding:32px;color:var(--muted);">
-        <div style="font-size:36px;margin-bottom:8px;">🤖</div>
-        <div style="font-weight:700;margin-bottom:4px;">Hi, I'm InvoAI!</div>
-        <div style="font-size:13px;">Ask me anything about your skills, resume bullets, or which tasks to pick next.</div>
-      </div>` : state.invoMessages.map(m => `
-      <div class="message ${m.role === 'user' ? 'user' : 'ai'}">
-        ${m.role === 'assistant' ? '<div class="ai-label">InvoAI</div>' : ''}
-        <div style="white-space:pre-wrap;">${m.content}</div>
-      </div>`).join('')}
-      ${state.aiLoading ? `
-      <div class="message ai">
-        <div class="ai-label">InvoAI</div>
-        <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
-      </div>` : ''}
-    </div>
-    <div class="ai-input-row">
-      <input class="ai-input" id="aiInput" placeholder="Ask InvoAI anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" />
-      <button class="btn btn-primary" onclick="sendMessage()" ${!hasKey || state.aiLoading ? 'disabled' : ''}>Send</button>
-    </div>
-  </div>`;
+// ── RENDER TASKS VIEW ─────────────────────────────────
+function renderTasks(){
+  const u=me();const f=S.filter;
+  let tasks=[...S.tasks].sort((a,b)=>b.createdAt-a.createdAt);
+  const pendingN=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
+
+  if(u.role==='member'){
+    if(f==='open')tasks=tasks.filter(t=>taskStatus(t)==='open');
+    else if(f==='mine')tasks=tasks.filter(t=>t.submissions.some(s=>s.userId===u.id));
+  }else{
+    if(f==='review')tasks=tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review'));
+    else if(f==='open')tasks=tasks.filter(t=>taskStatus(t)==='open');
+    else if(f==='approved')tasks=tasks.filter(t=>t.submissions.some(s=>s.status==='approved'));
+  }
+
+  const filters=u.role==='member'
+    ?[['all','All'],['open','Open'],['mine','My Tasks']]
+    :[['all','All'],[`review`,`⏳ Review${pendingN?` (${pendingN})`:''}`],['open','Open'],['approved','Approved']];
+
+  return`<div class="page-hdr">
+  <div><div class="page-title">Tasks</div><div class="page-sub">${u.role==='member'?'Claim tasks to earn XP and real skills.':'Create tasks and review submissions.'}</div></div>
+  ${u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createTask')">+ Create Task</button>`:''}
+</div>
+<div class="filter-row">${filters.map(([k,l])=>`<button class="ftab ${f===k?'active':''}" onclick="setF('${k}')">${l}</button>`).join('')}</div>
+${tasks.length?`<div class="task-grid">${tasks.map(t=>taskCard(t)).join('')}</div>`:`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Nothing here</div><div>Try a different filter.</div></div>`}`;
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: BADGES
-// ═══════════════════════════════════════════════
-function badgeGrid(u) {
-  return `<div class="badges-grid">${BADGES.map(b => `
-  <div class="badge-card ${u.badges.includes(b.id) ? 'earned' : ''}">
-    <div class="badge-icon">${b.icon}</div>
-    <div class="badge-name">${b.name}</div>
-    <div class="badge-desc">${b.desc}</div>
-    ${u.badges.includes(b.id) ? '<div class="badge-earned-label">EARNED ✓</div>' : ''}
+// ── BADGE GRID ────────────────────────────────────────
+function badgeGrid(u){
+  return`<div class="badge-grid">${BADGES.map(b=>{
+    const has=u.badges.includes(b.id);
+    return`<div class="badge-card ${has?'earned':''}" style="${has?`background:${b.grad};border-color:transparent`:''}">
+      <div class="badge-icon-big">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      ${has?'<div class="earned-tick">EARNED ✓</div>':''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── MEMBERS ────────────────────────────────────────────
+function memberRow(m){
+  const done=approvedByUser(m.id).length;
+  return`<div class="m-row">
+  <div class="m-av" style="background:${avColor(m.role)}">${initials(m.name)}</div>
+  <div><div class="m-name">${m.name}</div><div class="m-sub">${m.role} · Lv${lvl(m.xp)} · ${m.skills.slice(0,3).join(', ')}${m.skills.length>3?` +${m.skills.length-3}`:''}</div></div>
+  <div class="m-stats">
+    <div class="mstat"><div class="mstat-v">${m.xp}</div><div class="mstat-l">XP</div></div>
+    <div class="mstat"><div class="mstat-v">${done}</div><div class="mstat-l">Tasks</div></div>
+    <div class="mstat"><div class="mstat-v">${m.streak||0}</div><div class="mstat-l">🔥</div></div>
+  </div>
+</div>`;
+}
+
+function renderMembers(){
+  const list=S.users.filter(u=>u.role!=='advisor');
+  return`<div class="page-title">Members</div><p style="color:var(--muted);font-size:13px;margin-bottom:18px">Track member progress, skills, and streaks.</p>
+  <div class="member-list">${list.map(memberRow).join('')}</div>`;
+}
+
+// ── RESUME READY ─────────────────────────────────────
+function renderResume(){
+  const u=me();const done=approvedByUser(u.id);
+  return`<div class="page-hdr">
+  <div><div class="page-title">Resume Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
+  <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
+</div>
+<div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:20px">
+  <div class="sec-row"><div class="sec-title" style="margin:0">🛠️ Skills Bank</div><span style="font-size:12px;color:var(--muted)">${u.skills.length} skills earned</span></div>
+  ${u.skills.length?`<div class="skill-bank">${u.skills.map(s=>`<span class="skill-bank-tag">${s}</span>`).join('')}</div>`:`<div class="empty" style="padding:20px"><div class="empty-ico">🌱</div><div class="empty-ttl">No skills yet</div><div>Complete tasks to earn skills.</div></div>`}
+</div>
+<div class="sec-title">📁 Portfolio Entries</div>
+${done.length?done.map(task=>{
+  const e=u.portfolioEntries.find(e=>e.taskId===task.id);
+  return`<div class="pe-card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+    <div style="flex:1">
+      <div class="pe-title">${task.title}</div>
+      ${e?`<div class="pe-text">${e.text}</div>`:`<div class="pe-empty">No entry yet — describe what you did!</div>`}
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add'}</button>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
+</div>`;}).join(''):`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">No completed tasks yet</div><div>Complete tasks to add entries.</div></div>`}`;
+}
+
+// ── LEADERBOARD ───────────────────────────────────────
+function renderLeaderboard(){
+  const u=me();const ranked=members().sort((a,b)=>b.xp-a.xp);
+  const medals=['🥇','🥈','🥉'];
+  return`<div class="page-title">🏆 Leaderboard</div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Ranked by XP — earned through real work, not just showing up.</p>
+  <div class="lb-list">${ranked.map((m,i)=>`
+  <div class="lb-row ${m.id===u.id?'you':''}">
+    <div class="rank ${i<3?`rank-${i+1}`:''}">${medals[i]||i+1}</div>
+    <div class="lb-av" style="background:${avColor(m.role)}">${initials(m.name)}</div>
+    <div><div class="lb-name">${m.name}${m.id===u.id?' (you)':''}</div><div class="lb-sub">Lv${lvl(m.xp)} · ${approvedByUser(m.id).length} tasks · 🔥${m.streak||0}</div></div>
+    <div style="margin-left:auto;text-align:right"><div class="lb-xp">${m.xp}</div><div class="lb-xplbl">XP</div></div>
   </div>`).join('')}</div>`;
 }
 
-// ═══════════════════════════════════════════════
-// RENDER: MODALS
-// ═══════════════════════════════════════════════
-function renderModal() {
-  if (!state.activeModal) return '';
-  const { activeModal: m, modalData: d } = state;
-  let html = '';
+// ── CHECK IN (member) ─────────────────────────────────
+function renderCheckin(){
+  const u=me();const recs=S.attendance.records;
+  const openEvts=S.attendance.events.filter(e=>e.isOpen);
+  const myHistory=S.attendance.events.filter(e=>recs[e.id]?.includes(u.id));
+  return`<div class="page-title">✅ Check In</div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Check into club events to track your attendance.</p>
+  ${openEvts.length?`<div class="sec-title" style="color:var(--green)">🟢 Open Events</div><div class="event-list">${openEvts.map(ev=>{
+    const alreadyIn=recs[ev.id]?.includes(u.id);
+    return`<div class="event-row event-open-row">
+    <div><div style="font-weight:800;font-size:15px">${ev.name}</div><div style="font-size:12px;color:var(--muted)">${ev.date}${ev.location?' · '+ev.location:''} · Code: <strong>${ev.code}</strong></div></div>
+    ${alreadyIn?`<span class="s-chip s-approved">Checked In ✓</span>`:`<button class="btn btn-teal btn-sm" onclick="checkIn('${ev.id}')">Check In</button>`}
+  </div>`}).join('')}</div>`:`<div class="empty"><div class="empty-ico">📅</div><div class="empty-ttl">No open events</div><div>Your officer will create one.</div></div>`}
+  ${myHistory.length?`<div class="sec-title" style="margin-top:20px">📜 My Attendance History</div>
+  <div class="event-list">${myHistory.map(ev=>`<div class="event-row">
+    <div><div style="font-weight:700">${ev.name}</div><div style="font-size:12px;color:var(--muted)">${ev.date}</div></div>
+    <span class="s-chip s-approved">Attended ✓</span>
+  </div>`).join('')}</div>`:''}`;
+}
 
-  if (m === 'createTask') {
-    html = `
-    <div class="modal-header"><div class="modal-title">Create New Task</div><button class="close-btn" onclick="closeModal()">×</button></div>
+// ── ATTENDANCE (officer/advisor) ──────────────────────
+function renderAttendance(){
+  const u=me();const recs=S.attendance.records;
+  return`<div class="page-hdr">
+  <div><div class="page-title">📅 Attendance</div><div class="page-sub">Create events with QR codes. Members scan to check in.</div></div>
+  ${u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createEvent')">+ New Event</button>`:''}
+</div>
+<div class="att-grid">${S.attendance.events.map(ev=>{
+  const checkedIn=recs[ev.id]||[];
+  const checkNames=checkedIn.map(uid=>getUser(uid)?.name||uid);
+  const qrData=encodeURIComponent(`InvolvED Check-In: ${ev.name} | Code: ${ev.code}`);
+  return`<div class="att-card ${ev.isOpen?'att-card-open':''}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
+    <div class="att-event-name">${ev.name}</div>
+    ${ev.isOpen?`<span class="s-chip s-approved">OPEN</span>`:``}
+    ${u.role==='officer'?`<button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="toggleEvent('${ev.id}')">${ev.isOpen?'Close':'Reopen'}</button>`:''}
+  </div>
+  <div class="att-event-meta">${ev.date}${ev.location?' · '+ev.location:''}</div>
+  <div class="att-code">${ev.code}</div>
+  <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}&bgcolor=ffffff&color=4C1D95" width="120" height="120" loading="lazy">
+  <div class="att-count" style="margin-top:10px">👥 ${checkedIn.length} checked in</div>
+  ${checkNames.length?`<div class="checkin-list">${checkNames.map(n=>`<span class="checkin-chip">${n.split(' ')[0]}</span>`).join('')}</div>`:''}
+</div>`;}).join('')}
+${S.attendance.events.length===0?`<div class="empty"><div class="empty-ico">📅</div><div class="empty-ttl">No events yet</div><div>Create your first attendance event.</div></div>`:''}
+</div>`;
+}
+
+// ── MODALS ────────────────────────────────────────────
+function renderModal(){
+  if(!S.modal)return'';
+  const m=S.modal;const d=S.modalData;
+  let html='';
+
+  if(m==='createTask'){
+    html=`<div class="modal-hdr"><div class="modal-ttl">📋 Create New Task</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label">Task Title *</label><input class="form-input" id="tTitle" placeholder="e.g. Design Club Flyer" /></div>
-      <div class="form-group"><label class="form-label">Description *</label><textarea class="form-textarea" id="tDesc" placeholder="What should members do? Be specific about deliverables."></textarea></div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-select" id="tCat">
-          <option value="general">General</option>
-          <option value="research">Research</option>
-          <option value="creative">Creative</option>
-          <option value="administrative">Administrative</option>
-          <option value="leadership">Leadership</option>
-          <option value="tech">Technology</option>
-        </select>
+      <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="tTitle" placeholder="e.g. Design Club Flyer"></div>
+      <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="tDesc" placeholder="What should members do? Be specific about deliverables."></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">Category</label><select class="fsel" id="tCat">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v.icon} ${v.lbl}</option>`).join('')}</select></div>
+        <div class="fg"><label class="fl">Capacity (# members)</label><input class="fi" id="tCap" type="number" min="1" max="10" value="1"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Skills Members Will Earn (select at least one)</label>
-        <div class="skill-checks">
-          ${ALL_SKILLS.map(s => `<label class="skill-check-label"><input type="checkbox" value="${s}" class="skill-ck"> ${s}</label>`).join('')}
+      <div class="fg"><label class="fl">Skills members will earn</label><div class="skill-picks">${ALL_SKILLS.map(s=>`<button type="button" class="skill-pick-toggle" onclick="this.classList.toggle('on')" data-skill="${s}">${s}</button>`).join('')}</div></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px">⚡ Members earn <strong>200 XP</strong> on approval</div>
+      <div id="distSugg"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ai btn-sm" onclick="suggestDistribution()">💡 Who's a fit?</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-pri" onclick="createTask()">Create Task</button>
+    </div>`;
+  }
+
+  else if(m==='submit'){
+    const task=S.tasks.find(t=>t.id===d);
+    const aiSkills=S.pendingAISkills;
+    html=`<div class="modal-hdr"><div class="modal-ttl">📤 Submit Work</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:14px">
+        <div style="font-weight:800;font-size:14px;color:${CAT[task.cat]?.c||'var(--pri)'}">${CAT[task.cat]?.icon||'📌'} ${task.title}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${task.desc}</div>
+      </div>
+      <div class="fg"><label class="fl">Describe what you did *</label><textarea class="fta" id="workText" placeholder="What did you create/research/do? What tools did you use? What were the results?"></textarea></div>
+      <div class="fg">
+        <label class="fl">Upload your work (optional)</label>
+        <div class="file-input-wrap" onclick="document.getElementById('fileIn').click()">
+          <input type="file" id="fileIn" onchange="handleFile(this)">
+          <div id="fileLbl" style="color:var(--muted);font-size:13px">📎 Click to attach a file (PDF, image, doc...)</div>
         </div>
       </div>
-      <div style="font-size:13px;color:var(--muted);">⚡ Reward: <strong>200 XP</strong> on approval</div>
+      <button class="btn btn-ai" style="width:100%;justify-content:center;margin-bottom:10px" onclick="analyzeSkills('${d}')" ${S.modalAILoading?'disabled':''}>
+        ${S.modalAILoading?'<span style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>':'✨ Analyze with InvoAI — detect my skills'}
+      </button>
+      ${aiSkills.length?`<div style="margin-bottom:12px">
+        <label class="fl">AI-Detected Skills (toggle to confirm)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="aiSkillChips">
+          ${aiSkills.map(s=>`<button type="button" class="ai-skill-chip" onclick="this.classList.toggle('off')">${s}</button>`).join('')}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px">These skills will be added to your Resume Ready tab on approval.</div>
+      </div>`:''}
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="createTask()">Create Task</button></div>`;
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="submitWork('${d}')">Submit for Review →</button></div>`;
   }
 
-  else if (m === 'submitWork') {
-    const task = state.tasks.find(t => t.id === d);
-    html = `
-    <div class="modal-header"><div class="modal-title">Submit Work</div><button class="close-btn" onclick="closeModal()">×</button></div>
+  else if(m==='review'){
+    const task=S.tasks.find(t=>t.id===d);
+    const pending=task.submissions.filter(s=>s.status==='pending_review');
+    const sub=pending[0]; // show first pending
+    const claimer=getUser(sub.userId);
+    html=`<div class="modal-hdr"><div class="modal-ttl">⚖️ Review Submission</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div class="card" style="background:var(--bg);margin-bottom:16px;"><div style="font-weight:700;margin-bottom:4px;">${task.title}</div><div style="font-size:13px;color:var(--muted);">${task.desc}</div></div>
-      <div class="form-group"><label class="form-label">Describe what you completed *</label><textarea class="form-textarea" id="workText" placeholder="Explain what you did, tools used, results, any links to your work..."></textarea></div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="submitWork('${d}')">Submit for Review</button></div>`;
-  }
-
-  else if (m === 'approveTask') {
-    const task = state.tasks.find(t => t.id === d);
-    const claimer = getUser(task.claimedBy);
-    html = `
-    <div class="modal-header"><div class="modal-title">Review Submission</div><button class="close-btn" onclick="closeModal()">×</button></div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Submitted by <strong>${claimer?.name}</strong></div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:14px;">${task.title}</div>
-      <div class="card" style="background:#F8F9FF;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Submission</div>
-        <div style="font-size:14px;line-height:1.6;">${task.work}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:3px">Submitted by <strong>${claimer?.name}</strong>${pending.length>1?` · ${pending.length} pending`:''}</div>
+      <div style="font-size:17px;font-weight:900;margin-bottom:14px;color:${CAT[task.cat]?.c||'var(--pri)'}">${CAT[task.cat]?.icon} ${task.title}</div>
+      <div style="background:#F8F7FF;border-radius:var(--rsm);padding:14px;margin-bottom:14px;border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">📝 Submission</div>
+        <div style="font-size:13px;line-height:1.6">${sub.work}</div>
+        ${sub.fileName?`<div style="margin-top:8px"><span class="file-attached">📎 ${sub.fileName}</span></div>`:''}
       </div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Skills awarded on approval:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${task.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
-        <span class="xp-tag">+${task.xp} XP</span>
-      </div>
+      ${sub.aiSkills?.length?`<div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">✨ AI-DETECTED SKILLS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${sub.aiSkills.map(s=>`<span class="sk-tag" style="background:#D1FAE5;color:#065F46">${s}</span>`).join('')}</div>
+      </div>`:''}
+      <div style="font-size:12px;color:var(--muted);margin-bottom:7px">Task skills to award on approval:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger" onclick="rejectTask('${d}')">Reject</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-teal" onclick="approveTask('${d}')">✓ Approve</button>
-    </div>`;
+    <div class="modal-ftr"><button class="btn btn-danger" onclick="rejectSub('${d}','${sub.userId}')">Reject</button><button class="btn btn-ghost" onclick="closeModal()">Later</button><button class="btn btn-teal" onclick="approveSub('${d}','${sub.userId}')">✓ Approve</button></div>`;
   }
 
-  else if (m === 'portfolioEntry') {
-    const task = state.tasks.find(t => t.id === d);
-    const u = me();
-    const existing = u.portfolioEntries.find(e => e.taskId === d);
-    html = `
-    <div class="modal-header"><div class="modal-title">Portfolio Entry</div><button class="close-btn" onclick="closeModal()">×</button></div>
+  else if(m==='portfolio'){
+    const task=S.tasks.find(t=>t.id===d);const u=me();
+    const e=u.portfolioEntries.find(e=>e.taskId===d);
+    const mySub=mySubmission(task);
+    html=`<div class="modal-hdr"><div class="modal-ttl">📁 Portfolio Entry</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div style="font-weight:700;margin-bottom:4px;">${task.title}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Write this in resume language — strong action verbs, specific outcomes.</div>
-      <div class="form-group"><label class="form-label">Your entry</label><textarea class="form-textarea" id="entryText" placeholder="e.g. Designed promotional materials for a 50-person networking event, increasing club social media engagement by 30%...">${existing ? existing.text : ''}</textarea></div>
-      <div style="font-size:12px;color:var(--muted);">💡 Tip: Quantify impact. Use verbs like Designed, Researched, Organized, Led, Developed, Managed...</div>
+      <div style="font-weight:800;margin-bottom:3px">${task.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Write this in resume language — strong verbs, specific outcomes, quantify impact.</div>
+      ${mySub?.aiSkills?.length?`<div style="background:#F0FDF4;border-radius:var(--rsm);padding:10px;margin-bottom:12px;border:1px solid #BBF7D0"><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:5px">✨ INVO AI SKILL INSIGHTS</div><div style="font-size:12px;color:var(--text)">${mySub.aiSkills.join(' · ')}</div></div>`:''}
+      <div class="fg"><label class="fl">Your entry</label><textarea class="fta" id="entryText" placeholder="e.g. Designed promotional materials for a 50-person event, boosting social media reach by 40%...">${e?e.text:''}</textarea></div>
+      <div style="font-size:12px;color:var(--muted)">💡 Use action verbs: Designed, Researched, Led, Organized, Developed, Managed, Created...</div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="saveEntry('${d}')">Save Entry</button></div>`;
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="saveEntry('${d}')">Save Entry</button></div>`;
   }
 
-  else if (m === 'badgeUnlocked') {
-    const badge = BADGES.find(b => b.id === d);
-    html = `
-    <div class="modal-body" style="text-align:center;padding:44px 24px;">
-      <div style="font-size:64px;margin-bottom:12px;">${badge.icon}</div>
-      <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Badge Unlocked!</div>
-      <div style="font-size:26px;font-weight:800;margin-bottom:8px;">${badge.name}</div>
-      <div style="color:var(--muted);margin-bottom:28px;">${badge.desc}</div>
-      <button class="btn btn-primary" onclick="closeModal()" style="min-width:140px;">Awesome! 🎉</button>
-    </div>`;
-  }
-
-  return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
-}
-
-// ═══════════════════════════════════════════════
-// MAIN RENDER
-// ═══════════════════════════════════════════════
-function render() {
-  const app = document.getElementById('app');
-  if (!state.currentUserId) { app.innerHTML = renderLogin(); return; }
-  app.innerHTML = `
-  ${renderTopbar()}
-  <div class="app-body">
-    ${renderSidebar()}
-    <div class="main-content">
-      ${renderView()}
+  else if(m==='createEvent'){
+    html=`<div class="modal-hdr"><div class="modal-ttl">📅 New Attendance Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Event Name *</label><input class="fi" id="evName" placeholder="e.g. Spring General Meeting"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="evDate" placeholder="e.g. Today, May 15"></div>
+        <div class="fg"><label class="fl">Location</label><input class="fi" id="evLoc" placeholder="e.g. Room 204"></div>
+      </div>
+      <div style="background:#F5F0FF;border-radius:var(--rsm);padding:12px;font-size:13px;color:var(--pri)">A QR code and 6-character check-in code will be auto-generated. Members scan or enter the code to check in.</div>
     </div>
-  </div>
-  ${renderModal()}`;
-  const msgs = document.getElementById('aiMessages');
-  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="createEvent()">Create Event</button></div>`;
+  }
+
+  else if(m==='badgeUnlocked'){
+    const b=BADGES.find(b=>b.id===d);
+    html=`<div class="modal-body" style="text-align:center;padding:44px 24px;background:${b.grad}">
+    <div style="font-size:72px;margin-bottom:12px;animation:badgePop .5s cubic-bezier(.34,1.56,.64,1)">${b.icon}</div>
+    <div style="font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Badge Unlocked!</div>
+    <div style="font-size:26px;font-weight:900;margin-bottom:8px">${b.name}</div>
+    <div style="color:var(--muted);margin-bottom:28px">${b.desc}</div>
+    <button class="btn btn-pri" onclick="closeModal()" style="min-width:140px">Awesome! 🎉</button>
+  </div>`;
+  }
+
+  return`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
 }
 
-function renderView() {
-  switch (state.activeView) {
-    case 'dashboard':  return renderDashboard();
-    case 'tasks':      return renderTasks();
-    case 'members':    return renderMembers();
-    case 'resume':     return renderResume();
-    case 'leaderboard':return renderLeaderboard();
-    case 'invoai':     return renderInvoAI();
-    default:           return '';
+// ── MAIN RENDER ───────────────────────────────────────
+function render(){
+  const app=document.getElementById('app');
+  if(!S.uid){app.innerHTML=renderLogin();document.getElementById('aiFab').style.display='none';return}
+  document.getElementById('aiFab').style.display='flex';
+  app.innerHTML=`${renderTopbar()}<div class="app-body">${renderSidebar()}<div class="main">${renderView()}</div></div>${renderModal()}`;
+}
+
+function renderView(){
+  switch(S.view){
+    case'dashboard': return renderDashboard();
+    case'tasks':     return renderTasks();
+    case'members':   return renderMembers();
+    case'resume':    return renderResume();
+    case'leaderboard':return renderLeaderboard();
+    case'checkin':   return renderCheckin();
+    case'attendance':return renderAttendance();
+    default:         return '';
   }
 }
 
-// ═══════════════════════════════════════════════
-// ACTIONS
-// ═══════════════════════════════════════════════
-function login(uid) {
-  state.currentUserId = uid;
-  state.activeView = 'dashboard';
-  state.activeFilter = 'all';
-  render();
-}
-
-function loginCustom() {
-  const name = document.getElementById('customName').value.trim();
-  const role = document.getElementById('customRole').value;
-  if (!name) { toast('Please enter your name', 'error'); return; }
-  const id = 'u' + Date.now();
-  state.users.push({ id, name, role, xp: 0, skills: [], badges: [], portfolioEntries: [], tasksApproved: 0 });
+// ── ACTIONS ───────────────────────────────────────────
+function login(uid){S.uid=uid;S.view='dashboard';S.filter='all';render()}
+function loginCustom(){
+  const name=document.getElementById('cName').value.trim();
+  const role=document.getElementById('cRole').value;
+  if(!name){toast('Enter your name','err');return}
+  const id='u'+Date.now();
+  S.users.push({id,name,role,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0});
   login(id);
 }
+function logout(){S.uid=null;S.view='login';document.getElementById('aiPanel').classList.remove('open');render()}
+function nav(v){S.view=v;S.filter='all';render()}
+function setF(f){S.filter=f;render()}
+function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
+function closeModal(){S.modal=null;S.modalData=null;render()}
 
-function logout() {
-  state.currentUserId = null;
-  state.activeView = 'login';
-  state.invoMessages = [];
-  render();
-}
-
-function navigate(view) {
-  state.activeView = view;
-  state.activeFilter = 'all';
-  render();
-}
-
-function setFilter(f) { state.activeFilter = f; render(); }
-function openModal(m, d = null) { state.activeModal = m; state.modalData = d; render(); }
-function closeModal() { state.activeModal = null; state.modalData = null; render(); }
-
-function claimTask(id) {
-  const task = state.tasks.find(t => t.id === id);
-  if (!task || task.status !== 'open') return;
-  const u = me();
-  task.status = 'claimed';
-  task.claimedBy = u.id;
-  const nb = awardBadges(u.id);
-  toast('Task claimed! Get to work 💪', 'success');
-  if (nb.length) setTimeout(() => openModal('badgeUnlocked', nb[0]), 600);
+function claimTask(id){
+  const t=S.tasks.find(t=>t.id===id);if(!t)return;
+  const u=me();
+  if(t.submissions.some(s=>s.userId===u.id)){toast('Already claimed','err');return}
+  t.submissions.push({userId:u.id,status:'claimed',work:null,fileName:null,fileDataUrl:null,aiSkills:[]});
+  u.streak=(u.streak||0)+1;
+  const nb=awardBadges(u.id);
+  toast('Task claimed! 💪','ok');
+  if(nb.length)setTimeout(()=>openModal('badgeUnlocked',nb[0]),500);
   else render();
 }
 
-function submitWork(id) {
-  const work = document.getElementById('workText').value.trim();
-  if (!work) { toast('Please describe what you did', 'error'); return; }
-  const task = state.tasks.find(t => t.id === id);
-  task.status = 'submitted';
-  task.work = work;
-  closeModal();
-  toast('Submitted! An officer will review soon.', 'success');
+function handleFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    S.pendingFile={name:file.name,size:(file.size/1024).toFixed(0)+' KB',dataUrl:e.target.result};
+    const lbl=document.getElementById('fileLbl');
+    if(lbl)lbl.innerHTML=`✅ <strong>${file.name}</strong> (${S.pendingFile.size})`;
+  };
+  reader.readAsDataURL(file);
 }
 
-function approveTask(id) {
-  const task = state.tasks.find(t => t.id === id);
-  const claimer = getUser(task.claimedBy);
-  const officer = me();
-  task.status = 'approved';
-  task.approvedBy = officer.id;
-  claimer.xp += task.xp;
-  task.skills.forEach(s => { if (!claimer.skills.includes(s)) claimer.skills.push(s); });
-  officer.tasksApproved = (officer.tasksApproved || 0) + 1;
-  const nb = awardBadges(claimer.id);
-  awardBadges(officer.id);
-  closeModal();
-  toast(`Approved! ${claimer.name.split(' ')[0]} earned ${task.xp} XP + ${task.skills.length} skills.`, 'success');
-  if (nb.length) setTimeout(() => openModal('badgeUnlocked', nb[0]), 800);
-}
-
-function rejectTask(id) {
-  const task = state.tasks.find(t => t.id === id);
-  task.status = 'claimed';
-  task.work = null;
-  closeModal();
-  toast('Submission rejected. Member can revise and resubmit.', '');
-}
-
-function deleteTask(id) {
-  if (!confirm('Delete this task?')) return;
-  state.tasks = state.tasks.filter(t => t.id !== id);
-  render();
-  toast('Task deleted.', '');
-}
-
-function createTask() {
-  const title = document.getElementById('tTitle').value.trim();
-  const desc = document.getElementById('tDesc').value.trim();
-  const cat = document.getElementById('tCat').value;
-  const skills = [...document.querySelectorAll('.skill-ck:checked')].map(c => c.value);
-  if (!title || !desc) { toast('Title and description required', 'error'); return; }
-  if (!skills.length) { toast('Select at least one skill', 'error'); return; }
-  const u = me();
-  state.tasks.unshift({ id: 't' + Date.now(), title, desc, skills, cat, xp: 200, status: 'open', createdBy: u.id, claimedBy: null, work: null, approvedBy: null, createdAt: Date.now() });
-  closeModal();
-  toast('Task created!', 'success');
-}
-
-function saveEntry(taskId) {
-  const text = document.getElementById('entryText').value.trim();
-  if (!text) { toast('Please write your entry', 'error'); return; }
-  const u = me();
-  const idx = u.portfolioEntries.findIndex(e => e.taskId === taskId);
-  if (idx >= 0) u.portfolioEntries[idx].text = text;
-  else u.portfolioEntries.push({ taskId, text });
-  const nb = awardBadges(u.id);
-  closeModal();
-  toast('Portfolio entry saved!', 'success');
-  if (nb.includes('resume-ready')) setTimeout(() => openModal('badgeUnlocked', 'resume-ready'), 600);
-}
-
-function exportResume() {
-  const u = me();
-  const done = completedBy(u.id);
-  let txt = `INVOLVEД RESUME EXPORT\n${'='.repeat(32)}\n${u.name.toUpperCase()}\nLevel ${level(u.xp)} · ${u.xp} XP\n\nSKILLS\n------\n${u.skills.join(' · ') || 'None yet'}\n\nPORTFOLIO\n---------\n`;
-  done.forEach(t => {
-    const e = u.portfolioEntries.find(e => e.taskId === t.id);
-    txt += `• ${t.title}\n${e ? '  ' + e.text + '\n' : ''}  Skills: ${t.skills.join(', ')}\n\n`;
-  });
-  const earned = BADGES.filter(b => u.badges.includes(b.id));
-  txt += `BADGES\n------\n${earned.map(b => b.icon + ' ' + b.name).join(' · ') || 'None yet'}\n\nGenerated by InvolvED — Your skills. Your proof.\n`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
-  a.download = `${u.name.replace(' ', '_')}_InvolvED.txt`;
-  a.click();
-  toast('Resume exported!', 'success');
-}
-
-// ═══════════════════════════════════════════════
-// API KEY
-// ═══════════════════════════════════════════════
-function saveKey() {
-  const k = document.getElementById('apiKeyInput').value.trim();
-  if (!k) { toast('Enter an API key', 'error'); return; }
-  state.apiKey = k;
-  localStorage.setItem('invoApiKey', k);
-  toast('API key connected!', 'success');
-  render();
-}
-
-function clearKey() {
-  state.apiKey = '';
-  localStorage.removeItem('invoApiKey');
-  render();
-}
-
-// ═══════════════════════════════════════════════
-// INVOAI
-// ═══════════════════════════════════════════════
-function buildSystemPrompt() {
-  const u = me();
-  const done = completedBy(u.id);
-  const active = state.tasks.filter(t => t.claimedBy === u.id && t.status !== 'approved');
-  const open = state.tasks.filter(t => t.status === 'open');
-  return `You are InvoAI, an encouraging and practical AI career coach for community college students using InvolvED — a club project tracker that helps them build and document real skills for their resumes.
-
-Student profile:
-- Name: ${u.name}
-- Level: ${level(u.xp)} (${u.xp} XP total)
-- Earned skills: ${u.skills.join(', ') || 'none yet'}
-- Completed tasks (${done.length}): ${done.map(t => t.title).join(', ') || 'none'}
-- Currently working on: ${active.map(t => t.title).join(', ') || 'nothing'}
-- Open tasks they could claim: ${open.map(t => `${t.title} (skills: ${t.skills.join(', ')})`).join(' | ') || 'none'}
-- Portfolio entries written: ${u.portfolioEntries.length}
-
-Guidelines:
-- Be warm, encouraging, and concise (2–4 short paragraphs max)
-- Use strong resume action verbs and concrete language
-- When writing resume bullets, give 2–3 specific examples they could actually use
-- Reference their real tasks and skills when relevant
-- Gently nudge toward open tasks or portfolio entries when appropriate
-- Always tie club work to transferable professional skills`;
-}
-
-async function sendMessage() {
-  const input = document.getElementById('aiInput');
-  const msg = input?.value?.trim();
-  if (!msg || state.aiLoading || !state.apiKey) return;
-  state.invoMessages.push({ role: 'user', content: msg });
-  state.aiLoading = true;
-  render();
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-calls': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 512,
-        system: buildSystemPrompt(),
-        messages: state.invoMessages.map(m => ({ role: m.role, content: m.content })),
-      }),
-    });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API error'); }
-    const data = await res.json();
-    state.invoMessages.push({ role: 'assistant', content: data.content[0].text });
-  } catch (err) {
-    state.invoMessages.push({ role: 'assistant', content: `Sorry, I couldn't connect: ${err.message}\n\nDouble-check your API key and try again.` });
+async function analyzeSkills(taskId){
+  if(!S.apiKey){toast('Set your API key in InvoAI chat first','err');return}
+  const work=document.getElementById('workText')?.value?.trim();
+  if(!work){toast('Write a description first','err');return}
+  const task=S.tasks.find(t=>t.id===taskId);
+  S.modalAILoading=true;render();
+  try{
+    const res=await callClaude(
+      `You analyze club project submissions and identify transferable skills. Return ONLY a comma-separated list of 3-6 specific skills demonstrated. No explanations. Example: Written Communication, Research, Data Analysis, Stakeholder Engagement`,
+      `Task: ${task.title}\nDescription: ${task.desc}\nSubmission: ${work}`
+    );
+    S.pendingAISkills=res.split(',').map(s=>s.trim()).filter(Boolean);
+  }catch(e){
+    S.pendingAISkills=['Communication','Organization','Critical Thinking'];
+    toast('Used fallback skills (check API key)','');
   }
-
-  state.aiLoading = false;
-  render();
+  S.modalAILoading=false;render();
 }
 
-function sendChip(text) {
-  if (!state.apiKey) { toast('Set your API key first to chat with InvoAI', 'error'); return; }
-  const input = document.getElementById('aiInput');
-  if (input) { input.value = text; sendMessage(); }
+function submitWork(taskId){
+  const work=document.getElementById('workText')?.value?.trim();
+  if(!work){toast('Describe your work first','err');return}
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===S.uid);
+  if(!sub)return;
+  const confirmedSkills=S.pendingAISkills.length
+    ?[...document.querySelectorAll('.ai-skill-chip:not(.off)')].map(c=>c.textContent)
+    :[];
+  sub.status='pending_review';
+  sub.work=work;
+  sub.fileName=S.pendingFile?.name||null;
+  sub.fileDataUrl=S.pendingFile?.dataUrl||null;
+  sub.aiSkills=confirmedSkills;
+  S.pendingFile=null;S.pendingAISkills=[];
+  closeModal();toast('Submitted! Officer will review soon.','ok');
 }
 
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
+function approveSub(taskId,userId){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===userId);
+  const claimer=getUser(userId);const officer=me();
+  sub.status='approved';
+  const prevLvl=lvl(claimer.xp);
+  claimer.xp+=t.xp;
+  claimer.streak=(claimer.streak||0)+1;
+  // merge task skills + AI skills, deduplicate
+  const allSkills=[...new Set([...t.skills,...(sub.aiSkills||[])])];
+  allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
+  officer.tasksApproved=(officer.tasksApproved||0)+1;
+  const newLvl=lvl(claimer.xp);
+  const nb=awardBadges(userId);awardBadges(officer.id);
+  closeModal();
+  showXPGain(t.xp);
+  toast(`✅ Approved! ${claimer.name.split(' ')[0]} +${t.xp} XP${newLvl>prevLvl?' · LEVEL UP! 🎉':''}`, 'ok');
+  if(nb.length)setTimeout(()=>openModal('badgeUnlocked',nb[0]),800);
+}
+
+function rejectSub(taskId,userId){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===userId);
+  sub.status='claimed';sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
+  closeModal();toast('Submission rejected. Member can revise and resubmit.','');
+}
+
+function delTask(id){
+  if(!confirm('Delete this task?'))return;
+  S.tasks=S.tasks.filter(t=>t.id!==id);render();toast('Task deleted.','');
+}
+
+function createTask(){
+  const title=document.getElementById('tTitle')?.value?.trim();
+  const desc=document.getElementById('tDesc')?.value?.trim();
+  const cat=document.getElementById('tCat')?.value;
+  const cap=parseInt(document.getElementById('tCap')?.value||'1');
+  const skills=[...document.querySelectorAll('.skill-pick-toggle.on')].map(b=>b.dataset.skill);
+  if(!title||!desc){toast('Title and description required','err');return}
+  if(!skills.length){toast('Select at least one skill','err');return}
+  S.tasks.unshift({id:'t'+Date.now(),title,desc,skills,cat,xp:200,capacity:cap,createdBy:S.uid,createdAt:Date.now(),submissions:[]});
+  closeModal();toast('Task created!','ok');
+}
+
+async function suggestDistribution(){
+  if(!S.apiKey){toast('Set API key in InvoAI chat first','err');return}
+  const title=document.getElementById('tTitle')?.value||'Untitled task';
+  const desc=document.getElementById('tDesc')?.value||'';
+  const cap=document.getElementById('tCap')?.value||'1';
+  const box=document.getElementById('distSugg');
+  if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">InvoAI thinking...</span></div>`;
+  const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks, Lv${lvl(m.xp)}`).join('\n');
+  try{
+    const res=await callClaude(
+      'You help club officers distribute tasks. Given a task and member profiles, suggest who would benefit most (based on skill gaps and growth). Be concise — 2-3 sentences.',
+      `Task: ${title}\nDescription: ${desc}\nCapacity: ${cap} member(s)\n\nMembers:\n${memberProfiles}`
+    );
+    if(box)box.innerHTML=`<div class="ai-suggestion-box"><strong style="color:var(--pri);font-size:11px;text-transform:uppercase;letter-spacing:.4px">💡 InvoAI Suggestion</strong><div style="margin-top:6px">${res}</div></div>`;
+  }catch(e){
+    if(box)box.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">Couldn't connect. Check your API key.</div>`;
+  }
+}
+
+function saveEntry(taskId){
+  const text=document.getElementById('entryText')?.value?.trim();
+  if(!text){toast('Write your entry first','err');return}
+  const u=me();const idx=u.portfolioEntries.findIndex(e=>e.taskId===taskId);
+  if(idx>=0)u.portfolioEntries[idx].text=text;
+  else u.portfolioEntries.push({taskId,text});
+  const nb=awardBadges(u.id);
+  closeModal();toast('Portfolio entry saved!','ok');
+  if(nb.includes('resume-ready'))setTimeout(()=>openModal('badgeUnlocked','resume-ready'),500);
+}
+
+function checkIn(evId){
+  const u=me();
+  if(!S.attendance.records[evId])S.attendance.records[evId]=[];
+  if(S.attendance.records[evId].includes(u.id)){toast('Already checked in!','');return}
+  S.attendance.records[evId].push(u.id);
+  u.streak=(u.streak||0)+1;
+  toast('✅ Checked in!','ok');render();
+}
+
+function toggleEvent(evId){
+  const ev=S.attendance.events.find(e=>e.id===evId);
+  if(ev)ev.isOpen=!ev.isOpen;render();
+}
+
+function createEvent(){
+  const name=document.getElementById('evName')?.value?.trim();
+  const date=document.getElementById('evDate')?.value?.trim()||'Today';
+  const location=document.getElementById('evLoc')?.value?.trim()||'';
+  if(!name){toast('Event name required','err');return}
+  S.attendance.events.unshift({id:'ev'+Date.now(),name,date,location,code:rndCode(),createdBy:S.uid,isOpen:true});
+  closeModal();toast('Event created! QR code ready.','ok');
+}
+
+function exportResume(){
+  const u=me();const done=approvedByUser(u.id);
+  let txt=`INVOLVEД RESUME EXPORT\n${'='.repeat(30)}\n${u.name.toUpperCase()}\nLevel ${lvl(u.xp)} · ${u.xp} XP · 🔥${u.streak||0} day streak\n\nSKILLS\n------\n${u.skills.join(' · ')||'None'}\n\nPORTFOLIO\n---------\n`;
+  done.forEach(t=>{
+    const e=u.portfolioEntries.find(e=>e.taskId===t.id);
+    txt+=`• ${t.title}\n${e?'  '+e.text+'\n':''}  Skills: ${t.skills.join(', ')}\n\n`;
+  });
+  const earned=BADGES.filter(b=>u.badges.includes(b.id));
+  txt+=`BADGES\n------\n${earned.map(b=>b.icon+' '+b.name).join(' · ')||'None yet'}\n\nGenerated by InvolvED — Your skills. Your proof.\n`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download=`${u.name.replace(' ','_')}_InvolvED.txt`;a.click();
+  toast('Resume exported!','ok');
+}
+
+// ── INVOAI FLOATING PANEL ─────────────────────────────
+function toggleAI(){
+  S.aiOpen=!S.aiOpen;
+  const panel=document.getElementById('aiPanel');
+  panel.classList.toggle('open',S.aiOpen);
+  if(S.aiOpen)updateAIPanel();
+}
+
+function updateAIPanel(){
+  const chips=['What skills am I building?','Help me write a resume bullet','What tasks should I tackle?','How do I talk about this in interviews?'];
+  document.getElementById('aiChips').innerHTML=chips.map(c=>`<button class="ai-chip" onclick="sendAIChip(${JSON.stringify(c)})">${c}</button>`).join('');
+  if(!S.apiKey){
+    document.getElementById('aiMsgs').innerHTML=`<div class="api-key-banner">
+      <strong>🔑 Connect Anthropic API Key</strong>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Get yours at console.anthropic.com</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--rsm);font-size:12px;font-family:monospace" type="password" id="keyIn" placeholder="sk-ant-...">
+        <button class="btn btn-pri btn-sm" onclick="saveKey()">Save</button>
+      </div>
+    </div>`;
+  }
+}
+
+function saveKey(){
+  const k=document.getElementById('keyIn')?.value?.trim();
+  if(!k){toast('Enter an API key','err');return}
+  S.apiKey=k;localStorage.setItem('invoKey',k);
+  toast('API key connected!','ok');
+  updateAIPanel();
+  document.getElementById('aiMsgs').innerHTML=`<div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Connected! Ask me anything about your skills or resume. 🚀</div>`;
+}
+
+const aiMsgHistory=[];
+
+async function sendAI(){
+  if(!S.apiKey){toast('Set your API key first','err');return}
+  const input=document.getElementById('aiInput');
+  const msg=input?.value?.trim();if(!msg||S.aiLoading)return;
+  input.value='';
+  appendAIMsg('user',msg);
+  aiMsgHistory.push({role:'user',content:msg});
+  S.aiLoading=true;
+  appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
+  try{
+    const u=me();const done=approvedByUser(u.id);
+    const sys=`You are InvoAI, an encouraging AI career coach for community college club students using InvolvED. Be warm, concise, and practical. Student: ${u.name}, Level ${lvl(u.xp)}, Skills: ${u.skills.join(', ')||'none yet'}, Completed tasks: ${done.map(t=>t.title).join(', ')||'none'}. Reference their actual data. Max 3 short paragraphs.`;
+    const res=await callClaude(sys,msg,aiMsgHistory.slice(-6));
+    aiMsgHistory.push({role:'assistant',content:res});
+    replaceLastAIMsg(res);
+  }catch(e){
+    replaceLastAIMsg(`Connection error: ${e.message}. Check your API key.`);
+  }
+  S.aiLoading=false;
+}
+
+function sendAIChip(text){
+  const input=document.getElementById('aiInput');
+  if(input){input.value=text;sendAI();}
+}
+
+function appendAIMsg(role,content,loading=false){
+  const msgs=document.getElementById('aiMsgs');if(!msgs)return;
+  const d=document.createElement('div');
+  d.className=`ai-msg ${role}`;d.id=loading?'aiLoading':'';
+  d.innerHTML=role==='ai'?`<div class="ai-msg-lbl">InvoAI</div>${content}`:content;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function replaceLastAIMsg(content){
+  const loading=document.getElementById('aiLoading');
+  if(loading){loading.innerHTML=`<div class="ai-msg-lbl">InvoAI</div>${content}`;loading.removeAttribute('id');}
+  const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── CLAUDE API HELPER ─────────────────────────────────
+async function callClaude(system,user,history=[]){
+  const messages=[...history,{role:'user',content:user}];
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:512,system,messages})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error')}
+  const data=await res.json();return data.content[0].text;
+}
+
+// ── INIT ──────────────────────────────────────────────
 render();
 </script>
 </body>
