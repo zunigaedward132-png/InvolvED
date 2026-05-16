@@ -223,27 +223,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .or-text::before,.or-text::after{content:'';position:absolute;top:50%;width:44%;height:1px;background:var(--border)}
 .or-text::before{left:0}.or-text::after{right:0}
 
-/* FLOATING AI */
-.ai-fab{position:fixed;bottom:22px;right:22px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pink));box-shadow:0 6px 20px rgba(109,40,217,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:900;transition:transform .2s,box-shadow .2s;border:none}
+/* FLOATING AI FAB */
+.ai-fab{position:fixed;bottom:22px;right:22px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--pink));box-shadow:0 6px 20px rgba(109,40,217,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:26px;z-index:900;transition:transform .2s,box-shadow .2s;border:none}
 .ai-fab:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(109,40,217,.5)}
-.ai-panel{position:fixed;bottom:90px;right:22px;width:340px;max-height:500px;background:#fff;border-radius:var(--r);box-shadow:0 20px 60px rgba(30,15,64,.25);z-index:900;display:none;flex-direction:column;overflow:hidden;border:1px solid var(--border);animation:slideUp .2s ease}
+
+/* FULLSCREEN AI */
+.ai-panel{position:fixed;inset:0;background:#F8F7FF;z-index:950;display:none;flex-direction:column;animation:fadeIn .2s ease}
 .ai-panel.open{display:flex}
-.ai-ph{background:linear-gradient(135deg,var(--pri),var(--pink));padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between}
-.ai-ph-title{font-size:15px;font-weight:800}
-.ai-ph-sub{font-size:11px;opacity:.8}
-.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:#FAFAFA}
-.ai-msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.5}
-.ai-msg.user{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
-.ai-msg.ai{align-self:flex-start;background:#fff;color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px;box-shadow:var(--sh)}
-.ai-msg-lbl{font-size:9px;font-weight:800;color:var(--pink);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ai-ir{display:flex;gap:6px;padding:10px}
-.ai-input{flex:1;padding:9px 13px;border:2px solid var(--border);border-radius:var(--rsm);font-size:13px;font-family:inherit;outline:none}
-.ai-input:focus{border-color:var(--pri)}
-.ai-chips-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 8px}
-.ai-chip{background:#fff;border:1.5px solid var(--border);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
-.ai-chip:hover{border-color:var(--pri);color:var(--pri)}
-.api-key-area{padding:14px}
-.api-key-banner{background:#FFF7ED;border:2px solid #FED7AA;border-radius:var(--rsm);padding:14px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.ai-fs-hdr{background:linear-gradient(135deg,#4C1D95,var(--pri),var(--pink));padding:14px 20px;color:#fff;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.ai-fs-logo{width:46px;height:46px;object-fit:contain;background:rgba(255,255,255,.15);border-radius:12px;padding:4px;flex-shrink:0}
+.ai-fs-title{font-size:20px;font-weight:900;letter-spacing:-.3px}
+.ai-fs-tagline{font-size:11px;opacity:.75;margin-top:1px}
+.ai-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto;transition:background .15s}
+.ai-close:hover{background:rgba(255,255,255,.3)}
+.ai-msgs{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.ai-msg{max-width:78%;padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.55}
+.ai-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border-bottom-right-radius:5px}
+.ai-msg.ai{align-self:flex-start;background:#fff;color:var(--text);border:1px solid var(--border);border-bottom-left-radius:5px;box-shadow:var(--sh);max-width:85%}
+.ai-msg-lbl{font-size:9px;font-weight:800;color:var(--pink);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.ai-chips-row{display:flex;flex-wrap:wrap;gap:8px;padding:10px 20px;background:#fff;border-top:1px solid var(--border);flex-shrink:0}
+.ai-chip{background:var(--bg);border:1.5px solid var(--border);border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;font-weight:600;color:var(--text)}
+.ai-chip:hover{border-color:var(--pri);color:var(--pri);background:#F5F0FF}
+.ai-input-row{display:flex;gap:8px;padding:12px 20px;background:#fff;border-top:1px solid var(--border);flex-shrink:0}
+.ai-input{flex:1;padding:11px 16px;border:2px solid var(--border);border-radius:999px;font-size:14px;font-family:inherit;outline:none;background:#F8F7FF}
+.ai-input:focus{border-color:var(--pri);background:#fff}
+/* Task bubbles in chat */
+.task-bubbles{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.task-bubble{background:#fff;border:2px solid var(--border);border-radius:var(--rsm);padding:10px 13px;cursor:pointer;transition:all .2s;min-width:140px;max-width:200px}
+.task-bubble:hover{border-color:var(--pri);background:#F5F0FF;transform:translateY(-2px);box-shadow:var(--sh)}
+.tb-icon{font-size:20px;margin-bottom:4px}
+.tb-title{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.tb-xp{font-size:11px;font-weight:800;color:var(--orange)}
+/* Summary card in chat */
+.summary-card{background:linear-gradient(135deg,#F5F0FF,#FDF2F8);border:2px solid var(--pri3);border-radius:var(--rsm);padding:14px;margin-top:8px}
+.summary-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.summary-stat{text-align:center;flex:1;min-width:50px}
+.summary-stat-v{font-size:22px;font-weight:900;color:var(--pri)}
+.summary-stat-l{font-size:10px;color:var(--muted)}
+.summary-skills{display:flex;flex-wrap:wrap;gap:5px}
 
 /* PAGE HEADERS */
 .page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
@@ -284,17 +302,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="toast-wrap" id="toasts"></div>
 <button class="ai-fab" id="aiFab" onclick="toggleAI()">🤖</button>
 <div class="ai-panel" id="aiPanel">
-  <div class="ai-ph">
-    <div><div class="ai-ph-title">🤖 InvoAI</div></div>
-    <button onclick="toggleAI()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1">×</button>
+  <div class="ai-fs-hdr">
+    <img src="https://i.imgur.com/KaSEx7u.png" class="ai-fs-logo" onerror="this.style.display='none'">
+    <div>
+      <div class="ai-fs-title">InvoAI</div>
+      <div class="ai-fs-tagline">Your skills. Your proof.</div>
+    </div>
+    <button class="ai-close" onclick="toggleAI()">✕</button>
   </div>
   <div id="aiMsgs" class="ai-msgs">
-    <div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Hi! Ask me about your skills, resume bullets, or which tasks to take on next. 🚀</div>
+    <div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Hi! I'm your career coach. What can I help you with? 🚀</div>
   </div>
   <div class="ai-chips-row" id="aiChips"></div>
-  <div class="ai-ir">
-    <input class="ai-input" id="aiInput" placeholder="Ask InvoAI..." onkeydown="if(event.key==='Enter')sendAI()">
-    <button class="btn btn-ai btn-sm" onclick="sendAI()">→</button>
+  <div class="ai-input-row">
+    <input class="ai-input" id="aiInput" placeholder="Ask InvoAI anything..." onkeydown="if(event.key==='Enter')sendAI()">
+    <button class="btn btn-ai" onclick="sendAI()">Send</button>
   </div>
 </div>
 
@@ -1081,37 +1103,108 @@ function toggleAI(){
   if(S.aiOpen)updateAIPanel();
 }
 
+const AI_CHIPS=[
+  {label:'🛠️ My skills',     msg:'What skills am I building and what do they mean for my career?'},
+  {label:'📋 Suggest tasks', msg:'Recommend tasks for me', showTasks:true},
+  {label:'📝 Resume bullet', msg:'Write me 2 resume bullet points based on my completed tasks'},
+  {label:'📊 My summary',    msg:'Give me a quick summary of my progress', showSummary:true},
+  {label:'🎤 Interview tips',msg:'How do I talk about my club work in a job interview?'},
+];
+
 function updateAIPanel(){
-  const chips=['What skills am I building?','Help me write a resume bullet','What tasks should I tackle?','How do I talk about this in interviews?'];
-  document.getElementById('aiChips').innerHTML=chips.map(c=>`<button class="ai-chip" onclick="sendAIChip(${JSON.stringify(c)})">${c}</button>`).join('');
+  document.getElementById('aiChips').innerHTML=AI_CHIPS.map((c,i)=>
+    `<button class="ai-chip" onclick="sendAIChip(${i})">${c.label}</button>`
+  ).join('');
+}
+
+function showTaskBubbles(){
+  const u=me();
+  const open=S.tasks.filter(t=>taskStatus(t)==='open'&&!t.submissions.some(s=>s.userId===u.id));
+  if(!open.length)return;
+  const html=`<div class="task-bubbles">${open.map(t=>{
+    const cat=CAT[t.cat]||CAT.general;
+    return`<div class="task-bubble" onclick="claimFromAI('${t.id}')">
+      <div class="tb-icon">${cat.icon}</div>
+      <div class="tb-title">${t.title}</div>
+      <div class="tb-xp">⚡ +${t.xp} XP</div>
+    </div>`;
+  }).join('')}</div>`;
+  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Here are the open tasks you can claim:<br>${html}`);
+}
+
+function showSummaryCard(){
+  const u=me();const done=approvedByUser(u.id).length;
+  const html=`<div class="ai-msg-lbl">InvoAI</div>Here's your progress snapshot:
+  <div class="summary-card">
+    <div class="summary-row">
+      <div class="summary-stat"><div class="summary-stat-v">${u.xp}</div><div class="summary-stat-l">XP</div></div>
+      <div class="summary-stat"><div class="summary-stat-v">${lvl(u.xp)}</div><div class="summary-stat-l">Level</div></div>
+      <div class="summary-stat"><div class="summary-stat-v">${done}</div><div class="summary-stat-l">Tasks Done</div></div>
+      <div class="summary-stat"><div class="summary-stat-v">${u.streak||0}</div><div class="summary-stat-l">🔥 Streak</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SKILLS EARNED</div>
+    <div class="summary-skills">${u.skills.length?u.skills.map(s=>`<span class="sk-tag">${s}</span>`).join(''):'<span style="color:var(--muted);font-size:12px">Complete tasks to earn skills!</span>'}</div>
+  </div>`;
+  appendAIMsg('ai',html);
+}
+
+function claimFromAI(taskId){
+  claimTask(taskId);
+  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Task claimed! 💪 Head to the Tasks tab to submit your work when you're done.`);
 }
 
 const aiMsgHistory=[];
 
-async function sendAI(){
+async function sendAI(chip=null){
   if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Groq key to index.html','err');return}
   const input=document.getElementById('aiInput');
   const msg=input?.value?.trim();if(!msg||S.aiLoading)return;
   input.value='';
   appendAIMsg('user',msg);
   aiMsgHistory.push({role:'user',content:msg});
+
+  // Show inline summary or tasks immediately if chip requested it
+  if(chip?.showSummary){showSummaryCard();return}
+  if(chip?.showTasks){
+    S.aiLoading=true;
+    appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
+    try{
+      const u=me();const done=approvedByUser(u.id);
+      const sys=buildSys(u,done);
+      const res=await callGroq(sys,msg,aiMsgHistory.slice(-6));
+      aiMsgHistory.push({role:'assistant',content:res});
+      replaceLastAIMsg(res);
+    }catch(e){replaceLastAIMsg(`Error: ${e.message}`);}
+    S.aiLoading=false;
+    showTaskBubbles();
+    return;
+  }
+
   S.aiLoading=true;
   appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
   try{
     const u=me();const done=approvedByUser(u.id);
-    const sys=`You are InvoAI, an encouraging AI career coach for community college club students using InvolvED. Be warm, concise, and practical. Student: ${u.name}, Level ${lvl(u.xp)}, Skills: ${u.skills.join(', ')||'none yet'}, Completed tasks: ${done.map(t=>t.title).join(', ')||'none'}. Reference their actual data. Max 3 short paragraphs.`;
+    const sys=buildSys(u,done);
     const res=await callGroq(sys,msg,aiMsgHistory.slice(-6));
     aiMsgHistory.push({role:'assistant',content:res});
     replaceLastAIMsg(res);
+    // Auto-show tasks if message is about tasks
+    if(/task|claim|work on|tackle|do next/i.test(msg)&&!chip)showTaskBubbles();
   }catch(e){
-    replaceLastAIMsg(`Connection error: ${e.message}. Check your API key.`);
+    replaceLastAIMsg(`Connection error: ${e.message}`);
   }
   S.aiLoading=false;
 }
 
-function sendAIChip(text){
+function buildSys(u,done){
+  return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs. Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP, Skills: ${u.skills.join(', ')||'none yet'}, Completed: ${done.map(t=>t.title).join(', ')||'none'}, Streak: ${u.streak||0} days. Use their real data.`;
+}
+
+function sendAIChip(idx){
+  const chip=AI_CHIPS[idx];if(!chip)return;
   const input=document.getElementById('aiInput');
-  if(input){input.value=text;sendAI();}
+  if(input)input.value=chip.msg;
+  sendAI(chip);
 }
 
 function appendAIMsg(role,content,loading=false){
