@@ -285,7 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="ai-fab" id="aiFab" onclick="toggleAI()">🤖</button>
 <div class="ai-panel" id="aiPanel">
   <div class="ai-ph">
-    <div><div class="ai-ph-title">🤖 InvoAI</div><div class="ai-ph-sub">Your career coach</div></div>
+    <div><div class="ai-ph-title">🤖 InvoAI</div><div class="ai-ph-sub">Powered by Gemini · Free</div></div>
     <button onclick="toggleAI()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1">×</button>
   </div>
   <div id="aiMsgs" class="ai-msgs">
@@ -334,7 +334,7 @@ const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 // ── STATE ──────────────────────────────────────────────
 const S={
   uid:null,
-  apiKey:localStorage.getItem('invoKey')||'',
+  apiKey:localStorage.getItem('invoGemKey')||'',
   view:'login',
   filter:'all',
   modal:null,
@@ -927,7 +927,7 @@ async function analyzeSkills(taskId){
   const task=S.tasks.find(t=>t.id===taskId);
   S.modalAILoading=true;render();
   try{
-    const res=await callClaude(
+    const res=await callGemini(
       `You analyze club project submissions and identify transferable skills. Return ONLY a comma-separated list of 3-6 specific skills demonstrated. No explanations. Example: Written Communication, Research, Data Analysis, Stakeholder Engagement`,
       `Task: ${task.title}\nDescription: ${task.desc}\nSubmission: ${work}`
     );
@@ -1010,7 +1010,7 @@ async function suggestDistribution(){
   if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">InvoAI thinking...</span></div>`;
   const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks, Lv${lvl(m.xp)}`).join('\n');
   try{
-    const res=await callClaude(
+    const res=await callGemini(
       'You help club officers distribute tasks. Given a task and member profiles, suggest who would benefit most (based on skill gaps and growth). Be concise — 2-3 sentences.',
       `Task: ${title}\nDescription: ${desc}\nCapacity: ${cap} member(s)\n\nMembers:\n${memberProfiles}`
     );
@@ -1082,10 +1082,10 @@ function updateAIPanel(){
   document.getElementById('aiChips').innerHTML=chips.map(c=>`<button class="ai-chip" onclick="sendAIChip(${JSON.stringify(c)})">${c}</button>`).join('');
   if(!S.apiKey){
     document.getElementById('aiMsgs').innerHTML=`<div class="api-key-banner">
-      <strong>🔑 Connect Anthropic API Key</strong>
-      <div style="font-size:12px;color:var(--muted);margin-top:3px">Get yours at console.anthropic.com</div>
+      <strong>🔑 Connect Gemini API Key</strong>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Free at aistudio.google.com → Get API key</div>
       <div style="display:flex;gap:6px;margin-top:8px">
-        <input style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--rsm);font-size:12px;font-family:monospace" type="password" id="keyIn" placeholder="sk-ant-...">
+        <input style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--rsm);font-size:12px;font-family:monospace" type="password" id="keyIn" placeholder="AIzaSy...">
         <button class="btn btn-pri btn-sm" onclick="saveKey()">Save</button>
       </div>
     </div>`;
@@ -1095,7 +1095,7 @@ function updateAIPanel(){
 function saveKey(){
   const k=document.getElementById('keyIn')?.value?.trim();
   if(!k){toast('Enter an API key','err');return}
-  S.apiKey=k;localStorage.setItem('invoKey',k);
+  S.apiKey=k;localStorage.setItem('invoGemKey',k);
   toast('API key connected!','ok');
   updateAIPanel();
   document.getElementById('aiMsgs').innerHTML=`<div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Connected! Ask me anything about your skills or resume. 🚀</div>`;
@@ -1115,7 +1115,7 @@ async function sendAI(){
   try{
     const u=me();const done=approvedByUser(u.id);
     const sys=`You are InvoAI, an encouraging AI career coach for community college club students using InvolvED. Be warm, concise, and practical. Student: ${u.name}, Level ${lvl(u.xp)}, Skills: ${u.skills.join(', ')||'none yet'}, Completed tasks: ${done.map(t=>t.title).join(', ')||'none'}. Reference their actual data. Max 3 short paragraphs.`;
-    const res=await callClaude(sys,msg,aiMsgHistory.slice(-6));
+    const res=await callGemini(sys,msg,aiMsgHistory.slice(-6));
     aiMsgHistory.push({role:'assistant',content:res});
     replaceLastAIMsg(res);
   }catch(e){
@@ -1143,16 +1143,20 @@ function replaceLastAIMsg(content){
   const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
 }
 
-// ── CLAUDE API HELPER ─────────────────────────────────
-async function callClaude(system,user,history=[]){
-  const messages=[...history,{role:'user',content:user}];
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+// ── GEMINI API HELPER ─────────────────────────────────
+async function callGemini(system,user,history=[]){
+  const contents=[
+    ...history.map(m=>({role:m.role==='assistant'?'model':m.role,parts:[{text:m.content}]})),
+    {role:'user',parts:[{text:user}]}
+  ];
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.apiKey}`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:512,system,messages})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents,systemInstruction:{parts:[{text:system}]},generationConfig:{maxOutputTokens:512}})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error')}
-  const data=await res.json();return data.content[0].text;
+  const data=await res.json();
+  return data.candidates[0].content.parts[0].text;
 }
 
 // ── INIT ──────────────────────────────────────────────
