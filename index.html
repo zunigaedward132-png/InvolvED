@@ -299,6 +299,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <script>
+// ── CONFIG ─────────────────────────────────────────────
+// Paste your Gemini API key below (get one free at aistudio.google.com)
+const GEMINI_KEY = 'YOUR_GEMINI_KEY_HERE';
+
 // ── CONSTANTS ──────────────────────────────────────────
 const CAT={
   research:     {c:'#2563EB',bg:'#EFF6FF',icon:'🔬',lbl:'Research'},
@@ -334,7 +338,7 @@ const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 // ── STATE ──────────────────────────────────────────────
 const S={
   uid:null,
-  apiKey:localStorage.getItem('invoGemKey')||'',
+  apiKey:GEMINI_KEY,
   view:'login',
   filter:'all',
   modal:null,
@@ -921,7 +925,7 @@ function handleFile(input){
 }
 
 async function analyzeSkills(taskId){
-  if(!S.apiKey){toast('Set your API key in InvoAI chat first','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const work=document.getElementById('workText')?.value?.trim();
   if(!work){toast('Write a description first','err');return}
   const task=S.tasks.find(t=>t.id===taskId);
@@ -1002,7 +1006,7 @@ function createTask(){
 }
 
 async function suggestDistribution(){
-  if(!S.apiKey){toast('Set API key in InvoAI chat first','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const title=document.getElementById('tTitle')?.value||'Untitled task';
   const desc=document.getElementById('tDesc')?.value||'';
   const cap=document.getElementById('tCap')?.value||'1';
@@ -1080,31 +1084,12 @@ function toggleAI(){
 function updateAIPanel(){
   const chips=['What skills am I building?','Help me write a resume bullet','What tasks should I tackle?','How do I talk about this in interviews?'];
   document.getElementById('aiChips').innerHTML=chips.map(c=>`<button class="ai-chip" onclick="sendAIChip(${JSON.stringify(c)})">${c}</button>`).join('');
-  if(!S.apiKey){
-    document.getElementById('aiMsgs').innerHTML=`<div class="api-key-banner">
-      <strong>🔑 Connect Gemini API Key</strong>
-      <div style="font-size:12px;color:var(--muted);margin-top:3px">Free at aistudio.google.com → Get API key</div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <input style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--rsm);font-size:12px;font-family:monospace" type="password" id="keyIn" placeholder="AIzaSy...">
-        <button class="btn btn-pri btn-sm" onclick="saveKey()">Save</button>
-      </div>
-    </div>`;
-  }
-}
-
-function saveKey(){
-  const k=document.getElementById('keyIn')?.value?.trim();
-  if(!k){toast('Enter an API key','err');return}
-  S.apiKey=k;localStorage.setItem('invoGemKey',k);
-  toast('API key connected!','ok');
-  updateAIPanel();
-  document.getElementById('aiMsgs').innerHTML=`<div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Connected! Ask me anything about your skills or resume. 🚀</div>`;
 }
 
 const aiMsgHistory=[];
 
 async function sendAI(){
-  if(!S.apiKey){toast('Set your API key first','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const input=document.getElementById('aiInput');
   const msg=input?.value?.trim();if(!msg||S.aiLoading)return;
   input.value='';
@@ -1149,7 +1134,7 @@ async function callGemini(system,user,history=[]){
     ...history.map(m=>({role:m.role==='assistant'?'model':m.role,parts:[{text:m.content}]})),
     {role:'user',parts:[{text:user}]}
   ];
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.apiKey}`,{
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents,systemInstruction:{parts:[{text:system}]},generationConfig:{maxOutputTokens:512}})
