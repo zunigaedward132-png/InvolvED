@@ -285,7 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="ai-fab" id="aiFab" onclick="toggleAI()">🤖</button>
 <div class="ai-panel" id="aiPanel">
   <div class="ai-ph">
-    <div><div class="ai-ph-title">🤖 InvoAI</div><div class="ai-ph-sub">Powered by Gemini · Free</div></div>
+    <div><div class="ai-ph-title">🤖 InvoAI</div><div class="ai-ph-sub">Powered by Groq · Free</div></div>
     <button onclick="toggleAI()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1">×</button>
   </div>
   <div id="aiMsgs" class="ai-msgs">
@@ -300,8 +300,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────
-// Paste your Gemini API key below (get one free at aistudio.google.com)
-const GEMINI_KEY = 'AIzaSyCVgVjuCzfmv6B9ibnI4tO90FAsLMn0aeE';
+// Free Groq key at console.groq.com → API Keys → Create key
+const GROQ_KEY = 'YOUR_GROQ_KEY_HERE';
 
 // ── CONSTANTS ──────────────────────────────────────────
 const CAT={
@@ -338,7 +338,7 @@ const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 // ── STATE ──────────────────────────────────────────────
 const S={
   uid:null,
-  apiKey:GEMINI_KEY,
+  apiKey:GROQ_KEY,
   view:'login',
   filter:'all',
   modal:null,
@@ -925,13 +925,13 @@ function handleFile(input){
 }
 
 async function analyzeSkills(taskId){
-  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const work=document.getElementById('workText')?.value?.trim();
   if(!work){toast('Write a description first','err');return}
   const task=S.tasks.find(t=>t.id===taskId);
   S.modalAILoading=true;render();
   try{
-    const res=await callGemini(
+    const res=await callGroq(
       `You analyze club project submissions and identify transferable skills. Return ONLY a comma-separated list of 3-6 specific skills demonstrated. No explanations. Example: Written Communication, Research, Data Analysis, Stakeholder Engagement`,
       `Task: ${task.title}\nDescription: ${task.desc}\nSubmission: ${work}`
     );
@@ -1006,7 +1006,7 @@ function createTask(){
 }
 
 async function suggestDistribution(){
-  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const title=document.getElementById('tTitle')?.value||'Untitled task';
   const desc=document.getElementById('tDesc')?.value||'';
   const cap=document.getElementById('tCap')?.value||'1';
@@ -1014,7 +1014,7 @@ async function suggestDistribution(){
   if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">InvoAI thinking...</span></div>`;
   const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks, Lv${lvl(m.xp)}`).join('\n');
   try{
-    const res=await callGemini(
+    const res=await callGroq(
       'You help club officers distribute tasks. Given a task and member profiles, suggest who would benefit most (based on skill gaps and growth). Be concise — 2-3 sentences.',
       `Task: ${title}\nDescription: ${desc}\nCapacity: ${cap} member(s)\n\nMembers:\n${memberProfiles}`
     );
@@ -1089,7 +1089,7 @@ function updateAIPanel(){
 const aiMsgHistory=[];
 
 async function sendAI(){
-  if(!S.apiKey||S.apiKey==='YOUR_GEMINI_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
   const input=document.getElementById('aiInput');
   const msg=input?.value?.trim();if(!msg||S.aiLoading)return;
   input.value='';
@@ -1100,7 +1100,7 @@ async function sendAI(){
   try{
     const u=me();const done=approvedByUser(u.id);
     const sys=`You are InvoAI, an encouraging AI career coach for community college club students using InvolvED. Be warm, concise, and practical. Student: ${u.name}, Level ${lvl(u.xp)}, Skills: ${u.skills.join(', ')||'none yet'}, Completed tasks: ${done.map(t=>t.title).join(', ')||'none'}. Reference their actual data. Max 3 short paragraphs.`;
-    const res=await callGemini(sys,msg,aiMsgHistory.slice(-6));
+    const res=await callGroq(sys,msg,aiMsgHistory.slice(-6));
     aiMsgHistory.push({role:'assistant',content:res});
     replaceLastAIMsg(res);
   }catch(e){
@@ -1128,39 +1128,21 @@ function replaceLastAIMsg(content){
   const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
 }
 
-// ── GEMINI API HELPER ─────────────────────────────────
-let _geminiModel=null;
-async function getGeminiModel(){
-  if(_geminiModel)return _geminiModel;
-  try{
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
-    const d=await r.json();
-    const prefer=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-2.0-flash-lite','gemini-2.0-flash','gemini-1.5-pro-latest','gemini-pro'];
-    for(const p of prefer){
-      if(d.models?.find(m=>m.name===`models/${p}`&&m.supportedGenerationMethods?.includes('generateContent'))){
-        _geminiModel=p;return p;
-      }
-    }
-    const first=d.models?.find(m=>m.supportedGenerationMethods?.includes('generateContent'));
-    _geminiModel=first?first.name.replace('models/',''):'gemini-pro';
-  }catch(e){_geminiModel='gemini-pro';}
-  return _geminiModel;
-}
-
-async function callGemini(system,user,history=[]){
-  const model=await getGeminiModel();
-  const contents=[
-    ...history.map(m=>({role:m.role==='assistant'?'model':m.role,parts:[{text:m.content}]})),
-    {role:'user',parts:[{text:system?`${system}\n\n${user}`:user}]}
+// ── GROQ API HELPER ───────────────────────────────────
+async function callGroq(system,user,history=[]){
+  const messages=[
+    {role:'system',content:system},
+    ...history,
+    {role:'user',content:user}
   ];
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`,{
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents,generationConfig:{maxOutputTokens:512}})
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${GROQ_KEY}`},
+    body:JSON.stringify({model:'llama-3.1-8b-instant',messages,max_tokens:512})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error')}
   const data=await res.json();
-  return data.candidates[0].content.parts[0].text;
+  return data.choices[0].message.content;
 }
 
 // ── INIT ──────────────────────────────────────────────
