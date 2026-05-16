@@ -338,6 +338,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .match-badge.partial{background:linear-gradient(135deg,#FFF3CD,#FFE082);color:#7A4F00}
 .match-badge.low{background:#F3F4F6;color:#4B5563}
 .li-skill-tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;background:#EDE9FE;color:#5C3BFE;border:1px solid #C4B5FD}
+/* CLUB EVENTS */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:24px}
+.event-card{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);border:1px solid var(--border);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative}
+.event-card:hover{transform:translateY(-4px);box-shadow:var(--shmd)}
+.event-card-band{height:8px;border-radius:var(--r) var(--r) 0 0}
+.event-card-body{padding:18px 20px 16px}
+.event-card-icon{font-size:32px;margin-bottom:8px}
+.event-card-title{font-size:16px;font-weight:900;letter-spacing:-.3px;margin-bottom:5px}
+.event-card-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.event-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.event-date-chip{font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:4px}
+.event-task-count{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--bg2);color:var(--pri)}
+.event-signup-count{font-size:11px;font-weight:700;color:var(--mint)}
+/* Event Detail */
+.event-detail-hero{background:linear-gradient(135deg,var(--pri),var(--pink));border-radius:var(--r);padding:24px 28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.event-detail-hero::after{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+.event-detail-icon{font-size:44px;margin-bottom:8px}
+.event-detail-title{font-size:24px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
+.event-detail-meta{font-size:13px;opacity:.85}
+.event-task-list{display:flex;flex-direction:column;gap:12px;margin-bottom:80px}
+.event-task-item{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:box-shadow .2s}
+.event-task-item:hover{box-shadow:var(--shmd)}
+.event-task-item.full{opacity:.75}
+.event-task-hdr{display:flex;align-items:flex-start;gap:12px;padding:16px 18px 12px}
+.event-task-info{flex:1;min-width:0}
+.event-task-title{font-size:14px;font-weight:800;margin-bottom:3px}
+.event-task-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.event-task-foot{padding:0 18px 14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.slots-bar{display:flex;gap:4px;align-items:center}
+.slot-pip{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.slot-pip.filled{background:var(--mint)}
+.slot-pip.mine{background:var(--pri)}
+.signee-chip{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--bg2);color:var(--muted);font-weight:600}
+.signee-chip.me{background:#EDE9FE;color:var(--pri);font-weight:700}
 /* FEED */
 .feed-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:80px}
 .feed-msg{background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh)}
@@ -515,6 +549,23 @@ const S={
     {id:'f3',userId:'u1',text:'Just submitted my meeting minutes task — fingers crossed for approval! 🤞',isAnnouncement:false,ts:Date.now()-3600000*5,reactions:{'🔥':['u2'],'❤️':['u3']}},
     {id:'f4',userId:'u2',text:'Does anyone have tips for the grant research task? Not sure where to start.',isAnnouncement:false,ts:Date.now()-3600000*2,reactions:{'👍':['u1']}},
   ],
+  selectedEventId:null,
+  clubEvents:[
+    {id:'cle1',title:'Spring Club Fair',desc:'Annual fair to recruit new members and showcase what our club does. All hands on deck!',date:'May 30, 2025',icon:'🎪',color:'#5C3BFE',createdBy:'u3',createdAt:Date.now()-86400000*4,
+     tasks:[
+       {id:'clet1',title:'Design the booth banner',desc:'Create a large print-ready banner with our logo and club name. Use Canva or Illustrator.',slots:1,signups:[],skills:['Design','Creativity','Visual Communication']},
+       {id:'clet2',title:'Manage social media live coverage',desc:'Post live updates, photos, and stories to Instagram and LinkedIn throughout the event.',slots:1,signups:['u2'],skills:['Social Media','Communication','Marketing']},
+       {id:'clet3',title:'Set up and break down booth',desc:'Arrive 1 hour early. Set up tables, banner, and materials. Break down after the event ends.',slots:3,signups:['u1'],skills:['Organization','Event Planning','Leadership']},
+       {id:'clet4',title:'Greet and recruit visitors',desc:'Engage students walking by. Share what the club does and get them to sign up.',slots:4,signups:[],skills:['Communication','Public Speaking','Leadership']},
+       {id:'clet5',title:'Write event recap blog post',desc:'Summarize the fair: how many students visited, key moments, and what worked. Due 2 days after.',slots:1,signups:[],skills:['Writing','Communication']},
+     ]},
+    {id:'cle2',title:'End-of-Year Showcase',desc:'Celebrate the year's work. Present projects, award badges, and invite faculty.',date:'June 15, 2025',icon:'🏆',color:'#FF5C57',createdBy:'u3',createdAt:Date.now()-86400000*2,
+     tasks:[
+       {id:'clet6',title:'Create slide deck presentation',desc:'Compile club highlights, member accomplishments, and stats from the year into a presentation.',slots:1,signups:[],skills:['Design','Writing','Creativity']},
+       {id:'clet7',title:'Handle A/V setup',desc:'Set up projector, microphone, and speakers. Test everything 30 minutes before start.',slots:2,signups:[],skills:['Technology','Organization']},
+       {id:'clet8',title:'Coordinate refreshments',desc:'Order or collect food and drinks. Set up the refreshment table and manage during the event.',slots:2,signups:[],skills:['Organization','Event Planning','Management']},
+     ]},
+  ],
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -629,9 +680,9 @@ function renderTopbar(){
 function renderSidebar(){
   const u=me();
   const navs={
-    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['internships','💼','Internships'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
-    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
-    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['events','🎪','Events'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['internships','💼','Internships'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['events','🎪','Events'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['events','🎪','Events'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   return`<div class="sidebar">
@@ -1042,6 +1093,50 @@ function renderModal(){
     <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="createEvent()">Create Event</button></div>`;
   }
 
+  else if(m==='createClubEvent'){
+    const ICONS=['🎪','🏆','🎉','📚','🎤','🌟','🤝','🎨','🚀','🏅'];
+    html=`<div class="modal-hdr"><div class="modal-ttl">🎪 Create New Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" placeholder="e.g. Spring Club Fair"></div>
+      <div class="fg"><label class="fl">Description</label><textarea class="fta" id="ceDesc" style="min-height:70px" placeholder="What is this event about?"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="ceDate" placeholder="e.g. May 30, 2025"></div>
+        <div class="fg"><label class="fl">Event Color</label><input type="color" id="ceColor" value="#5C3BFE" style="width:100%;height:42px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;padding:2px"></div>
+      </div>
+      <div class="fg"><label class="fl">Icon</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map(ic=>`<button type="button" class="skill-pick-toggle" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-ico="${ic}" class="skill-pick-toggle ico-pick${ic==='🎪'?' on':''}">${ic}</button>`).join('')}</div>
+        <input type="hidden" id="ceIcon" value="🎪">
+      </div>
+      <div style="font-size:12px;color:var(--muted)">💡 You can add tasks after creating the event.</div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="createClubEvent()">Create Event →</button></div>`;
+  }
+
+  else if(m==='addEventTask'){
+    html=`<div class="modal-hdr"><div class="modal-ttl">📋 Add Task to Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="etTitle" placeholder="e.g. Set up the booth"></div>
+      <div class="fg"><label class="fl">Description</label><textarea class="fta" id="etDesc" style="min-height:70px" placeholder="What should this person do?"></textarea></div>
+      <div class="fg"><label class="fl">Number of Slots</label><input class="fi" id="etSlots" type="number" min="1" max="20" value="1" placeholder="How many members can take this task?"></div>
+      <div class="fg"><label class="fl">Skills Involved</label><div class="skill-picks">${ALL_SKILLS.map(s=>`<button type="button" class="skill-pick-toggle" onclick="this.classList.toggle('on')" data-skill="${s}">${s}</button>`).join('')}</div></div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="addEventTask()">Add Task</button></div>`;
+  }
+
+  else if(m==='editEventTask'){
+    const ev=S.clubEvents.find(e=>e.id===d?.evId);
+    const t=ev?.tasks.find(t=>t.id===d?.taskId);
+    if(!t){html='<div class="modal-body">Task not found</div>';}
+    else{html=`<div class="modal-hdr"><div class="modal-ttl">✏️ Edit Task</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="etTitle" value="${t.title.replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">Description</label><textarea class="fta" id="etDesc" style="min-height:70px">${t.desc}</textarea></div>
+      <div class="fg"><label class="fl">Number of Slots</label><input class="fi" id="etSlots" type="number" min="${t.signups.length}" max="20" value="${t.slots}"></div>
+      <div class="fg"><label class="fl">Skills Involved</label><div class="skill-picks">${ALL_SKILLS.map(s=>`<button type="button" class="skill-pick-toggle${t.skills.includes(s)?' on':''}" onclick="this.classList.toggle('on')" data-skill="${s}">${s}</button>`).join('')}</div></div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="saveEventTask()">Save Changes</button></div>`;}
+  }
+
   else if(m==='badgeUnlocked'){
     const b=BADGES.find(b=>b.id===d);
     html=`<div class="modal-body" style="text-align:center;padding:44px 24px;background:${b.grad}">
@@ -1073,10 +1168,119 @@ function renderView(){
     case'leaderboard':return renderLeaderboard();
     case'checkin':   return renderCheckin();
     case'attendance':  return renderAttendance();
+    case'events':      return renderEvents();
+    case'eventDetail': return renderEventDetail();
     case'internships': return renderInternships();
     case'feed':        return renderFeed();
     default:         return '';
   }
+}
+
+// ── RENDER EVENTS ─────────────────────────────────────
+function renderEvents(){
+  const u=me();
+  const isOfficer=u.role==='officer'||u.role==='advisor';
+  const cards=S.clubEvents.map(ev=>{
+    const totalSlots=ev.tasks.reduce((n,t)=>n+t.slots,0);
+    const totalSignups=ev.tasks.reduce((n,t)=>n+t.signups.length,0);
+    const mySignups=ev.tasks.filter(t=>t.signups.includes(u.id)).length;
+    return`<div class="event-card" onclick="openEvent('${ev.id}')">
+      <div class="event-card-band" style="background:${ev.color}"></div>
+      <div class="event-card-body">
+        <div class="event-card-icon">${ev.icon}</div>
+        <div class="event-card-title">${ev.title}</div>
+        <div class="event-card-desc">${ev.desc}</div>
+        <div class="event-card-footer">
+          <span class="event-date-chip">📅 ${ev.date}</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="event-task-count">${ev.tasks.length} tasks</span>
+            <span class="event-signup-count">${totalSignups}/${totalSlots} filled</span>
+            ${mySignups>0?`<span style="font-size:11px;font-weight:700;color:var(--pri)">✓ Signed up</span>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div>
+  <div class="page-hdr">
+    <div><div class="page-title">🎪 Events</div><div class="page-sub">Click an event to see tasks and sign up</div></div>
+    ${isOfficer&&u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createClubEvent')">+ New Event</button>`:''}
+  </div>
+  <div class="event-grid">${cards||`<div class="empty"><div class="empty-ico">🎪</div><div class="empty-ttl">No events yet</div><div>Officers can create events from here.</div></div>`}</div>
+</div>`;
+}
+
+function renderEventDetail(){
+  const u=me();const ev=S.clubEvents.find(e=>e.id===S.selectedEventId);
+  if(!ev)return`<div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">Event not found</div></div>`;
+  const isOfficer=u.role==='officer';
+  const totalSlots=ev.tasks.reduce((n,t)=>n+t.slots,0);
+  const totalFilled=ev.tasks.reduce((n,t)=>n+t.signups.length,0);
+
+  const taskItems=ev.tasks.map(t=>{
+    const isMine=t.signups.includes(u.id);
+    const isFull=t.signups.length>=t.slots;
+    const signees=t.signups.map(uid=>{
+      const su=getUser(uid);
+      return`<span class="signee-chip${uid===u.id?' me':''}">${su?su.name.split(' ')[0]:uid}</span>`;
+    }).join('');
+    const pips=Array.from({length:t.slots},(_,i)=>{
+      const uid=t.signups[i];
+      const cls=uid===u.id?'mine':uid?'filled':'';
+      return`<span class="slot-pip ${cls}" title="${uid?(getUser(uid)?.name||uid):'open slot'}"></span>`;
+    }).join('');
+
+    let actionBtn='';
+    if(u.role==='member'||u.role==='advisor'){
+      if(isMine) actionBtn=`<button class="btn btn-ghost btn-sm" onclick="withdrawEventTask('${ev.id}','${t.id}')">Withdraw</button>`;
+      else if(!isFull) actionBtn=`<button class="btn btn-teal btn-sm" onclick="signupEventTask('${ev.id}','${t.id}')">Sign Up</button>`;
+      else actionBtn=`<button class="btn btn-ghost btn-sm" disabled>Full</button>`;
+    }
+
+    return`<div class="event-task-item${isFull&&!isMine?' full':''}">
+      <div class="event-task-hdr">
+        <div class="event-task-info">
+          <div class="event-task-title">${t.title}</div>
+          <div class="event-task-desc">${t.desc}</div>
+        </div>
+        ${isOfficer?`<div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="openModal('editEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEventTask('${ev.id}','${t.id}')">✕</button>
+        </div>`:''}
+      </div>
+      <div class="event-task-foot">
+        <div class="slots-bar">${pips}</div>
+        <span style="font-size:11px;color:var(--muted);font-weight:600">${t.signups.length}/${t.slots} slots</span>
+        ${t.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">${signees}${actionBtn}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div>
+  <button class="btn btn-ghost btn-sm" onclick="nav('events')" style="margin-bottom:16px">← All Events</button>
+  <div class="event-detail-hero" style="background:linear-gradient(135deg,${ev.color},#FF4D8B)">
+    <div style="position:relative;z-index:2">
+      <div class="event-detail-icon">${ev.icon}</div>
+      <div class="event-detail-title">${ev.title}</div>
+      <div class="event-detail-meta">📅 ${ev.date} &nbsp;·&nbsp; ${ev.tasks.length} tasks &nbsp;·&nbsp; ${totalFilled}/${totalSlots} slots filled</div>
+      <div style="font-size:13px;opacity:.85;margin-top:6px">${ev.desc}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <div class="sec-title" style="margin:0">Tasks — Sign Up Below</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${isOfficer?`
+        <button class="btn btn-ghost btn-sm" onclick="openModal('addEventTask','${ev.id}')">+ Add Task</button>
+        <button class="btn btn-ai btn-sm" onclick="distributeEventWithAI('${ev.id}')">🤖 AI Distribute</button>
+      `:''}
+    </div>
+  </div>
+
+  <div class="event-task-list">${taskItems||`<div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-ttl">No tasks yet</div>${isOfficer?'<div>Add tasks for members to sign up for.</div>':''}</div>`}</div>
+</div>`;
 }
 
 // ── RENDER INTERNSHIPS ────────────────────────────────
@@ -1235,6 +1439,81 @@ function loginCustom(){
 function logout(){S.uid=null;S.view='login';document.getElementById('aiPanel').classList.remove('open');render()}
 function nav(v){S.view=v;S.filter='all';render()}
 function setF(f){S.filter=f;render()}
+
+function openEvent(id){S.selectedEventId=id;S.view='eventDetail';render()}
+
+function signupEventTask(evId,taskId){
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  const t=ev.tasks.find(t=>t.id===taskId);if(!t)return;
+  if(t.signups.includes(S.uid)){toast('Already signed up','err');return}
+  if(t.signups.length>=t.slots){toast('No slots left','err');return}
+  t.signups.push(S.uid);
+  toast('Signed up! 🙌','ok');render();
+}
+
+function withdrawEventTask(evId,taskId){
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  const t=ev.tasks.find(t=>t.id===taskId);if(!t)return;
+  t.signups=t.signups.filter(id=>id!==S.uid);
+  toast('Withdrawn from task','ok');render();
+}
+
+function deleteEventTask(evId,taskId){
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  ev.tasks=ev.tasks.filter(t=>t.id!==taskId);
+  toast('Task removed','ok');render();
+}
+
+function createClubEvent(){
+  const title=document.getElementById('ceTitle')?.value?.trim();
+  const desc=document.getElementById('ceDesc')?.value?.trim();
+  const date=document.getElementById('ceDate')?.value?.trim();
+  const icon=document.getElementById('ceIcon')?.value||'🎪';
+  const color=document.getElementById('ceColor')?.value||'#5C3BFE';
+  if(!title){toast('Add a title','err');return}
+  const id='cle'+Date.now();
+  S.clubEvents.push({id,title,desc:desc||'',date:date||'TBD',icon,color,createdBy:S.uid,createdAt:Date.now(),tasks:[]});
+  closeModal();
+  openEvent(id);
+  toast('Event created! Add tasks now 🎉','ok');
+}
+
+function addEventTask(){
+  const evId=S.modalData;
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  const title=document.getElementById('etTitle')?.value?.trim();
+  const desc=document.getElementById('etDesc')?.value?.trim();
+  const slots=parseInt(document.getElementById('etSlots')?.value)||1;
+  if(!title){toast('Add a task title','err');return}
+  const skills=[...document.querySelectorAll('.skill-pick-toggle.on')].map(b=>b.dataset.skill);
+  ev.tasks.push({id:'clet'+Date.now(),title,desc:desc||'',slots,signups:[],skills});
+  closeModal();
+  toast('Task added ✅','ok');render();
+}
+
+function saveEventTask(){
+  const{evId,taskId}=S.modalData;
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  const t=ev.tasks.find(t=>t.id===taskId);if(!t)return;
+  t.title=document.getElementById('etTitle')?.value?.trim()||t.title;
+  t.desc=document.getElementById('etDesc')?.value?.trim()||t.desc;
+  t.slots=parseInt(document.getElementById('etSlots')?.value)||t.slots;
+  t.skills=[...document.querySelectorAll('.skill-pick-toggle.on')].map(b=>b.dataset.skill);
+  closeModal();
+  toast('Task updated ✅','ok');render();
+}
+
+async function distributeEventWithAI(evId){
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  const panel=document.getElementById('aiPanel');
+  if(panel&&!panel.classList.contains('open'))toggleAI();
+  const memberSummary=members().map(m=>`• ${m.name}: ${m.skills.join(', ')||'no skills yet'}`).join('\n');
+  const taskSummary=ev.tasks.map(t=>`• "${t.title}" — needs: ${t.skills.join(', ')||'general'} (${t.slots} slot${t.slots>1?'s':''})`).join('\n');
+  const msg=`I'm an officer planning the "${ev.title}" event. Help me assign tasks to members based on their skills.\n\nTasks:\n${taskSummary}\n\nMembers and their skills:\n${memberSummary}\n\nSuggest who should take each task and why. Be specific.`;
+  const input=document.getElementById('aiInput');
+  if(input)input.value=msg;
+  sendAI({isDistribute:true});
+}
 
 function postFeedMessage(){
   const input=document.getElementById('feedInput');
@@ -1573,11 +1852,10 @@ async function sendAI(chip=null){
   appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
   try{
     const u=me();const done=approvedByUser(u.id);
-    const sys=buildSys(u,done);
-    const res=await callGroq(sys,msg,aiMsgHistory.slice(-6));
+    const sys=buildSys(u,done,!!chip?.isDistribute);
+    const res=await callGroq(sys,msg,chip?.isDistribute?[]:aiMsgHistory.slice(-6));
     aiMsgHistory.push({role:'assistant',content:res});
     replaceLastAIMsg(res);
-    // Auto-show tasks if message is about tasks
     if(/task|claim|work on|tackle|do next/i.test(msg)&&!chip)showTaskBubbles();
   }catch(e){
     replaceLastAIMsg(`Connection error: ${e.message}`);
@@ -1585,12 +1863,15 @@ async function sendAI(chip=null){
   S.aiLoading=false;
 }
 
-function buildSys(u,done){
+function buildSys(u,done,isDistribute=false){
   const liSkills=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean);
   const matches=INTERNSHIP_ROLES.filter(r=>{
     const have=r.skills.filter(s=>u.skills.includes(s));
     return have.length>=r.required;
   }).map(r=>r.title);
+  if(isDistribute){
+    return`You are InvoAI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
+  }
   return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs.
 Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP
 Club Skills: ${u.skills.join(', ')||'none yet'}
