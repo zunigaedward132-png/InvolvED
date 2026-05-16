@@ -294,7 +294,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .daily-goal-bar{height:10px;background:var(--bg2);border-radius:5px;margin-top:8px;overflow:hidden}
 .daily-goal-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber2));border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
 
-@media(max-width:768px){.sidebar{display:none}.main{padding:14px}.task-grid{grid-template-columns:1fr 1fr}.picks{grid-template-columns:1fr}}
+/* FEED */
+.feed-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:80px}
+.feed-msg{background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh)}
+.feed-msg.announcement{border-left:4px solid var(--pri);background:linear-gradient(135deg,#F5F0FF,#FDF9FF)}
+.feed-msg.announcement.advisor-post{border-left-color:var(--amber)}
+.feed-hdr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.feed-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.feed-name{font-weight:700;font-size:14px}
+.feed-meta{font-size:11px;color:var(--muted)}
+.ann-badge{font-size:10px;padding:2px 8px;border-radius:999px;background:linear-gradient(135deg,var(--pri),var(--pink));color:#fff;font-weight:700;margin-left:4px}
+.feed-text{font-size:14px;line-height:1.6;color:var(--text);margin-bottom:10px;white-space:pre-wrap}
+.feed-reactions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.reaction-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:4px}
+.reaction-btn.reacted{background:#EDE9FE;border-color:var(--pri3)}
+.reaction-btn:hover{border-color:var(--pri);transform:scale(1.05)}
+.reaction-count{font-size:12px;font-weight:700;color:var(--muted)}
+.add-reaction{background:none;border:1.5px dashed var(--border);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s}
+.add-reaction:hover{border-color:var(--pri);color:var(--pri)}
+.feed-composer{position:fixed;bottom:0;left:210px;right:0;background:#fff;border-top:2px solid var(--border);padding:12px 28px;display:flex;gap:10px;align-items:flex-end;z-index:50}
+.feed-textarea{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--rsm);font-size:14px;font-family:inherit;outline:none;resize:none;min-height:42px;max-height:100px;transition:border-color .2s}
+.feed-textarea:focus{border-color:var(--pri)}
+.ann-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;flex-shrink:0}
+.ann-toggle input{width:auto}
+@media(max-width:768px){.sidebar{display:none}.main{padding:14px}.task-grid{grid-template-columns:1fr 1fr}.picks{grid-template-columns:1fr}.feed-composer{left:0;padding:10px 14px}}
 </style>
 </head>
 <body>
@@ -390,6 +413,12 @@ const S={
     ],
     records:{'ev2':['u1','u2']}
   },
+  feed:[
+    {id:'f1',userId:'u3',text:'Welcome to the club feed! 🎉 Post updates, ask questions, or share wins here.',isAnnouncement:true,ts:Date.now()-86400000*3,reactions:{'🔥':['u1','u2'],'❤️':['u1']}},
+    {id:'f2',userId:'u4',text:'Reminder: all members should complete at least one task this month. Great work so far team!',isAnnouncement:true,ts:Date.now()-86400000*2,reactions:{'👍':['u1','u2','u3']}},
+    {id:'f3',userId:'u1',text:'Just submitted my meeting minutes task — fingers crossed for approval! 🤞',isAnnouncement:false,ts:Date.now()-3600000*5,reactions:{'🔥':['u2'],'❤️':['u3']}},
+    {id:'f4',userId:'u2',text:'Does anyone have tips for the grant research task? Not sure where to start.',isAnnouncement:false,ts:Date.now()-3600000*2,reactions:{'👍':['u1']}},
+  ],
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -503,9 +532,9 @@ function renderTopbar(){
 function renderSidebar(){
   const u=me();
   const navs={
-    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['leaderboard','🏆','Leaderboard']],
-    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard']],
-    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard']],
+    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   return`<div class="sidebar">
@@ -903,8 +932,69 @@ function renderView(){
     case'leaderboard':return renderLeaderboard();
     case'checkin':   return renderCheckin();
     case'attendance':return renderAttendance();
+    case'feed':      return renderFeed();
     default:         return '';
   }
+}
+
+// ── RENDER FEED ───────────────────────────────────────
+function renderFeed(){
+  const u=me();
+  const canAnnounce=u.role==='officer'||u.role==='advisor';
+  const EMOJIS=['👍','❤️','🔥','🎉','💡','👏'];
+  function timeAgo(ts){
+    const d=Math.floor((Date.now()-ts)/1000);
+    if(d<60)return'just now';
+    if(d<3600)return Math.floor(d/60)+'m ago';
+    if(d<86400)return Math.floor(d/3600)+'h ago';
+    return Math.floor(d/86400)+'d ago';
+  }
+  const msgs=[...S.feed].reverse().map(msg=>{
+    const author=getUser(msg.userId);
+    if(!author)return'';
+    const isMe=msg.userId===u.id;
+    const canDelete=isMe||canAnnounce;
+    const reactionHTML=EMOJIS.map(e=>{
+      const who=msg.reactions[e]||[];
+      const reacted=who.includes(u.id);
+      return who.length?`<button class="reaction-btn${reacted?' reacted':''}" onclick="toggleReaction('${msg.id}','${e}')">${e} <span class="reaction-count">${who.length}</span></button>`:''
+    }).join('');
+    const addPickerHTML=`<div style="position:relative;display:inline-block">
+      <button class="add-reaction" onclick="toggleEmojiPicker('${msg.id}')">＋</button>
+      <div class="emoji-picker" id="ep_${msg.id}" style="display:none;position:absolute;bottom:32px;left:0;background:#fff;border:1.5px solid var(--border);border-radius:var(--rsm);padding:6px 8px;display:none;gap:6px;z-index:200;box-shadow:var(--shmd)">
+        ${EMOJIS.map(e=>`<button onclick="toggleReaction('${msg.id}','${e}');closeEmojiPicker('${msg.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:2px">${e}</button>`).join('')}
+      </div>
+    </div>`;
+    return`<div class="feed-msg${msg.isAnnouncement?(author.role==='advisor'?' announcement advisor-post':' announcement'):''}">
+      <div class="feed-hdr">
+        <div class="feed-av" style="background:${avColor(author.role)}">${initials(author.name)}</div>
+        <div style="flex:1">
+          <div class="feed-name">${author.name}${msg.isAnnouncement?`<span class="ann-badge">📣 Announcement</span>`:''}</div>
+          <div class="feed-meta">${author.role} · ${timeAgo(msg.ts)}</div>
+        </div>
+        ${canDelete?`<button style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px 6px" onclick="deletePost('${msg.id}')" title="Delete">🗑</button>`:''}
+      </div>
+      <div class="feed-text">${msg.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div class="feed-reactions">${reactionHTML}${addPickerHTML}</div>
+    </div>`;
+  }).join('');
+
+  const composerAnnToggle=canAnnounce
+    ?`<label class="ann-toggle"><input type="checkbox" id="annToggle"> 📣 Announcement</label>`
+    :'';
+
+  return`<div style="padding-bottom:100px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+    <div style="font-size:26px">💬</div>
+    <div><div style="font-size:20px;font-weight:900">Club Feed</div><div style="font-size:13px;color:var(--muted)">Updates, questions &amp; wins</div></div>
+  </div>
+  <div class="feed-wrap">${msgs||`<div class="empty"><div class="empty-ico">💬</div><div class="empty-ttl">No posts yet</div><div>Be the first to post!</div></div>`}</div>
+  <div class="feed-composer">
+    <textarea class="feed-textarea" id="feedInput" placeholder="Share an update, ask a question, celebrate a win…" rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))postFeedMessage()"></textarea>
+    ${composerAnnToggle}
+    <button class="btn btn-pri" onclick="postFeedMessage()" style="white-space:nowrap">Post ↑</button>
+  </div>
+</div>`;
 }
 
 // ── ACTIONS ───────────────────────────────────────────
@@ -920,6 +1010,45 @@ function loginCustom(){
 function logout(){S.uid=null;S.view='login';document.getElementById('aiPanel').classList.remove('open');render()}
 function nav(v){S.view=v;S.filter='all';render()}
 function setF(f){S.filter=f;render()}
+
+function postFeedMessage(){
+  const input=document.getElementById('feedInput');
+  const text=(input?.value||'').trim();
+  if(!text){toast('Write something first','err');return}
+  const annEl=document.getElementById('annToggle');
+  const isAnn=annEl?annEl.checked:false;
+  S.feed.push({id:'f'+Date.now(),userId:S.uid,text,isAnnouncement:isAnn,ts:Date.now(),reactions:{}});
+  toast('Posted! 🎉','ok');
+  render();
+}
+
+function toggleReaction(msgId,emoji){
+  const msg=S.feed.find(m=>m.id===msgId);if(!msg)return;
+  if(!msg.reactions[emoji])msg.reactions[emoji]=[];
+  const idx=msg.reactions[emoji].indexOf(S.uid);
+  if(idx>=0)msg.reactions[emoji].splice(idx,1);
+  else msg.reactions[emoji].push(S.uid);
+  if(!msg.reactions[emoji].length)delete msg.reactions[emoji];
+  render();
+}
+
+function deletePost(msgId){
+  S.feed=S.feed.filter(m=>m.id!==msgId);
+  render();
+}
+
+function toggleEmojiPicker(msgId){
+  const el=document.getElementById('ep_'+msgId);
+  if(!el)return;
+  const isOpen=el.style.display==='flex';
+  document.querySelectorAll('.emoji-picker').forEach(e=>e.style.display='none');
+  el.style.display=isOpen?'none':'flex';
+}
+
+function closeEmojiPicker(msgId){
+  const el=document.getElementById('ep_'+msgId);
+  if(el)el.style.display='none';
+}
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
 function closeModal(){S.modal=null;S.modalData=null;render()}
 
