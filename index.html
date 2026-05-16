@@ -294,6 +294,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .daily-goal-bar{height:10px;background:var(--bg2);border-radius:5px;margin-top:8px;overflow:hidden}
 .daily-goal-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber2));border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
 
+/* INTERNSHIPS */
+.intern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+.intern-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:transform .2s,box-shadow .2s}
+.intern-card:hover{transform:translateY(-3px);box-shadow:var(--shmd)}
+.intern-card.matched{border-color:var(--green2);box-shadow:0 2px 12px rgba(16,185,129,.18)}
+.intern-card.partial{border-color:var(--amber2)}
+.intern-top{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px}
+.intern-icon{font-size:28px;flex-shrink:0}
+.intern-title{font-size:14px;font-weight:800;line-height:1.3;margin-bottom:2px}
+.intern-company{font-size:11px;color:var(--muted)}
+.intern-body{padding:0 14px 14px}
+.intern-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.intern-progress{margin-bottom:10px}
+.intern-pct{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;justify-content:space-between}
+.intern-bar{height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.intern-bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.intern-skills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.intern-skill{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600}
+.intern-skill.have{background:#D1FAE5;color:#065F46}
+.intern-skill.need{background:#FEE2E2;color:#991B1B}
+.match-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.match-badge.full{background:linear-gradient(135deg,#D1FAE5,#A7F3D0);color:#065F46}
+.match-badge.partial{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E}
+.match-badge.low{background:#F3F4F6;color:#4B5563}
+.li-skill-tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE}
 /* FEED */
 .feed-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:80px}
 .feed-msg{background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh)}
@@ -376,6 +401,58 @@ const SKILL_CATS={
   'Leadership':'leadership','Organization':'leadership','Management':'leadership','Event Planning':'leadership',
   'Technology':'tech','Programming':'tech','Web Development':'tech','Data Analysis':'tech',
 };
+
+// LinkedIn-aligned skill keywords + internship role mapping
+const LINKEDIN_SKILL_MAP={
+  'Research':           {liKeyword:'Research',liCategory:'Analytical Skills',color:'#2563EB'},
+  'Analysis':           {liKeyword:'Data Analysis',liCategory:'Analytical Skills',color:'#2563EB'},
+  'Data':               {liKeyword:'Data Management',liCategory:'Analytical Skills',color:'#2563EB'},
+  'Writing':            {liKeyword:'Written Communication',liCategory:'Communication',color:'#7C3AED'},
+  'Communication':      {liKeyword:'Communication',liCategory:'Communication',color:'#7C3AED'},
+  'Editing':            {liKeyword:'Editing',liCategory:'Communication',color:'#7C3AED'},
+  'Public Speaking':    {liKeyword:'Public Speaking',liCategory:'Communication',color:'#7C3AED'},
+  'Design':             {liKeyword:'Graphic Design',liCategory:'Creative',color:'#DB2777'},
+  'Creativity':         {liKeyword:'Creative Problem Solving',liCategory:'Creative',color:'#DB2777'},
+  'Visual Communication':{liKeyword:'Visual Communication',liCategory:'Creative',color:'#DB2777'},
+  'Marketing':          {liKeyword:'Marketing',liCategory:'Marketing',color:'#EA580C'},
+  'Social Media':       {liKeyword:'Social Media Marketing',liCategory:'Marketing',color:'#EA580C'},
+  'Leadership':         {liKeyword:'Leadership',liCategory:'Leadership',color:'#059669'},
+  'Organization':       {liKeyword:'Project Management',liCategory:'Leadership',color:'#059669'},
+  'Management':         {liKeyword:'Team Management',liCategory:'Leadership',color:'#059669'},
+  'Event Planning':     {liKeyword:'Event Management',liCategory:'Leadership',color:'#059669'},
+  'Technology':         {liKeyword:'Technology',liCategory:'Technical Skills',color:'#0891B2'},
+  'Programming':        {liKeyword:'Software Development',liCategory:'Technical Skills',color:'#0891B2'},
+  'Web Development':    {liKeyword:'Web Development',liCategory:'Technical Skills',color:'#0891B2'},
+  'Data Analysis':      {liKeyword:'Data Analysis',liCategory:'Technical Skills',color:'#0891B2'},
+};
+
+// Internship roles with required skills and match thresholds
+const INTERNSHIP_ROLES=[
+  {id:'marketing',title:'Marketing Intern',company:'~3,000 openings/mo on LinkedIn',icon:'📣',
+   skills:['Marketing','Social Media','Writing','Creativity','Design','Communication'],required:2,
+   desc:'Create campaigns, manage social media, analyze engagement, and support brand initiatives.'},
+  {id:'research',title:'Research Assistant Intern',company:'~1,800 openings/mo on LinkedIn',icon:'🔬',
+   skills:['Research','Analysis','Data','Writing','Communication'],required:2,
+   desc:'Collect and synthesize data, write reports, support faculty or department projects.'},
+  {id:'communications',title:'Communications Intern',company:'~2,200 openings/mo on LinkedIn',icon:'📢',
+   skills:['Writing','Communication','Editing','Public Speaking','Social Media'],required:2,
+   desc:'Draft press releases, manage newsletters, support media relations and content creation.'},
+  {id:'nonprofit',title:'Nonprofit Program Intern',company:'~1,500 openings/mo on LinkedIn',icon:'🤝',
+   skills:['Leadership','Organization','Communication','Event Planning','Writing'],required:2,
+   desc:'Coordinate programs, engage community partners, track outcomes, and support events.'},
+  {id:'event',title:'Event Coordinator Intern',company:'~900 openings/mo on LinkedIn',icon:'🎉',
+   skills:['Event Planning','Organization','Communication','Leadership','Marketing'],required:2,
+   desc:'Plan and execute events, manage logistics, coordinate vendors and volunteers.'},
+  {id:'design',title:'Graphic Design Intern',company:'~1,600 openings/mo on LinkedIn',icon:'🎨',
+   skills:['Design','Visual Communication','Creativity','Marketing','Social Media'],required:2,
+   desc:'Create visual content for digital and print, maintain brand consistency, design campaigns.'},
+  {id:'tech',title:'Tech/IT Support Intern',company:'~2,500 openings/mo on LinkedIn',icon:'💻',
+   skills:['Technology','Programming','Web Development','Data Analysis'],required:1,
+   desc:'Support IT infrastructure, assist with software, troubleshoot systems, assist on tech projects.'},
+  {id:'admin',title:'Administrative Intern',company:'~4,000 openings/mo on LinkedIn',icon:'📋',
+   skills:['Organization','Communication','Writing','Management','Data'],required:2,
+   desc:'Support office operations, coordinate schedules, handle correspondence, manage records.'},
+];
 const ALL_SKILLS=Object.keys(SKILL_CATS);
 const XP_PER_LEVEL=200;
 const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
@@ -532,7 +609,7 @@ function renderTopbar(){
 function renderSidebar(){
   const u=me();
   const navs={
-    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
+    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['internships','💼','Internships'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
     officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
     advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
   };
@@ -711,9 +788,16 @@ function renderResume(){
   <div><div class="page-title">Resume Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
   <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
 </div>
-<div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:20px">
+<div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:16px">
   <div class="sec-row"><div class="sec-title" style="margin:0">🛠️ Skills Bank</div><span style="font-size:12px;color:var(--muted)">${u.skills.length} skills earned</span></div>
   ${u.skills.length?`<div class="skill-bank">${u.skills.map(s=>`<span class="skill-bank-tag">${s}</span>`).join('')}</div>`:`<div class="empty" style="padding:20px"><div class="empty-ico">🌱</div><div class="empty-ttl">No skills yet</div><div>Complete tasks to earn skills.</div></div>`}
+</div>
+<div style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;border-radius:var(--r);padding:16px 18px;margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <div style="font-size:18px">🔗</div>
+    <div><div style="font-size:14px;font-weight:800;color:#3730A3">LinkedIn Skill Keywords</div><div style="font-size:11px;color:#6366F1">Copy these into your LinkedIn Skills section to appear in recruiter searches</div></div>
+  </div>
+  ${u.skills.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${u.skills.map(s=>{const li=LINKEDIN_SKILL_MAP[s];return li?`<span class="li-skill-tag" title="Category: ${li.liCategory}">${li.liKeyword}</span>`:''}).filter(Boolean).join('')}</div>`:'<div style="font-size:13px;color:#6366F1">Complete tasks to earn LinkedIn keyword skills.</div>'}
 </div>
 <div class="sec-title">📁 Portfolio Entries</div>
 ${done.length?done.map(task=>{
@@ -931,10 +1015,94 @@ function renderView(){
     case'resume':    return renderResume();
     case'leaderboard':return renderLeaderboard();
     case'checkin':   return renderCheckin();
-    case'attendance':return renderAttendance();
-    case'feed':      return renderFeed();
+    case'attendance':  return renderAttendance();
+    case'internships': return renderInternships();
+    case'feed':        return renderFeed();
     default:         return '';
   }
+}
+
+// ── RENDER INTERNSHIPS ────────────────────────────────
+function renderInternships(){
+  const u=me();
+  const mySkills=new Set(u.skills);
+  const done=approvedByUser(u.id);
+
+  function matchScore(role){
+    const have=role.skills.filter(s=>mySkills.has(s));
+    return{have,need:role.skills.filter(s=>!mySkills.has(s)),pct:Math.round((have.length/role.skills.length)*100),qualified:have.length>=role.required};
+  }
+
+  const sorted=[...INTERNSHIP_ROLES].sort((a,b)=>{
+    const ma=matchScore(a),mb=matchScore(b);
+    return mb.have.length-ma.have.length;
+  });
+
+  const topMatch=sorted.find(r=>matchScore(r).qualified);
+  const totalSkills=mySkills.size;
+
+  const cards=sorted.map(role=>{
+    const m=matchScore(role);
+    const pct=m.pct;
+    const barColor=pct>=66?'var(--green2)':pct>=33?'var(--amber2)':'var(--red2)';
+    const badgeClass=m.qualified?'full':m.have.length>0?'partial':'low';
+    const badgeLabel=m.qualified?'✅ Qualified':m.have.length>0?`${m.have.length}/${role.skills.length} skills`:'🔒 Skills needed';
+    return`<div class="intern-card ${m.qualified?'matched':m.have.length>0?'partial':''}">
+      <div class="intern-top">
+        <div class="intern-icon">${role.icon}</div>
+        <div style="flex:1">
+          <div class="intern-title">${role.title}</div>
+          <div class="intern-company">${role.company}</div>
+        </div>
+        <span class="match-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <div class="intern-body">
+        <div class="intern-desc">${role.desc}</div>
+        <div class="intern-progress">
+          <div class="intern-pct"><span>Skill match</span><span>${pct}%</span></div>
+          <div class="intern-bar"><div class="intern-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        </div>
+        <div class="intern-skills">
+          ${m.have.map(s=>`<span class="intern-skill have">✓ ${s}</span>`).join('')}
+          ${m.need.slice(0,3).map(s=>`<span class="intern-skill need">+ ${s}</span>`).join('')}
+          ${m.need.length>3?`<span class="intern-skill need">+${m.need.length-3} more</span>`:''}
+        </div>
+        <button class="btn btn-pri" style="width:100%;justify-content:center;font-size:12px;padding:7px" onclick="coachForRole('${role.id}')">🤖 Coach me for this role</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const liSkillsHTML=totalSkills>0
+    ?[...mySkills].map(s=>{const li=LINKEDIN_SKILL_MAP[s];return li?`<span class="li-skill-tag" title="${li.liCategory}">${li.liKeyword}</span>`:''}).filter(Boolean).join('')
+    :`<span style="color:var(--muted);font-size:13px">Complete tasks to earn LinkedIn skills</span>`;
+
+  return`<div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+    <div style="font-size:26px">💼</div>
+    <div><div style="font-size:20px;font-weight:900">Internship Matcher</div><div style="font-size:13px;color:var(--muted)">See how your club skills align with real internship roles</div></div>
+  </div>
+
+  <div style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;border-radius:var(--r);padding:16px 18px;margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;color:#3730A3;margin-bottom:8px">🔗 YOUR LINKEDIN SKILL KEYWORDS</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${liSkillsHTML}</div>
+    ${totalSkills>0?`<div style="font-size:11px;color:#6366F1;margin-top:8px">Add these to your LinkedIn profile Skills section to appear in recruiter searches.</div>`:''}
+  </div>
+
+  ${topMatch?`<div style="background:linear-gradient(135deg,#D1FAE5,#ECFDF5);border:1px solid var(--green2);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+    <div style="font-size:30px">${topMatch.icon}</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:800;color:#065F46">🎯 Best match: ${topMatch.title}</div>
+      <div style="font-size:12px;color:#059669;margin-top:2px">You already have the required skills — you're ready to apply!</div>
+    </div>
+    <button class="btn" style="background:#059669;color:#fff;font-size:12px" onclick="coachForRole('${topMatch.id}')">Get coached →</button>
+  </div>`:`<div style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid var(--amber2);border-radius:var(--r);padding:14px 18px;margin-bottom:20px">
+    <div style="font-size:13px;font-weight:800;color:#92400E">💡 Keep going — you're building a strong foundation</div>
+    <div style="font-size:12px;color:#B45309;margin-top:4px">Complete more tasks to unlock your first internship match. Check the Tasks tab for opportunities.</div>
+  </div>`}
+
+  <div class="sec-title" style="margin-bottom:12px">Internship Roles — Skill Match</div>
+  <div class="intern-grid">${cards}</div>
+</div>`;
 }
 
 // ── RENDER FEED ───────────────────────────────────────
@@ -1048,6 +1216,16 @@ function toggleEmojiPicker(msgId){
 function closeEmojiPicker(msgId){
   const el=document.getElementById('ep_'+msgId);
   if(el)el.style.display='none';
+}
+
+function coachForRole(roleId){
+  const role=INTERNSHIP_ROLES.find(r=>r.id===roleId);if(!role)return;
+  const input=document.getElementById('aiInput');
+  const panel=document.getElementById('aiPanel');
+  if(panel&&!panel.classList.contains('open'))toggleAI();
+  const msg=`I want to get a ${role.title} internship. Based on my skills and club work, what should I do next? What am I missing and how do I talk about my experience?`;
+  if(input)input.value=msg;
+  sendAI({internshipRole:role.title});
 }
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
 function closeModal(){S.modal=null;S.modalData=null;render()}
@@ -1237,6 +1415,7 @@ const AI_CHIPS=[
   {label:'📋 Suggest tasks', msg:'Recommend tasks for me', showTasks:true},
   {label:'📝 Resume bullet', msg:'Write me 2 resume bullet points based on my completed tasks'},
   {label:'📊 My summary',    msg:'Give me a quick summary of my progress', showSummary:true},
+  {label:'💼 Internships',   msg:'Which internship types am I closest to qualifying for, and what should I do next?', showInternships:true},
   {label:'🎤 Interview tips',msg:'How do I talk about my club work in a job interview?'},
 ];
 
@@ -1277,6 +1456,29 @@ function showSummaryCard(){
   appendAIMsg('ai',html);
 }
 
+function showInternshipCard(){
+  const u=me();
+  const matches=INTERNSHIP_ROLES.map(r=>{
+    const have=r.skills.filter(s=>u.skills.includes(s));
+    return{...r,have,pct:Math.round((have.length/r.skills.length)*100),qualified:have.length>=r.required};
+  }).sort((a,b)=>b.have.length-a.have.length).slice(0,4);
+  const liSkills=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean);
+  const qualified=matches.filter(m=>m.qualified);
+  const html=`<div class="ai-msg-lbl">InvoAI</div>
+  <div style="font-size:13px;margin-bottom:8px">${qualified.length?`🎯 You qualify for <strong>${qualified.length}</strong> internship type${qualified.length>1?'s':''}!`:'Keep building skills — here\'s where you stand:'}</div>
+  ${matches.map(m=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 8px;background:${m.qualified?'#D1FAE5':'var(--bg)'};border-radius:8px">
+    <span>${m.icon}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title}</div>
+      <div style="height:4px;background:#e5e7eb;border-radius:2px;margin-top:3px"><div style="height:4px;width:${m.pct}%;background:${m.qualified?'var(--green2)':'var(--amber2)'};border-radius:2px"></div></div>
+    </div>
+    <span style="font-size:11px;font-weight:700;color:${m.qualified?'#059669':'var(--muted)'}">${m.pct}%</span>
+  </div>`).join('')}
+  ${liSkills.length?`<div style="font-size:11px;color:#3730A3;margin-top:8px">📎 Add to LinkedIn: ${liSkills.slice(0,4).join(' · ')}</div>`:''}
+  <button onclick="nav('internships')" style="margin-top:8px;background:var(--pri);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">See full breakdown →</button>`;
+  appendAIMsg('ai',html);
+}
+
 function claimFromAI(taskId){
   claimTask(taskId);
   appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Task claimed! 💪 Head to the Tasks tab to submit your work when you're done.`);
@@ -1294,6 +1496,7 @@ async function sendAI(chip=null){
 
   // Show inline summary or tasks immediately if chip requested it
   if(chip?.showSummary){showSummaryCard();return}
+  if(chip?.showInternships){showInternshipCard();return}
   if(chip?.showTasks){
     S.aiLoading=true;
     appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
@@ -1326,7 +1529,19 @@ async function sendAI(chip=null){
 }
 
 function buildSys(u,done){
-  return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs. Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP, Skills: ${u.skills.join(', ')||'none yet'}, Completed: ${done.map(t=>t.title).join(', ')||'none'}, Streak: ${u.streak||0} days. Use their real data.`;
+  const liSkills=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean);
+  const matches=INTERNSHIP_ROLES.filter(r=>{
+    const have=r.skills.filter(s=>u.skills.includes(s));
+    return have.length>=r.required;
+  }).map(r=>r.title);
+  return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs.
+Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP
+Club Skills: ${u.skills.join(', ')||'none yet'}
+LinkedIn Keywords: ${liSkills.join(', ')||'none yet'}
+Internship Roles Qualified For: ${matches.join(', ')||'none yet — keep building skills!'}
+Completed Tasks: ${done.map(t=>t.title).join(', ')||'none'}
+Streak: ${u.streak||0} days.
+Use their real data. When giving internship advice, mention specific LinkedIn keywords they should add to their profile.`;
 }
 
 function sendAIChip(idx){
