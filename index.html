@@ -925,7 +925,7 @@ function handleFile(input){
 }
 
 async function analyzeSkills(taskId){
-  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Groq key to index.html','err');return}
   const work=document.getElementById('workText')?.value?.trim();
   if(!work){toast('Write a description first','err');return}
   const task=S.tasks.find(t=>t.id===taskId);
@@ -1006,7 +1006,7 @@ function createTask(){
 }
 
 async function suggestDistribution(){
-  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Groq key to index.html','err');return}
   const title=document.getElementById('tTitle')?.value||'Untitled task';
   const desc=document.getElementById('tDesc')?.value||'';
   const cap=document.getElementById('tCap')?.value||'1';
@@ -1089,7 +1089,7 @@ function updateAIPanel(){
 const aiMsgHistory=[];
 
 async function sendAI(){
-  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Gemini key to index.html','err');return}
+  if(!S.apiKey||S.apiKey==='YOUR_GROQ_KEY_HERE'){toast('Add your Groq key to index.html','err');return}
   const input=document.getElementById('aiInput');
   const msg=input?.value?.trim();if(!msg||S.aiLoading)return;
   input.value='';
