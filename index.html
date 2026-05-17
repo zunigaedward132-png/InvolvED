@@ -37,20 +37,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #app{min-height:100vh;display:flex;flex-direction:column}
 
 /* ── TOPBAR ── */
-.topbar{background:var(--card);color:var(--ink);padding:0 32px;height:60px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--sand)}
-.logo{font-size:20px;font-weight:900;letter-spacing:-.6px;flex-shrink:0;color:var(--ink)}
+.topbar{background:var(--card);color:var(--ink);padding:0 28px;height:58px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--sand)}
+.logo{font-size:19px;font-weight:900;letter-spacing:-.5px;flex-shrink:0;color:var(--ink)}
 .logo-t{color:var(--forest2)}
-.streak-chip{display:flex;align-items:center;gap:5px;background:#FEF6E4;border:1.5px solid #DEB96A;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
-.streak-fire{animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-.xp-section{flex:1;max-width:200px;margin:0 8px}
-.xp-label{font-size:10px;color:var(--stone);margin-bottom:4px;display:flex;justify-content:space-between;font-weight:600}
-.xp-track{height:6px;background:var(--cream2);border-radius:3px;overflow:hidden}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--forest2),var(--forest3));border-radius:3px;transition:width .8s cubic-bezier(.25,.46,.45,.94)}
-.lvl-badge{background:var(--forest);color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:999px;flex-shrink:0;letter-spacing:.3px}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topnav{display:flex;gap:2px;align-items:center}
+.tnav-item{padding:7px 15px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--stone);font-family:inherit;transition:all .18s;position:relative;white-space:nowrap}
+.tnav-item:hover{background:var(--cream2);color:var(--ink)}
+.tnav-item.active{background:var(--forest);color:#fff}
+.tnav-dot{width:6px;height:6px;border-radius:50%;background:#E8936A;position:absolute;top:6px;right:4px;animation:pulse 1.8s infinite}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .user-chip{display:flex;align-items:center;gap:8px;background:var(--cream);border-radius:999px;padding:4px 14px 4px 4px;border:1px solid var(--sand)}
-.u-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0}
+.u-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0}
 .u-name{font-size:13px;font-weight:600;color:var(--ink)}
 .role-pill{font-size:9px;padding:2px 7px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .role-pill.member{background:#E8F0EB;color:var(--forest2)}
@@ -60,19 +58,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .icon-btn:hover{color:var(--ink)}
 
 /* ── LAYOUT ── */
-.app-body{display:flex;flex:1;overflow:hidden}
-.sidebar{width:232px;flex-shrink:0;background:var(--forest);padding:16px 0;height:calc(100vh - 60px);position:sticky;top:60px;overflow-y:auto;display:flex;flex-direction:column}
-.sidebar-logo-strip{padding:8px 20px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:10px}
-.sidebar-logo-strip img{width:34px;height:34px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.1);padding:2px}
-.sidebar-logo-strip-name{font-size:14px;font-weight:900;color:#fff;letter-spacing:-.3px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.55);transition:all .2s cubic-bezier(.25,.46,.45,.94);user-select:none;margin:1px 10px;border-radius:10px;letter-spacing:.1px}
-.nav-item:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9);transform:translateX(2px)}
-.nav-item.active{background:rgba(255,255,255,.15);color:#fff;font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-.nav-dot{width:7px;height:7px;border-radius:50%;background:#E8936A;margin-left:auto;flex-shrink:0;animation:pulse 1.8s infinite}
-.main{flex:1;overflow-y:auto;padding:36px 44px;min-width:0;animation:pageIn .35s cubic-bezier(.25,.46,.45,.94) both}
-.main-inner{max-width:920px;margin:0 auto}
-@keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.app-body{flex:1;overflow:hidden}
+.main{overflow-y:auto;padding:32px 40px;min-width:0;animation:pageIn .35s cubic-bezier(.25,.46,.45,.94) both;min-height:calc(100vh - 58px)}
+.main-inner{max-width:880px;margin:0 auto}
+@keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── STAT CARDS ── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px}
@@ -311,9 +300,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .toast.err{background:var(--red);color:#fff}
 @keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* ── XP FLOAT ── */
-.xp-float{position:fixed;z-index:4000;font-size:20px;font-weight:900;color:var(--gold);pointer-events:none;animation:xpRise 1.5s ease-out forwards}
-@keyframes xpRise{0%{transform:translateY(0) scale(1);opacity:1}20%{transform:translateY(-10px) scale(1.15)}100%{transform:translateY(-80px);opacity:0}}
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:52px 20px;color:var(--stone)}
@@ -321,12 +307,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty-ttl{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:6px;letter-spacing:-.2px}
 
 /* ── DASHBOARD ── */
-.streak-banner{background:linear-gradient(135deg,#5A2808,#8B4513,#A0522D);border-radius:var(--r);padding:22px 26px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:18px;box-shadow:var(--shmd)}
-.streak-num{font-size:48px;font-weight:900;line-height:1;letter-spacing:-2px}
-.streak-lbl{font-size:14px;opacity:.85;font-weight:600}
-.daily-goal{background:var(--card);border-radius:var(--r);padding:18px 22px;border:1px solid var(--sand);margin-bottom:24px}
-.daily-goal-bar{height:10px;background:var(--cream2);border-radius:5px;margin-top:9px;overflow:hidden}
-.daily-goal-fill{height:100%;background:linear-gradient(90deg,var(--forest),var(--forest3));border-radius:5px;transition:width .9s cubic-bezier(.25,.46,.45,.94)}
+.welcome-banner{background:var(--forest);border-radius:var(--r);padding:24px 28px;color:#fff;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:var(--shmd)}
+.welcome-title{font-size:22px;font-weight:900;letter-spacing:-.4px;margin-bottom:4px}
+.welcome-sub{font-size:13px;opacity:.75}
 
 /* ── INTERNSHIPS ── */
 .intern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px;margin-bottom:24px}
@@ -407,12 +390,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .reaction-count{font-size:12px;font-weight:700;color:var(--stone)}
 .add-reaction{background:none;border:1.5px dashed var(--sand);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--stone);transition:all .18s}
 .add-reaction:hover{border-color:var(--forest2);color:var(--forest2)}
-.feed-composer{position:fixed;bottom:0;left:232px;right:0;background:var(--card);border-top:1px solid var(--sand);padding:14px 30px;display:flex;gap:10px;align-items:flex-end;z-index:50;box-shadow:0 -4px 20px rgba(26,18,8,.06)}
+.feed-composer{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--sand);padding:14px 40px;display:flex;gap:10px;align-items:flex-end;z-index:50;box-shadow:0 -4px 20px rgba(26,18,8,.06)}
 .feed-textarea{flex:1;padding:10px 14px;border:1.5px solid var(--sand);border-radius:var(--rsm);font-size:14px;font-family:inherit;outline:none;resize:none;min-height:42px;max-height:100px;transition:all .2s;background:var(--cream);color:var(--ink)}
 .feed-textarea:focus{border-color:var(--forest2);background:var(--card);box-shadow:0 0 0 3px rgba(45,90,69,.1)}
 .ann-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--stone);cursor:pointer;flex-shrink:0}
 .ann-toggle input{width:auto}
-@media(max-width:768px){.sidebar{display:none}.main{padding:18px 16px}.task-grid{grid-template-columns:1fr 1fr}.picks{grid-template-columns:1fr}.feed-composer{left:0;padding:10px 14px}}
+@media(max-width:768px){.main{padding:16px 14px}.task-grid{grid-template-columns:1fr 1fr}.picks{grid-template-columns:1fr}.feed-composer{padding:10px 14px}.topnav{display:none}}
 </style>
 </head>
 <body>
@@ -673,45 +656,28 @@ function renderLogin(){
 
 // ── RENDER TOPBAR ─────────────────────────────────────
 function renderTopbar(){
-  const u=me();const showXP=u.role!=='advisor';
+  const u=me();
+  const navs={
+    member: [['dashboard','Home'],['tasks','Tasks'],['events','Events'],['checkin','Check In'],['feed','Feed']],
+    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['attendance','Attendance'],['feed','Feed']],
+    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['attendance','Attendance'],['feed','Feed']],
+  };
+  const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
+  const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
+    <button class="tnav-item ${S.view===v||S.view==='eventDetail'&&v==='events'?'active':''}" onclick="nav('${v}')">
+      ${lbl}${v==='tasks'&&(u.role==='officer'||u.role==='advisor')&&pending?`<span class="tnav-dot"></span>`:''}
+    </button>`).join('');
   return`<div class="topbar">
   <div class="logo">Involv<span class="logo-t">Ed</span></div>
-  ${u.streak>0&&u.role!=='advisor'?`<div class="streak-chip"><span class="streak-fire">🔥</span>${u.streak} streak</div>`:''}
-  ${showXP?`<div class="xp-section">
-    <div class="xp-label"><span>Lv ${lvl(u.xp)}</span><span>${xpInLvl(u.xp)}/${XP_PER_LEVEL} XP</span></div>
-    <div class="xp-track"><div class="xp-fill" style="width:${xpPct(u.xp)}%"></div></div>
-  </div>
-  <div class="lvl-badge">LVL ${lvl(u.xp)}</div>`:'<div style="flex:1"></div>'}
+  <nav class="topnav">${items}</nav>
   <div class="topbar-right">
     <div class="user-chip">
       <div class="u-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
       <span class="u-name">${u.name.split(' ')[0]}</span>
       <span class="role-pill ${u.role}">${u.role}</span>
     </div>
-    <button class="icon-btn" onclick="logout()" title="Switch">⇄</button>
+    <button class="icon-btn" onclick="logout()" title="Switch user">⇄</button>
   </div>
-</div>`;
-}
-
-// ── RENDER SIDEBAR ────────────────────────────────────
-function renderSidebar(){
-  const u=me();
-  const navs={
-    member: [['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['events','🎪','Events'],['checkin','✅','Check In'],['resume','📄','Resume Ready'],['internships','💼','Internships'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
-    officer:[['dashboard','🏠','Dashboard'],['tasks','📋','Tasks'],['events','🎪','Events'],['members','👥','Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
-    advisor:[['dashboard','🏠','Dashboard'],['tasks','📋','All Tasks'],['events','🎪','Events'],['members','👥','All Members'],['attendance','📅','Attendance'],['leaderboard','🏆','Leaderboard'],['feed','💬','Club Feed']],
-  };
-  const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
-  return`<div class="sidebar">
-  <div class="sidebar-logo-strip">
-    <img src="https://i.imgur.com/KaSEx7u.png" onerror="this.style.display='none'">
-    <div class="sidebar-logo-strip-name">InvolvED</div>
-  </div>
-  ${(navs[u.role]||navs.member).map(([v,ic,lbl])=>`
-  <div class="nav-item ${S.view===v?'active':''}" onclick="nav('${v}')">
-    <span class="nav-icon">${ic}</span>${lbl}
-    ${v==='tasks'&&u.role==='officer'&&pending?`<span class="nav-dot"></span>`:''}
-  </div>`).join('')}
 </div>`;
 }
 
@@ -721,48 +687,41 @@ function renderDashboard(){
   if(u.role==='member'){
     const active=S.tasks.filter(t=>t.submissions.some(s=>s.userId===u.id&&s.status!=='approved'&&s.status!=='rejected'));
     const open=S.tasks.filter(t=>taskStatus(t)==='open');
-    const todayXP=xpInLvl(u.xp);
     return`
-    ${u.streak>=3?`<div class="streak-banner"><div class="streak-num">🔥${u.streak}</div><div><div class="streak-lbl">Day Streak!</div><div style="font-size:12px;opacity:.8">You're on fire! Keep it up.</div></div></div>`:''}
-    <div class="page-hdr"><div><div class="page-title">Hey ${u.name.split(' ')[0]}! 👋</div><div class="page-sub">Keep building — every task is proof of your skills.</div></div></div>
-    <div class="daily-goal">
-      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:14px">⚡ Daily XP Goal</span><span style="font-size:13px;color:var(--muted)">${todayXP} / ${XP_PER_LEVEL} XP</span></div>
-      <div class="daily-goal-bar"><div class="daily-goal-fill" style="width:${xpPct(u.xp)}%"></div></div>
+    <div class="welcome-banner">
+      <div><div class="welcome-title">Hey ${u.name.split(' ')[0]}! 👋</div><div class="welcome-sub">Every task you complete is proof of your skills.</div></div>
     </div>
     <div class="stat-grid">
-      <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">⚡</div><div class="stat-val" style="color:var(--orange)">${u.xp}</div><div class="stat-lbl">Total XP</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">🎯</div><div class="stat-val" style="color:var(--green)">${done.length}</div><div class="stat-lbl">Completed</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--pri)">${u.skills.length}</div><div class="stat-lbl">Skills</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--pink)"><div class="stat-ico">🏅</div><div class="stat-val" style="color:var(--pink)">${u.badges.length}</div><div class="stat-lbl">Badges</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--forest)">${done.length}</div><div class="stat-lbl">Tasks Done</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--sky)">${u.skills.length}</div><div class="stat-lbl">Skills Earned</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${active.length}</div><div class="stat-lbl">In Progress</div></div>
     </div>
-    ${active.length?`<div class="sec-title">🔥 Your Active Tasks</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
-    ${open.length?`<div class="sec-row"><div class="sec-title">📋 Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('tasks')">View all →</button></div><div class="task-grid">${open.slice(0,3).map(t=>taskCard(t)).join('')}</div>`:''}
-    <div class="sec-title">🏅 Your Badges</div>${badgeGrid(u)}`;
+    ${active.length?`<div class="sec-title">In Progress</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
+    ${open.length?`<div class="sec-row"><div class="sec-title">Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('tasks')">View all →</button></div><div class="task-grid">${open.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
   }
   if(u.role==='officer'){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
+    const approved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
     return`
-    <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Create tasks, review work, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()" title="Export all club data to Excel">📊 Export to Excel</button></div>
+    <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Manage tasks, review submissions, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
     <div class="stat-grid">
-      <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--cyan)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--cyan)">${pending}</div><div class="stat-lbl">Awaiting Review</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
-      <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--orange)">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Approved</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending}</div><div class="stat-lbl">Needs Review</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Approved</div></div>
     </div>
-    ${pending?`<div class="sec-row"><div class="sec-title" style="color:var(--cyan)">⏳ Needs Review</div></div><div class="task-grid">${S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review')).slice(0,3).map(t=>taskCard(t)).join('')}</div>`:''}
-    <div class="sec-title">🏅 Your Badges</div>${badgeGrid(u)}`;
+    ${pending?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Needs Review</div></div><div class="task-grid">${S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review')).slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
   }
   // advisor
-  const ms=members();const totalXP=ms.reduce((s,m)=>s+m.xp,0);
+  const ms=members();const uniqueSkills=[...new Set(ms.flatMap(m=>m.skills))].length;
   return`
-  <div class="page-hdr"><div><div class="page-title">Advisor Overview</div><div class="page-sub">Monitor club progress and member development.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()" title="Export all club data to Excel">📊 Export to Excel</button></div>
+  <div class="page-hdr"><div><div class="page-title">Advisor Overview</div><div class="page-sub">Monitor club progress and member development.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
   <div class="stat-grid">
-    <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">👥</div><div class="stat-val">${ms.length}</div><div class="stat-lbl">Members</div></div>
-    <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">✅</div><div class="stat-val">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Tasks Done</div></div>
-    <div class="stat-card" style="border-top:4px solid var(--orange)"><div class="stat-ico">⚡</div><div class="stat-val" style="color:var(--orange)">${totalXP}</div><div class="stat-lbl">Total XP</div></div>
-    <div class="stat-card" style="border-top:4px solid var(--cyan)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--cyan)">${[...new Set(ms.flatMap(m=>m.skills))].length}</div><div class="stat-lbl">Unique Skills</div></div>
+    <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">👥</div><div class="stat-val">${ms.length}</div><div class="stat-lbl">Members</div></div>
+    <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">✅</div><div class="stat-val">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Tasks Done</div></div>
+    <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--sky)">${uniqueSkills}</div><div class="stat-lbl">Skills Across Club</div></div>
   </div>
-  <div class="sec-title">👥 Member Progress</div>
+  <div class="sec-title">Member Progress</div>
   <div class="member-list">${ms.map(memberRow).join('')}</div>`;
 }
 
@@ -1173,23 +1132,20 @@ function render(){
   const app=document.getElementById('app');
   if(!S.uid){app.innerHTML=renderLogin();document.getElementById('aiFab').style.display='none';return}
   document.getElementById('aiFab').style.display='flex';
-  app.innerHTML=`${renderTopbar()}<div class="app-body">${renderSidebar()}<div class="main"><div class="main-inner">${renderView()}</div></div></div>${renderModal()}`;
+  app.innerHTML=`${renderTopbar()}<div class="app-body"><div class="main"><div class="main-inner">${renderView()}</div></div></div>${renderModal()}`;
 }
 
 function renderView(){
   switch(S.view){
-    case'dashboard': return renderDashboard();
-    case'tasks':     return renderTasks();
-    case'members':   return renderMembers();
-    case'resume':    return renderResume();
-    case'leaderboard':return renderLeaderboard();
-    case'checkin':   return renderCheckin();
+    case'dashboard':   return renderDashboard();
+    case'tasks':       return renderTasks();
+    case'members':     return renderMembers();
+    case'checkin':     return renderCheckin();
     case'attendance':  return renderAttendance();
     case'events':      return renderEvents();
     case'eventDetail': return renderEventDetail();
-    case'internships': return renderInternships();
     case'feed':        return renderFeed();
-    default:         return '';
+    default:           return '';
   }
 }
 
@@ -1655,12 +1611,8 @@ function approveSub(taskId,userId){
   const allSkills=[...new Set([...t.skills,...(sub.aiSkills||[])])];
   allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
   officer.tasksApproved=(officer.tasksApproved||0)+1;
-  const newLvl=lvl(claimer.xp);
-  const nb=awardBadges(userId);awardBadges(officer.id);
   closeModal();
-  showXPGain(t.xp);
-  toast(`✅ Approved! ${claimer.name.split(' ')[0]} +${t.xp} XP${newLvl>prevLvl?' · LEVEL UP! 🎉':''}`, 'ok');
-  if(nb.length)setTimeout(()=>openModal('badgeUnlocked',nb[0]),800);
+  toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`, 'ok');
 }
 
 function rejectSub(taskId,userId){
