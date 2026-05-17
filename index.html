@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InvolvED — Your skills. Your proof.</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -725,7 +726,7 @@ function renderDashboard(){
   if(u.role==='officer'){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
     return`
-    <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Create tasks, review work, grow your club.</div></div></div>
+    <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Create tasks, review work, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()" title="Export all club data to Excel">📊 Export to Excel</button></div>
     <div class="stat-grid">
       <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
       <div class="stat-card" style="border-top:4px solid var(--cyan)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--cyan)">${pending}</div><div class="stat-lbl">Awaiting Review</div></div>
@@ -738,7 +739,7 @@ function renderDashboard(){
   // advisor
   const ms=members();const totalXP=ms.reduce((s,m)=>s+m.xp,0);
   return`
-  <div class="page-hdr"><div><div class="page-title">Advisor Overview</div><div class="page-sub">Monitor club progress and member development.</div></div></div>
+  <div class="page-hdr"><div><div class="page-title">Advisor Overview</div><div class="page-sub">Monitor club progress and member development.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()" title="Export all club data to Excel">📊 Export to Excel</button></div>
   <div class="stat-grid">
     <div class="stat-card" style="border-top:4px solid var(--pri)"><div class="stat-ico">👥</div><div class="stat-val">${ms.length}</div><div class="stat-lbl">Members</div></div>
     <div class="stat-card" style="border-top:4px solid var(--green)"><div class="stat-ico">✅</div><div class="stat-val">${S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length}</div><div class="stat-lbl">Tasks Done</div></div>
@@ -852,7 +853,7 @@ function memberRow(m){
 
 function renderMembers(){
   const list=S.users.filter(u=>u.role!=='advisor');
-  return`<div class="page-title">Members</div><p style="color:var(--muted);font-size:13px;margin-bottom:18px">Track member progress, skills, and streaks.</p>
+  return`<div class="page-hdr"><div><div class="page-title">Members</div><div class="page-sub">Track member progress, skills, and streaks.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export to Excel</button></div>
   <div class="member-list">${list.map(memberRow).join('')}</div>`;
 }
 
@@ -1901,6 +1902,89 @@ function replaceLastAIMsg(content){
   const loading=document.getElementById('aiLoading');
   if(loading){loading.innerHTML=`<div class="ai-msg-lbl">InvoAI</div>${content}`;loading.removeAttribute('id');}
   const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── EXCEL EXPORT ──────────────────────────────────────
+function exportToExcel(){
+  if(typeof XLSX==='undefined'){toast('SheetJS not loaded — check internet connection','err');return}
+  const wb=XLSX.utils.book_new();
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+
+  // ── Members sheet ──
+  const memberRows=[
+    ['Name','Role','XP','Level','Streak (days)','Tasks Completed','Skills','Badges Earned','LinkedIn Keywords']
+  ];
+  S.users.forEach(u=>{
+    const done=approvedByUser(u.id).length;
+    const liKw=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean).join(', ');
+    memberRows.push([u.name,u.role,u.xp,lvl(u.xp),u.streak||0,done,u.skills.join(', '),u.badges.length,liKw]);
+  });
+  const wsMembers=XLSX.utils.aoa_to_sheet(memberRows);
+  wsMembers['!cols']=[{wch:20},{wch:10},{wch:6},{wch:6},{wch:14},{wch:18},{wch:40},{wch:14},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,wsMembers,'Members');
+
+  // ── Tasks sheet ──
+  const taskRows=[['Title','Category','XP','Capacity','Status','Skills','Claimed By','Pending Review','Approved By']];
+  S.tasks.forEach(t=>{
+    const claimed=t.submissions.filter(s=>s.status==='claimed').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
+    const pending=t.submissions.filter(s=>s.status==='pending_review').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
+    const approved=t.submissions.filter(s=>s.status==='approved').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
+    taskRows.push([t.title,CAT[t.cat]?.lbl||t.cat,t.xp,t.capacity,taskStatus(t),t.skills.join(', '),claimed,pending,approved]);
+  });
+  const wsTasks=XLSX.utils.aoa_to_sheet(taskRows);
+  wsTasks['!cols']=[{wch:36},{wch:14},{wch:6},{wch:10},{wch:10},{wch:36},{wch:20},{wch:20},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,wsTasks,'Tasks');
+
+  // ── Attendance sheet ──
+  const attRows=[['Event Name','Date','Location','Code','Status','Total Checked In','Attendees']];
+  S.attendance.events.forEach(ev=>{
+    const checkedIn=S.attendance.records[ev.id]||[];
+    const names=checkedIn.map(uid=>getUser(uid)?.name||uid).join(', ');
+    attRows.push([ev.name,ev.date,ev.location||'',ev.code,ev.isOpen?'Open':'Closed',checkedIn.length,names]);
+  });
+  const wsAtt=XLSX.utils.aoa_to_sheet(attRows);
+  wsAtt['!cols']=[{wch:28},{wch:14},{wch:14},{wch:10},{wch:8},{wch:18},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,wsAtt,'Attendance');
+
+  // ── Club Events sheet ──
+  const evRows=[['Event','Date','Task','Task Description','Slots','Filled','Members Signed Up','Skills Needed']];
+  S.clubEvents.forEach(ev=>{
+    if(!ev.tasks.length){
+      evRows.push([ev.title,ev.date,'(no tasks yet)','','','','','']);
+    } else {
+      ev.tasks.forEach((t,i)=>{
+        const signedUp=t.signups.map(uid=>getUser(uid)?.name||uid).join(', ');
+        evRows.push([i===0?ev.title:'',i===0?ev.date:'',t.title,t.desc,t.slots,t.signups.length,signedUp,t.skills.join(', ')]);
+      });
+    }
+  });
+  const wsEv=XLSX.utils.aoa_to_sheet(evRows);
+  wsEv['!cols']=[{wch:24},{wch:14},{wch:32},{wch:44},{wch:6},{wch:6},{wch:28},{wch:36}];
+  XLSX.utils.book_append_sheet(wb,wsEv,'Club Events');
+
+  // ── Leaderboard sheet ──
+  const lbRows=[['Rank','Name','Role','XP','Level','Tasks Completed','Streak (days)','Skills']];
+  members().sort((a,b)=>b.xp-a.xp).forEach((m,i)=>{
+    lbRows.push([i+1,m.name,m.role,m.xp,lvl(m.xp),approvedByUser(m.id).length,m.streak||0,m.skills.join(', ')]);
+  });
+  const wsLb=XLSX.utils.aoa_to_sheet(lbRows);
+  wsLb['!cols']=[{wch:6},{wch:20},{wch:10},{wch:6},{wch:6},{wch:18},{wch:14},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,wsLb,'Leaderboard');
+
+  // ── Feed sheet ──
+  const feedRows=[['Posted By','Role','Type','Message','Reactions','Time']];
+  [...S.feed].reverse().forEach(msg=>{
+    const author=getUser(msg.userId);
+    const reactionSummary=Object.entries(msg.reactions||{}).map(([e,ids])=>`${e}${ids.length}`).join(' ');
+    feedRows.push([author?.name||'Unknown',author?.role||'',msg.isAnnouncement?'Announcement':'Post',msg.text,reactionSummary,new Date(msg.ts).toLocaleString()]);
+  });
+  const wsFeed=XLSX.utils.aoa_to_sheet(feedRows);
+  wsFeed['!cols']=[{wch:20},{wch:10},{wch:14},{wch:60},{wch:16},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,wsFeed,'Club Feed');
+
+  const fileName=`InvolvED_Export_${date.replace(/,?\s/g,'_')}.xlsx`;
+  XLSX.writeFile(wb,fileName);
+  toast(`Exported ${fileName} ✅`,'ok');
 }
 
 // ── GROQ API HELPER ───────────────────────────────────
