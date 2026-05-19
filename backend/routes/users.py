@@ -28,6 +28,13 @@ def upsert_user(body: UserCreate):
     return result.data[0]
 
 
+@router.get("/")
+def list_users():
+    db = get_db()
+    result = db.table("users").select("id, name, role, email, created_at").order("created_at").execute()
+    return result.data or []
+
+
 @router.get("/{user_id}", response_model=UserOut)
 def get_user(user_id: str):
     db = get_db()

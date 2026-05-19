@@ -454,6 +454,16 @@ const SKILL_CATS={
   'Technology':'tech','Programming':'tech','Web Development':'tech','Data Analysis':'tech',
 };
 
+const COMPETENCY_AREAS={
+  marketing:  {icon:'📣',label:'Marketing & Comms',  color:'#DB2777'},
+  finance:    {icon:'💰',label:'Finance & Ops',       color:'#059669'},
+  tech:       {icon:'💻',label:'Technology',          color:'#2563EB'},
+  leadership: {icon:'👑',label:'Leadership & Strategy',color:'#EA580C'},
+  research:   {icon:'🔬',label:'Research & Analysis', color:'#7C3AED'},
+  creative:   {icon:'🎨',label:'Creative & Design',   color:'#0891B2'},
+  community:  {icon:'🤝',label:'Community & Outreach',color:'#B8860B'},
+};
+
 // LinkedIn-aligned skill keywords + internship role mapping
 const LINKEDIN_SKILL_MAP={
   'Research':           {liKeyword:'Research',liCategory:'Analytical Skills',color:'#2563EB'},
@@ -512,59 +522,24 @@ const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 // ── STATE ──────────────────────────────────────────────
 const S={
   uid:null,
-  apiKey:null,
   view:'login',
+  authTab:'login',
   filter:'all',
   modal:null,
   modalData:null,
   aiOpen:false,
   aiLoading:false,
-  pendingFile:null,  // {name,size,dataUrl}
-  pendingAISkills:[], // chips shown in submit modal
+  pendingFile:null,
+  pendingAISkills:[],
   modalAILoading:false,
-  users:[
-    {id:'u1',name:'Alex Rivera',  role:'member', xp:340,skills:['Research','Writing','Communication','Organization'],badges:['first-step','go-getter','team-player'],portfolioEntries:[],tasksApproved:0,streak:5},
-    {id:'u2',name:'Jordan Lee',   role:'member', xp:150,skills:['Design','Creativity','Visual Communication'],      badges:['first-step','team-player','creative'],  portfolioEntries:[],tasksApproved:0,streak:2},
-    {id:'u3',name:'Sam Chen',     role:'officer',xp:800,skills:['Leadership','Organization','Communication'],        badges:['first-step','go-getter','leader','team-player','all-rounder'],portfolioEntries:[],tasksApproved:6,streak:8},
-    {id:'u4',name:'Dr. Martinez', role:'advisor',xp:0,  skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0},
-  ],
-  tasks:[
-    {id:'t1',title:'Design Club Flyer for Spring Event',   desc:'Create a flyer for our spring networking event with date, time, location, and club logo. Submit as PDF or image.',           skills:['Design','Creativity','Visual Communication'],cat:'creative',     xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*2,submissions:[]},
-    {id:'t2',title:'Research Grant Opportunities',         desc:'Find 5 grants for community college clubs. Compile report with deadlines, amounts, and eligibility.',                         skills:['Research','Writing','Analysis'],              cat:'research',     xp:200,capacity:2, createdBy:'u3',createdAt:Date.now()-86400000*3,submissions:[{userId:'u2',status:'claimed',work:null,fileName:null,fileDataUrl:null,aiSkills:[]}]},
-    {id:'t3',title:'Write Meeting Minutes',                desc:"Document key decisions, action items, and attendance from this month's general meeting.",                                   skills:['Writing','Communication','Organization'],     cat:'administrative',xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*5,submissions:[{userId:'u1',status:'pending_review',work:'Completed March meeting minutes. Documented 15 attendees, 4 key decisions, 8 action items.',fileName:null,fileDataUrl:null,aiSkills:['Written Communication','Active Listening','Organization']}]},
-    {id:'t4',title:'Social Media Post Series',            desc:'Create 3 posts for LinkedIn and Instagram promoting our workshop. Include custom graphics.',                                  skills:['Writing','Creativity','Social Media','Marketing'],cat:'creative',   xp:200,capacity:1, createdBy:'u3',createdAt:Date.now()-86400000*7,submissions:[{userId:'u1',status:'approved',  work:'Created 3 posts with Canva graphics. LinkedIn got 45 impressions, Instagram 23 likes.',fileName:null,fileDataUrl:null,aiSkills:['Content Creation','Social Media Marketing','Visual Design']}]},
-    {id:'t5',title:'Plan Club Fundraiser',                 desc:'Draft a full fundraiser plan: activities, budget, volunteer roles, timeline. Present at next meeting.',                     skills:['Leadership','Organization','Event Planning'], cat:'leadership',   xp:200,capacity:3, createdBy:'u3',createdAt:Date.now()-86400000*1,submissions:[]},
-  ],
-  attendance:{
-    events:[
-      {id:'ev1',name:'Spring Kickoff Meeting',date:'Today',location:'Room 204',code:'SPR24A',createdBy:'u3',isOpen:true},
-      {id:'ev2',name:'Workshop Prep Session', date:'Mon May 12',location:'Library B',code:'WKSHP2',createdBy:'u3',isOpen:false},
-    ],
-    records:{'ev2':['u1','u2']}
-  },
-  feed:[
-    {id:'f1',userId:'u3',text:'Welcome to the club feed! 🎉 Post updates, ask questions, or share wins here.',isAnnouncement:true,ts:Date.now()-86400000*3,reactions:{'🔥':['u1','u2'],'❤️':['u1']}},
-    {id:'f2',userId:'u4',text:'Reminder: all members should complete at least one task this month. Great work so far team!',isAnnouncement:true,ts:Date.now()-86400000*2,reactions:{'👍':['u1','u2','u3']}},
-    {id:'f3',userId:'u1',text:'Just submitted my meeting minutes task — fingers crossed for approval! 🤞',isAnnouncement:false,ts:Date.now()-3600000*5,reactions:{'🔥':['u2'],'❤️':['u3']}},
-    {id:'f4',userId:'u2',text:'Does anyone have tips for the grant research task? Not sure where to start.',isAnnouncement:false,ts:Date.now()-3600000*2,reactions:{'👍':['u1']}},
-  ],
+  pendingCheckin:null,
+  users:[],
+  tasks:[],
+  attendance:{events:[],records:{}},
+  feed:[],
   selectedEventId:null,
-  clubEvents:[
-    {id:'cle1',title:'Spring Club Fair',desc:'Annual fair to recruit new members and showcase what our club does. All hands on deck!',date:'May 30, 2025',icon:'🎪',color:'#1E3A2F',createdBy:'u3',createdAt:Date.now()-86400000*4,
-     tasks:[
-       {id:'clet1',title:'Design the booth banner',desc:'Create a large print-ready banner with our logo and club name. Use Canva or Illustrator.',slots:1,signups:[],skills:['Design','Creativity','Visual Communication']},
-       {id:'clet2',title:'Manage social media live coverage',desc:'Post live updates, photos, and stories to Instagram and LinkedIn throughout the event.',slots:1,signups:['u2'],skills:['Social Media','Communication','Marketing']},
-       {id:'clet3',title:'Set up and break down booth',desc:'Arrive 1 hour early. Set up tables, banner, and materials. Break down after the event ends.',slots:3,signups:['u1'],skills:['Organization','Event Planning','Leadership']},
-       {id:'clet4',title:'Greet and recruit visitors',desc:'Engage students walking by. Share what the club does and get them to sign up.',slots:4,signups:[],skills:['Communication','Public Speaking','Leadership']},
-       {id:'clet5',title:'Write event recap blog post',desc:'Summarize the fair: how many students visited, key moments, and what worked. Due 2 days after.',slots:1,signups:[],skills:['Writing','Communication']},
-     ]},
-    {id:'cle2',title:'End-of-Year Showcase',desc:'Celebrate the year\'s work. Present projects, award badges, and invite faculty.',date:'June 15, 2025',icon:'🏆',color:'#A0522D',createdBy:'u3',createdAt:Date.now()-86400000*2,
-     tasks:[
-       {id:'clet6',title:'Create slide deck presentation',desc:'Compile club highlights, member accomplishments, and stats from the year into a presentation.',slots:1,signups:[],skills:['Design','Writing','Creativity']},
-       {id:'clet7',title:'Handle A/V setup',desc:'Set up projector, microphone, and speakers. Test everything 30 minutes before start.',slots:2,signups:[],skills:['Technology','Organization']},
-       {id:'clet8',title:'Coordinate refreshments',desc:'Order or collect food and drinks. Set up the refreshment table and manage during the event.',slots:2,signups:[],skills:['Organization','Event Planning','Management']},
-     ]},
-  ],
+  clubEvents:[],
+  usersList:[],
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -626,29 +601,32 @@ function showXPGain(xp){
 
 // ── RENDER LOGIN ──────────────────────────────────────
 function renderLogin(){
+  const tab=S.authTab||'login';
   return`<div class="login-page">
-  <img src="https://i.imgur.com/KaSEx7u.png" class="login-bg-mascot" onerror="this.style.display='none'">
   <div class="login-card">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
-      <img src="https://i.imgur.com/KaSEx7u.png" style="width:70px;height:70px;object-fit:contain" onerror="this.style.display='none'">
-      <div><div class="login-logo"><span style="color:var(--navy)">Involv</span><span style="color:var(--teal)">Ed</span></div><div class="login-tagline">Your skills. Your proof.</div></div>
+    <div style="margin-bottom:22px">
+      <div class="login-logo">Involv<span style="color:var(--forest2)">Ed</span></div>
+      <div class="login-tagline">Your skills. Your proof.</div>
     </div>
-    <div class="divider"></div>
-    <div class="login-section-lbl">Jump in as a demo user</div>
-    <div class="picks">
-      ${S.users.map(u=>`<button class="pick-btn" onclick="login('${u.id}')">
-        <div class="pick-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
-        <div><div class="pick-name">${u.name}</div><div class="pick-role">${u.role}</div></div>
-      </button>`).join('')}
+    <div style="display:flex;gap:3px;background:var(--cream2);border-radius:var(--rsm);padding:3px;margin-bottom:22px">
+      <button class="ftab ${tab==='login'?'active':''}" style="flex:1" onclick="S.authTab='login';render()">Sign In</button>
+      <button class="ftab ${tab==='register'?'active':''}" style="flex:1" onclick="S.authTab='register';render()">Create Account</button>
     </div>
-    <div class="or-text">or join as new</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <input class="fi" id="cName" placeholder="Your full name">
-      <div style="display:flex;gap:8px">
-        <select class="fsel" id="cRole"><option value="member">Member</option><option value="officer">Officer</option><option value="advisor">Advisor</option></select>
-        <button class="btn btn-pri" onclick="loginCustom()">Join →</button>
+    ${tab==='login'?`
+      <div class="fg"><label class="fl">First Name</label><input class="fi" id="aFN" placeholder="Alex"></div>
+      <div class="fg"><label class="fl">Last Name</label><input class="fi" id="aLN" placeholder="Rivera"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="aPW" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()"></div>
+      <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="authLogin()">Sign In →</button>
+    `:`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">First Name</label><input class="fi" id="rFN" placeholder="Alex"></div>
+        <div class="fg"><label class="fl">Last Name</label><input class="fi" id="rLN" placeholder="Rivera"></div>
       </div>
-    </div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="rPW" type="password" placeholder="Min 6 characters"></div>
+      <div class="fg"><label class="fl">Confirm Password</label><input class="fi" id="rPW2" type="password" placeholder="Repeat password"></div>
+      <div class="fg"><label class="fl">Role</label><select class="fsel" id="rRole"><option value="member">Member</option><option value="officer">Officer</option><option value="advisor">Advisor</option></select></div>
+      <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="authRegister()">Create Account →</button>
+    `}
   </div>
 </div>`;
 }
@@ -658,8 +636,8 @@ function renderTopbar(){
   const u=me();
   const navs={
     member: [['dashboard','Home'],['tasks','Tasks'],['events','Events'],['checkin','Check In'],['feed','Feed']],
-    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['attendance','Attendance'],['feed','Feed']],
-    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['attendance','Attendance'],['feed','Feed']],
+    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['feed','Feed']],
+    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['feed','Feed']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -820,7 +798,7 @@ function memberRow(m){
   <div class="m-stats">
     <div class="mstat"><div class="mstat-v">${m.xp}</div><div class="mstat-l">XP</div></div>
     <div class="mstat"><div class="mstat-v">${done}</div><div class="mstat-l">Tasks</div></div>
-    <div class="mstat"><div class="mstat-v">${m.streak||0}</div><div class="mstat-l">🔥</div></div>
+    <div class="mstat"><div class="mstat-v">${approvedByUser(m.id).length}</div><div class="mstat-l">🔥</div></div>
   </div>
 </div>`;
 }
@@ -874,7 +852,7 @@ function renderLeaderboard(){
   <div class="lb-row ${m.id===u.id?'you':''}">
     <div class="rank ${i<3?`rank-${i+1}`:''}">${medals[i]||i+1}</div>
     <div class="lb-av" style="background:${avColor(m.role)}">${initials(m.name)}</div>
-    <div><div class="lb-name">${m.name}${m.id===u.id?' (you)':''}</div><div class="lb-sub">Lv${lvl(m.xp)} · ${approvedByUser(m.id).length} tasks · 🔥${m.streak||0}</div></div>
+    <div><div class="lb-name">${m.name}${m.id===u.id?' (you)':''}</div><div class="lb-sub">Lv${lvl(m.xp)} · ${approvedByUser(m.id).length} tasks · 🔥${approvedByUser(m.id).length}</div></div>
     <div style="margin-left:auto;text-align:right"><div class="lb-xp">${m.xp}</div><div class="lb-xplbl">XP</div></div>
   </div>`).join('')}</div>`;
 }
@@ -936,13 +914,15 @@ function renderAttendance(){
   <div class="att-grid">${S.attendance.events.map(ev=>{
     const checkedIn=recs[ev.id]||[];
     const checkNames=checkedIn.map(uid=>getUser(uid)?.name||uid);
-    const qrData=encodeURIComponent(`InvolvED Check-In: ${ev.name} | Code: ${ev.code}`);
+    const checkinUrl=window.location.href.split('?')[0]+'?checkin='+ev.code;
+    const qrData=encodeURIComponent(checkinUrl);
     return`<div class="att-card ${ev.isOpen?'att-card-open':''}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;gap:8px">
       <div class="att-event-name">${ev.name}</div>
       <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
         ${ev.isOpen?`<span class="s-chip s-approved">OPEN</span>`:``}
         ${u.role==='officer'?`<button class="btn btn-ghost btn-sm" onclick="toggleEvent('${ev.id}')">${ev.isOpen?'Close':'Reopen'}</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="showAttendanceSummary('${ev.id}')">📊 Summary</button>
       </div>
     </div>
     <div class="att-event-meta">📍 ${ev.date}${ev.location?' · '+ev.location:''}</div>
@@ -1094,6 +1074,7 @@ function renderModal(){
       <div class="fg"><label class="fl">Description</label><textarea class="fta" id="etDesc" style="min-height:70px" placeholder="What should this person do?"></textarea></div>
       <div class="fg"><label class="fl">Number of Slots</label><input class="fi" id="etSlots" type="number" min="1" max="20" value="1" placeholder="How many members can take this task?"></div>
       <div class="fg"><label class="fl">Skills Involved</label><div class="skill-picks">${ALL_SKILLS.map(s=>`<button type="button" class="skill-pick-toggle" onclick="this.classList.toggle('on')" data-skill="${s}">${s}</button>`).join('')}</div></div>
+      <div class="fg"><label class="fl">Competency Area</label><select class="fsel" id="etComp">${Object.entries(COMPETENCY_AREAS).map(([k,v])=>`<option value="${k}">${v.icon} ${v.label}</option>`).join('')}</select></div>
     </div>
     <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="addEventTask()">Add Task</button></div>`;
   }
@@ -1123,6 +1104,19 @@ function renderModal(){
   </div>`;
   }
 
+  else if(m==='attendanceSummary'){
+    const ev=d?.event;const attendees=d?.attendees||[];const count=d?.count||0;
+    html=`<div class="modal-hdr"><div class="modal-ttl">📊 Attendance Summary</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">${ev?.name}</div>
+      <div style="font-size:12px;color:var(--stone);margin-bottom:16px">📍 ${ev?.date||''}${ev?.location?' · '+ev.location:''} · Code: <strong>${ev?.code}</strong></div>
+      <div style="font-size:28px;font-weight:900;color:var(--forest);margin-bottom:4px">${count}</div>
+      <div style="font-size:12px;color:var(--stone);margin-bottom:16px">members checked in</div>
+      ${attendees.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${attendees.map(a=>`<span class="checkin-chip">${a.users?.name||'Unknown'}</span>`).join('')}</div>`:'<div style="color:var(--stone);font-size:13px">No check-ins yet.</div>'}
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`;
+  }
+
   return`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
 }
 
@@ -1139,6 +1133,7 @@ function renderView(){
     case'dashboard':   return renderDashboard();
     case'tasks':       return renderTasks();
     case'members':     return renderMembers();
+    case'users':       return renderUsers();
     case'checkin':     return renderCheckin();
     case'attendance':  return renderAttendance();
     case'events':      return renderEvents();
@@ -1210,6 +1205,7 @@ function renderEventDetail(){
       else actionBtn=`<button class="btn btn-ghost btn-sm" disabled>Full</button>`;
     }
 
+    const comp=t.competency?COMPETENCY_AREAS[t.competency]:null;
     return`<div class="event-task-item${isFull&&!isMine?' full':''}">
       <div class="event-task-hdr">
         <div class="event-task-info">
@@ -1225,6 +1221,7 @@ function renderEventDetail(){
         <div class="slots-bar">${pips}</div>
         <span style="font-size:11px;color:var(--muted);font-weight:600">${t.signups.length}/${t.slots} slots</span>
         ${t.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}
+        ${comp?`<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${comp.color}20;color:${comp.color};font-weight:700">${comp.icon} ${comp.label}</span>`:''}
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px">${signees}${actionBtn}</div>
       </div>
     </div>`;
@@ -1399,35 +1396,62 @@ function renderFeed(){
 }
 
 // ── ACTIONS ───────────────────────────────────────────
-async function login(uid){
-  S.uid=uid;S.view='dashboard';S.filter='all';
-  const u=me();
-  // sync to Supabase if not yet done
-  if(!u.dbId){
-    const email=u.email||(u.name.toLowerCase().replace(/\s+/g,'-')+'@demo.involved');
-    try{
-      const res=await fetch(`${API_URL}/users/upsert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:u.name,email,role:u.role})});
-      if(res.ok){const data=await res.json();u.dbId=data.id;}
-    }catch(e){/* offline — demo still works */}
+async function authLogin(){
+  const fn=document.getElementById('aFN')?.value?.trim();
+  const ln=document.getElementById('aLN')?.value?.trim();
+  const pw=document.getElementById('aPW')?.value;
+  if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
+  try{
+    const res=await fetch(`${API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw})});
+    if(!res.ok){const e=await res.json();toast(e.detail||'Login failed','err');return}
+    setCurrentUser(await res.json());
+  }catch(e){toast('Could not reach server — try again','err')}
+}
+async function authRegister(){
+  const fn=document.getElementById('rFN')?.value?.trim();
+  const ln=document.getElementById('rLN')?.value?.trim();
+  const pw=document.getElementById('rPW')?.value;
+  const pw2=document.getElementById('rPW2')?.value;
+  const role=document.getElementById('rRole')?.value;
+  if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
+  if(pw!==pw2){toast('Passwords do not match','err');return}
+  if(pw.length<6){toast('Password must be at least 6 characters','err');return}
+  try{
+    const res=await fetch(`${API_URL}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw,role})});
+    if(!res.ok){const e=await res.json();toast(e.detail||'Registration failed','err');return}
+    toast('Account created! Welcome 🎉','ok');
+    setCurrentUser(await res.json());
+  }catch(e){toast('Could not reach server — try again','err')}
+}
+function setCurrentUser(apiUser){
+  const appUser={id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0};
+  const idx=S.users.findIndex(u=>u.id===appUser.id);
+  if(idx>=0)S.users[idx]={...S.users[idx],...appUser};
+  else S.users.push(appUser);
+  S.uid=appUser.id;
+  S.view='dashboard';
+  S.filter='all';
+  localStorage.setItem('involved_user',JSON.stringify(appUser));
+  if(S.pendingCheckin){
+    const code=S.pendingCheckin;
+    S.pendingCheckin=null;
+    window.history.replaceState({},'',window.location.pathname);
+    checkInByCode(code);
   }
   render();
 }
-async function loginCustom(){
-  const name=document.getElementById('cName').value.trim();
-  const role=document.getElementById('cRole').value;
-  if(!name){toast('Enter your name','err');return}
-  const email=name.toLowerCase().replace(/\s+/g,'-')+'-'+Date.now()+'@involved.app';
-  let dbId=null;
-  try{
-    const res=await fetch(`${API_URL}/users/upsert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,role})});
-    if(res.ok){const data=await res.json();dbId=data.id;}
-  }catch(e){/* offline fallback */}
-  const id='u'+Date.now();
-  S.users.push({id,name,role,email,dbId,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0});
-  login(id);
+function logout(){
+  S.uid=null;S.view='login';
+  localStorage.removeItem('involved_user');
+  document.getElementById('aiPanel').classList.remove('open');
+  render();
 }
-function logout(){S.uid=null;S.view='login';document.getElementById('aiPanel').classList.remove('open');render()}
-function nav(v){S.view=v;S.filter='all';render()}
+function nav(v){
+  S.view=v;S.filter='all';
+  if(v==='attendance'||v==='checkin')loadAttendanceEvents().then(render);
+  else if(v==='members')loadUsersList().then(render);
+  else render();
+}
 function setF(f){S.filter=f;render()}
 
 function openEvent(id){S.selectedEventId=id;S.view='eventDetail';render()}
@@ -1476,7 +1500,8 @@ function addEventTask(){
   const slots=parseInt(document.getElementById('etSlots')?.value)||1;
   if(!title){toast('Add a task title','err');return}
   const skills=[...document.querySelectorAll('.skill-pick-toggle.on')].map(b=>b.dataset.skill);
-  ev.tasks.push({id:'clet'+Date.now(),title,desc:desc||'',slots,signups:[],skills});
+  const competency=document.getElementById('etComp')?.value;
+  ev.tasks.push({id:'clet'+Date.now(),title,desc:desc||'',slots,signups:[],skills,competency});
   closeModal();
   toast('Task added ✅','ok');render();
 }
@@ -1498,8 +1523,8 @@ async function distributeEventWithAI(evId){
   const panel=document.getElementById('aiPanel');
   if(panel&&!panel.classList.contains('open'))toggleAI();
   const memberSummary=members().map(m=>`• ${m.name}: ${m.skills.join(', ')||'no skills yet'}`).join('\n');
-  const taskSummary=ev.tasks.map(t=>`• "${t.title}" — needs: ${t.skills.join(', ')||'general'} (${t.slots} slot${t.slots>1?'s':''})`).join('\n');
-  const msg=`I'm an officer planning the "${ev.title}" event. Help me assign tasks to members based on their skills.\n\nTasks:\n${taskSummary}\n\nMembers and their skills:\n${memberSummary}\n\nSuggest who should take each task and why. Be specific.`;
+  const taskSummary=ev.tasks.map(t=>{const comp=t.competency?COMPETENCY_AREAS[t.competency]:null;return`• "${t.title}" — needs: ${t.skills.join(', ')||'general'}${comp?' ['+comp.label+']':''} (${t.slots} slot${t.slots>1?'s':''})`}).join('\n');
+  const msg=`I'm an officer planning the "${ev.title}" event. Help me assign tasks to members based on their skills and competency areas.\n\nTasks:\n${taskSummary}\n\nMembers and their skills:\n${memberSummary}\n\nSuggest who should take each task and why, aiming to cover different competency areas (marketing, finance, tech, leadership, research, creative, community) and maximize the number of members involved. Be specific.`;
   const input=document.getElementById('aiInput');
   if(input)input.value=msg;
   sendAI({isDistribute:true});
@@ -1611,12 +1636,12 @@ async function submitWork(taskId){
   sub.fileName=S.pendingFile?.name||null;
   sub.fileDataUrl=S.pendingFile?.dataUrl||null;
   sub.aiSkills=confirmedSkills;
-  // save to Supabase if user has a real DB id
+  // save to Supabase
   const u=me();
-  if(u.dbId){
+  if(u.id){
     try{
       const res=await fetch(`${API_URL}/activities/`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({user_id:u.dbId,title:t.title,raw_submission:work,category:t.cat})});
+        body:JSON.stringify({user_id:u.id,title:t.title,raw_submission:work,category:t.cat})});
       if(res.ok){
         const data=await res.json();
         const ai=data.ai_metrics;
@@ -1700,27 +1725,83 @@ function saveEntry(taskId){
   if(nb.includes('resume-ready'))setTimeout(()=>openModal('badgeUnlocked','resume-ready'),500);
 }
 
-function checkIn(evId){
-  const u=me();
-  if(!S.attendance.records[evId])S.attendance.records[evId]=[];
-  if(S.attendance.records[evId].includes(u.id)){toast('Already checked in!','');return}
-  S.attendance.records[evId].push(u.id);
-  u.streak=(u.streak||0)+1;
-  toast('✅ Checked in!','ok');render();
+// ── ATTENDANCE (API-backed) ───────────────────────────
+async function loadAttendanceEvents(){
+  try{
+    const res=await fetch(`${API_URL}/attendance/events`);
+    if(res.ok){
+      const evs=await res.json();
+      S.attendance.events=evs.map(e=>({id:e.id,name:e.name,date:e.date||'',location:e.location||'',code:e.code,isOpen:e.is_open,createdBy:e.created_by}));
+    }
+  }catch(e){}
 }
-
-function toggleEvent(evId){
-  const ev=S.attendance.events.find(e=>e.id===evId);
-  if(ev)ev.isOpen=!ev.isOpen;render();
-}
-
-function createEvent(){
+async function createEvent(){
   const name=document.getElementById('evName')?.value?.trim();
-  const date=document.getElementById('evDate')?.value?.trim()||'Today';
-  const location=document.getElementById('evLoc')?.value?.trim()||'';
-  if(!name){toast('Event name required','err');return}
-  S.attendance.events.unshift({id:'ev'+Date.now(),name,date,location,code:rndCode(),createdBy:S.uid,isOpen:true});
-  closeModal();toast('Event created! QR code ready.','ok');
+  const date=document.getElementById('evDate')?.value?.trim();
+  const loc=document.getElementById('evLoc')?.value?.trim();
+  if(!name){toast('Add a name','err');return}
+  try{
+    const res=await fetch(`${API_URL}/attendance/events`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,date,location:loc,created_by:me()?.id})});
+    if(!res.ok)throw new Error();
+    const ev=await res.json();
+    S.attendance.events.unshift({id:ev.id,name:ev.name,date:ev.date||'',location:ev.location||'',code:ev.code,isOpen:ev.is_open,createdBy:ev.created_by});
+    closeModal();toast('Event created! Share the QR code 🎉','ok');render();
+  }catch(e){toast('Failed to create event','err')}
+}
+async function toggleEvent(evId){
+  try{
+    const res=await fetch(`${API_URL}/attendance/events/${evId}/toggle`,{method:'PATCH'});
+    if(res.ok){
+      const ev=await res.json();
+      const local=S.attendance.events.find(e=>e.id===evId);
+      if(local)local.isOpen=ev.is_open;
+      render();
+    }
+  }catch(e){toast('Failed to update event','err')}
+}
+async function checkIn(evId){
+  const ev=S.attendance.events.find(e=>e.id===evId);
+  if(!ev){toast('Event not found','err');return}
+  await checkInByCode(ev.code);
+}
+async function checkInByCode(code){
+  const u=me();if(!u)return;
+  try{
+    const res=await fetch(`${API_URL}/attendance/checkin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,user_id:u.id})});
+    const data=await res.json();
+    if(res.ok){
+      toast(`Checked in to ${data.event}! ✅`,'ok');
+      const ev=S.attendance.events.find(e=>e.code===code.toUpperCase());
+      if(ev){if(!S.attendance.records[ev.id])S.attendance.records[ev.id]=[];if(!S.attendance.records[ev.id].includes(S.uid))S.attendance.records[ev.id].push(S.uid);}
+      render();
+    }else toast(data.detail||'Check-in failed','err');
+  }catch(e){toast('Could not reach server','err')}
+}
+async function showAttendanceSummary(evId){
+  try{
+    const res=await fetch(`${API_URL}/attendance/events/${evId}/summary`);
+    if(res.ok){S.modal='attendanceSummary';S.modalData=await res.json();render();}
+    else toast('Could not load summary','err');
+  }catch(e){toast('Could not reach server','err')}
+}
+// ── USERS LIST (officers/advisors) ────────────────────
+async function loadUsersList(){
+  try{
+    const res=await fetch(`${API_URL}/users/`);
+    if(res.ok)S.usersList=await res.json();
+  }catch(e){}
+}
+function renderUsers(){
+  const u=me();
+  if(u.role==='member')return`<div class="empty"><div class="empty-ico">🔒</div><div class="empty-ttl">Officers only</div></div>`;
+  return`<div class="page-hdr"><div><div class="page-title">All Accounts</div><div class="page-sub">Every registered user in the system.</div></div></div>
+  <div class="member-list">${S.usersList.length?S.usersList.map(u=>`
+  <div class="m-row">
+    <div class="m-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
+    <div><div class="m-name">${u.name}</div><div class="m-sub">${u.role} · Joined ${new Date(u.created_at).toLocaleDateString()}</div></div>
+    <div style="margin-left:auto"><span class="role-pill ${u.role}">${u.role}</span></div>
+  </div>`).join(''):`<div class="empty"><div class="empty-ico">👤</div><div class="empty-ttl">No accounts yet</div></div>`}
+  </div>`;
 }
 
 function exportResume(){
@@ -1869,7 +1950,7 @@ function buildSys(u,done,isDistribute=false){
     return have.length>=r.required;
   }).map(r=>r.title);
   if(isDistribute){
-    return`You are InvoAI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
+    return`You are InvoAI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills and competency areas (marketing, finance, tech, leadership, research, creative, community). Aim to cover different competency areas and maximize the number of members involved. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
   }
   return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs.
 Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP
@@ -1999,7 +2080,13 @@ async function callGroq(system,user,history=[]){
 }
 
 // ── INIT ──────────────────────────────────────────────
-render();
+// Check for QR check-in param
+const _ci=new URLSearchParams(window.location.search).get('checkin');
+if(_ci)S.pendingCheckin=_ci.toUpperCase();
+// Restore session from localStorage
+const _saved=localStorage.getItem('involved_user');
+if(_saved){try{const u=JSON.parse(_saved);setCurrentUser(u);}catch(e){localStorage.removeItem('involved_user');render();}}
+else render();
 </script>
 </body>
 </html>
