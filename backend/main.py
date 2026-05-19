@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.users import router as users_router
 from routes.activities import router as activities_router
+from routes.chat import router as chat_router
 
 app = FastAPI(
     title="InvolvED API",
@@ -18,6 +19,7 @@ app.add_middleware(
 
 app.include_router(users_router)
 app.include_router(activities_router)
+app.include_router(chat_router)
 
 
 @app.get("/health")
