@@ -42,7 +42,7 @@ def analyze_activity(raw_text: str) -> dict:
     client = get_groq()
 
     completion = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama-3.3-70b-versatile",
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
