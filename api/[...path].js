@@ -2,11 +2,15 @@ const { createClient } = require('@supabase/supabase-js');
 const Groq = require('groq-sdk');
 const bcrypt = require('bcryptjs');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let _supabase, _groq;
+function getSupabase() {
+  if (!_supabase) _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  return _supabase;
+}
+function getGroq() {
+  if (!_groq) _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return _groq;
+}
 
 function setCORS(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,9 +23,7 @@ async function parseBody(req) {
   return new Promise((resolve) => {
     let raw = '';
     req.on('data', chunk => { raw += chunk; });
-    req.on('end', () => {
-      try { resolve(JSON.parse(raw)); } catch { resolve({}); }
-    });
+    req.on('end', () => { try { resolve(JSON.parse(raw)); } catch { resolve({}); } });
     req.on('error', () => resolve({}));
   });
 }
@@ -32,9 +34,11 @@ module.exports = async (req, res) => {
 
   const path = req.url.split('?')[0];
   const method = req.method;
-  const body = await parseBody(req);
 
   try {
+    const body = await parseBody(req);
+    const supabase = getSupabase();
+
     // ── AUTH ──────────────────────────────────────────────
 
     if (path.includes('/auth/register') && method === 'POST') {
@@ -53,6 +57,7 @@ module.exports = async (req, res) => {
 
     if (path.includes('/auth/login') && method === 'POST') {
       const { first_name, last_name, password } = body;
+      if (!first_name || !last_name || !password) { res.status(400).json({ detail: 'Fill in all fields' }); return; }
       const name = `${first_name.trim()} ${last_name.trim()}`;
       const { data } = await supabase.from('users').select('*').eq('name', name);
       if (!data?.length) { res.status(401).json({ detail: 'Name or password is incorrect' }); return; }
@@ -68,6 +73,7 @@ module.exports = async (req, res) => {
 
     if (path.includes('/chat') && method === 'POST') {
       const { system, messages, max_tokens = 512 } = body;
+      const groq = getGroq();
       const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'system', content: system }, ...messages],
@@ -81,6 +87,7 @@ module.exports = async (req, res) => {
 
     if (path.includes('/activities') && method === 'POST') {
       const { user_id, title, raw_submission, category = 'general' } = body;
+      const groq = getGroq();
       const { data: actData, error: actErr } = await supabase
         .from('activities').insert({ user_id, title, category, raw_submission, status: 'pending_analysis' }).select();
       if (actErr) { res.status(500).json({ detail: actErr.message }); return; }
@@ -187,6 +194,12 @@ module.exports = async (req, res) => {
     if ((path.endsWith('/users') || path.endsWith('/users/')) && method === 'GET') {
       const { data } = await supabase.from('users').select('id, name, role, email, created_at').order('created_at');
       res.status(200).json(data || []); return;
+    }
+
+    // ── DEBUG ─────────────────────────────────────────────
+    if (path.includes('/ping') && method === 'GET') {
+      res.status(200).json({ ok: true, supabase_url: !!process.env.SUPABASE_URL, groq_key: !!process.env.GROQ_API_KEY });
+      return;
     }
 
     res.status(404).json({ detail: 'Not Found' });
