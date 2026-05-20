@@ -545,6 +545,8 @@ const S={
   aiResumeBullets:null,
   qrCheckinSuccess:false,
   aiDistribution:null,
+  viewingMemberId:null,
+  pendingEventForm:{title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'},
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -678,9 +680,9 @@ function renderLogin(){
 function renderTopbar(){
   const u=me();
   const navs={
-    member: [['dashboard','Home'],['tasks','Tasks'],['events','Events'],['checkin','Check In'],['resume','Resume Ready'],['feed','Feed']],
-    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
-    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
+    member: [['dashboard','Home'],['events','Events'],['checkin','Check In'],['resume','Resume Ready'],['feed','Feed']],
+    officer:[['dashboard','Home'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
+    advisor:[['dashboard','Home'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -717,7 +719,7 @@ function renderDashboard(){
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${active.length}</div><div class="stat-lbl">In Progress</div></div>
     </div>
     ${active.length?`<div class="sec-title">In Progress</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
-    ${open.length?`<div class="sec-row"><div class="sec-title">Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('tasks')">View all →</button></div><div class="task-grid">${open.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
+    ${open.length?`<div class="sec-row"><div class="sec-title">Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View Events →</button></div><div class="task-grid">${open.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
   }
   if(u.role==='officer'){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
@@ -835,21 +837,138 @@ function badgeGrid(u){
 // ── MEMBERS ────────────────────────────────────────────
 function memberRow(m){
   const done=approvedByUser(m.id).length;
-  return`<div class="m-row">
+  const eventSignups=S.clubEvents.reduce((n,ev)=>n+ev.tasks.filter(t=>t.signups.includes(m.id)).length,0);
+  return`<div class="m-row" style="cursor:pointer" onclick="viewMemberProfile('${m.id}')">
   <div class="m-av" style="background:${avColor(m.role)}">${initials(m.name)}</div>
-  <div><div class="m-name">${m.name}</div><div class="m-sub">${m.role} · Lv${lvl(m.xp)} · ${m.skills.slice(0,3).join(', ')}${m.skills.length>3?` +${m.skills.length-3}`:''}</div></div>
-  <div class="m-stats">
-    <div class="mstat"><div class="mstat-v">${m.xp}</div><div class="mstat-l">XP</div></div>
-    <div class="mstat"><div class="mstat-v">${done}</div><div class="mstat-l">Tasks</div></div>
-    <div class="mstat"><div class="mstat-v">${approvedByUser(m.id).length}</div><div class="mstat-l">🔥</div></div>
+  <div style="flex:1;min-width:0">
+    <div class="m-name">${m.name}</div>
+    <div class="m-sub">${m.role} · ${m.skills.slice(0,3).join(', ')||'no skills yet'}${m.skills.length>3?` +${m.skills.length-3}`:''}</div>
   </div>
+  <div class="m-stats">
+    <div class="mstat"><div class="mstat-v" style="color:var(--forest)">${done}</div><div class="mstat-l">Done</div></div>
+    <div class="mstat"><div class="mstat-v" style="color:var(--sky)">${eventSignups}</div><div class="mstat-l">Signed Up</div></div>
+    <div class="mstat"><div class="mstat-v" style="color:var(--terra)">${m.skills.length}</div><div class="mstat-l">Skills</div></div>
+  </div>
+  <div style="color:var(--stone);font-size:13px;flex-shrink:0;margin-left:8px">→</div>
 </div>`;
 }
 
 function renderMembers(){
   const list=S.users.filter(u=>u.role!=='advisor');
-  return`<div class="page-hdr"><div><div class="page-title">Members</div><div class="page-sub">Track member progress, skills, and streaks.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export to Excel</button></div>
-  <div class="member-list">${list.map(memberRow).join('')}</div>`;
+  return`<div class="page-hdr"><div><div class="page-title">Members</div><div class="page-sub">Click any member to view their full dashboard.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
+  <div class="member-list">${list.length?list.map(memberRow).join(''):`<div class="empty"><div class="empty-ico">👥</div><div class="empty-ttl">No members yet</div><div>Members will appear here once they sign in.</div></div>`}</div>`;
+}
+
+function viewMemberProfile(uid){
+  S.viewingMemberId=uid;
+  S.view='memberProfile';
+  // Load attendance if not already loaded
+  if(!S.attendance.events.length)loadAttendanceEvents().then(render);
+  else render();
+}
+
+function renderMemberProfile(uid){
+  const u=me();
+  // Look up in both local users and the API users list
+  const m=S.users.find(u=>u.id===uid)||S.usersList.find(u=>u.id===uid);
+  if(!m)return`<div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">Member not found</div></div>`;
+
+  // Gather data
+  const richData=S.users.find(u=>u.id===uid); // has xp/skills/badges if they logged in this session
+  const doneTasks=richData?approvedByUser(uid):[];
+  const activeSubs=richData?S.tasks.filter(t=>t.submissions.some(s=>s.userId===uid&&s.status!=='approved'&&s.status!=='rejected')):[];
+  const pendingReview=richData?S.tasks.filter(t=>t.submissions.some(s=>s.userId===uid&&s.status==='pending_review')):[];
+
+  // Event task signups
+  const eventSignups=S.clubEvents.flatMap(ev=>
+    ev.tasks.filter(t=>t.signups.includes(uid)).map(t=>({taskTitle:t.title,taskDesc:t.desc,slots:t.slots,filled:t.signups.length,eventTitle:ev.title,eventColor:ev.color,competency:t.competency,skills:t.skills}))
+  );
+
+  // Attendance
+  const attendedEvents=S.attendance.events.filter(ev=>S.attendance.records[ev.id]?.includes(uid));
+
+  const skillsHTML=richData?.skills?.length
+    ?richData.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')
+    :`<span style="font-size:12px;color:var(--stone);font-style:italic">Visible when member logs in</span>`;
+
+  const badgesHTML=richData?.badges?.length
+    ?BADGES.filter(b=>richData.badges.includes(b.id)).map(b=>`<span title="${b.desc}" style="font-size:22px">${b.icon}</span>`).join('')
+    :'<span style="font-size:12px;color:var(--stone);font-style:italic">No badges yet</span>';
+
+  const eventSignupsHTML=eventSignups.length
+    ?eventSignups.map(t=>{
+      const comp=t.competency?COMPETENCY_AREAS[t.competency]:null;
+      return`<div style="background:var(--card);border:1px solid var(--sand);border-radius:var(--rsm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px">
+        <div style="width:4px;border-radius:2px;align-self:stretch;background:${comp?comp.color:'var(--forest)'}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800">${t.taskTitle}</div>
+          <div style="font-size:11px;color:var(--stone);margin-top:2px">${t.eventTitle}</div>
+          ${comp?`<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${comp.color}18;color:${comp.color};font-weight:700;margin-top:4px;display:inline-block">${comp.icon} ${comp.label}</span>`:''}
+        </div>
+        <span style="font-size:11px;color:var(--stone);flex-shrink:0">${t.filled}/${t.slots} filled</span>
+      </div>`;
+    }).join('')
+    :`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">Not signed up for any tasks yet.</div>`;
+
+  const attendanceHTML=attendedEvents.length
+    ?attendedEvents.map(ev=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--sand)">
+        <span style="font-size:16px">✅</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:700">${ev.name}</div><div style="font-size:11px;color:var(--stone)">${ev.date||''}${ev.location?' · '+ev.location:''}</div></div>
+      </div>`).join('')
+    :`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">${S.attendance.events.length?'No check-ins recorded.':'Visit Attendance tab to load event data.'}</div>`;
+
+  const doneTasksHTML=doneTasks.length
+    ?doneTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--sand)">
+        <span style="background:var(--forest);color:#fff;border-radius:999px;font-size:10px;padding:2px 8px;font-weight:700;flex-shrink:0">✓ Done</span>
+        <div style="flex:1;font-size:13px;font-weight:600">${t.title}</div>
+        <span class="xp-chip">+${t.xp} XP</span>
+      </div>`).join('')
+    :richData
+      ?`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">No completed tasks yet.</div>`
+      :`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">Full task history visible when member is active this session.</div>`;
+
+  return`<div>
+  <button class="btn btn-ghost btn-sm" onclick="nav('members')" style="margin-bottom:18px">← All Members</button>
+
+  <div style="background:var(--forest);border-radius:var(--r);padding:28px 32px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(74,124,95,.4),transparent 60%);pointer-events:none"></div>
+    <div style="width:72px;height:72px;border-radius:18px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;flex-shrink:0;position:relative;z-index:1">${initials(m.name)}</div>
+    <div style="position:relative;z-index:1;flex:1">
+      <div style="font-size:24px;font-weight:900;letter-spacing:-.4px">${m.name}</div>
+      <div style="opacity:.75;margin-top:3px;font-size:13px">${m.role}${m.created_at?' · Joined '+new Date(m.created_at).toLocaleDateString():''}</div>
+      ${richData?`<div style="display:flex;gap:16px;margin-top:10px">
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900">${richData.xp||0}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">XP</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900">${doneTasks.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Tasks Done</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900">${eventSignups.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Signed Up</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900">${attendedEvents.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Attended</div></div>
+      </div>`:''}
+    </div>
+    ${u.role==='officer'?`<div style="position:relative;z-index:1;flex-shrink:0"><button class="btn" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="openModal('userProfile','${m.id}')">✏️ Edit</button></div>`:''}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div style="background:var(--card);border-radius:var(--r);padding:18px 20px;border:1px solid var(--sand)">
+      <div style="font-size:13px;font-weight:800;margin-bottom:12px">📅 Attendance (${attendedEvents.length} events)</div>
+      <div style="max-height:200px;overflow-y:auto">${attendanceHTML}</div>
+    </div>
+    <div style="background:var(--card);border-radius:var(--r);padding:18px 20px;border:1px solid var(--sand)">
+      <div style="font-size:13px;font-weight:800;margin-bottom:12px">🛠️ Skills Earned (${richData?.skills?.length||0})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${skillsHTML}</div>
+      ${richData?.badges?.length?`<div style="margin-top:12px;font-size:12px;font-weight:700;color:var(--stone);margin-bottom:6px">BADGES</div><div style="display:flex;gap:6px;flex-wrap:wrap">${badgesHTML}</div>`:''}
+    </div>
+  </div>
+
+  <div style="background:var(--card);border-radius:var(--r);padding:18px 20px;border:1px solid var(--sand);margin-bottom:16px">
+    <div style="font-size:13px;font-weight:800;margin-bottom:12px">🎪 Event Tasks Signed Up For (${eventSignups.length})</div>
+    <div style="display:flex;flex-direction:column;gap:8px">${eventSignupsHTML}</div>
+  </div>
+
+  <div style="background:var(--card);border-radius:var(--r);padding:18px 20px;border:1px solid var(--sand);margin-bottom:16px">
+    <div style="font-size:13px;font-weight:800;margin-bottom:4px">✅ Completed Tasks (${doneTasks.length})</div>
+    ${pendingReview.length?`<div style="font-size:11px;font-weight:700;color:var(--sky);margin-bottom:10px">⏳ ${pendingReview.length} submission${pendingReview.length>1?'s':''} pending review</div>`:''}
+    ${doneTasksHTML}
+  </div>
+</div>`;
 }
 
 // ── RESUME READY ─────────────────────────────────────
@@ -1133,17 +1252,18 @@ function renderModal(){
         </div>
       </div>`).join('')}
     </div>`:'';
+    const pf=S.pendingEventForm;
     html=`<div class="modal-hdr"><div class="modal-ttl">🎪 Create New Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" placeholder="e.g. TEDxTalk, Club Fair, Fundraiser"></div>
-      <div class="fg"><label class="fl">Describe the event for InvoAI</label><textarea class="fta" id="ceDesc" style="min-height:85px" placeholder="What is this event about? How many people involved? What needs to happen? Be specific — InvoAI will create tasks from this."></textarea></div>
+      <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" value="${(pf.title||'').replace(/"/g,'&quot;')}" placeholder="e.g. TEDxTalk, Club Fair, Fundraiser"></div>
+      <div class="fg"><label class="fl">Describe the event for InvoAI</label><textarea class="fta" id="ceDesc" style="min-height:85px" placeholder="What is this event about? How many people involved? What needs to happen? Be specific — InvoAI will create tasks from this.">${pf.desc||''}</textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fg"><label class="fl">Date</label><input class="fi" id="ceDate" placeholder="e.g. May 30, 2025"></div>
-        <div class="fg"><label class="fl">Event Color</label><input type="color" id="ceColor" value="#1E3A2F" style="width:100%;height:42px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;padding:2px"></div>
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="ceDate" value="${pf.date||''}" placeholder="e.g. May 30, 2025"></div>
+        <div class="fg"><label class="fl">Event Color</label><input type="color" id="ceColor" value="${pf.color||'#1E3A2F'}" style="width:100%;height:42px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;padding:2px"></div>
       </div>
       <div class="fg"><label class="fl">Icon</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map((ic,ii)=>`<button type="button" class="skill-pick-toggle ico-pick${ii===0?' on':''}" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-ico="${ic}">${ic}</button>`).join('')}</div>
-        <input type="hidden" id="ceIcon" value="🎪">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map(ic=>`<button type="button" class="skill-pick-toggle ico-pick${ic===(pf.icon||'🎪')?' on':''}" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on');S.pendingEventForm.icon=this.dataset.ico" data-ico="${ic}">${ic}</button>`).join('')}</div>
+        <input type="hidden" id="ceIcon" value="${pf.icon||'🎪'}">
       </div>
       <button class="btn btn-ai" id="aiGenBtn" style="width:100%;justify-content:center" onclick="aiGenerateEventTasks()">🤖 Generate Tasks with InvoAI</button>
       ${taskListHTML}
@@ -1275,6 +1395,7 @@ function renderView(){
     case'eventDetail': return renderEventDetail();
     case'feed':        return renderFeed();
     case'resume':      return renderResume();
+    case'memberProfile': return renderMemberProfile(S.viewingMemberId);
     default:           return '';
   }
 }
@@ -1816,7 +1937,7 @@ function coachForRole(roleId){
   sendAI({internshipRole:role.title});
 }
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
-function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];render()}
+function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];S.pendingEventForm={title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'};render()}
 
 function claimTask(id){
   const t=S.tasks.find(t=>t.id===id);if(!t)return;
@@ -2387,6 +2508,14 @@ async function aiGenerateEventTasks(){
   const title=document.getElementById('ceTitle')?.value?.trim();
   const desc=document.getElementById('ceDesc')?.value?.trim();
   if(!title&&!desc){toast('Add an event title or description first','err');return}
+  // Save form values so they survive the re-render
+  S.pendingEventForm={
+    title:document.getElementById('ceTitle')?.value||'',
+    desc:document.getElementById('ceDesc')?.value||'',
+    date:document.getElementById('ceDate')?.value||'',
+    color:document.getElementById('ceColor')?.value||'#1E3A2F',
+    icon:document.getElementById('ceIcon')?.value||'🎪',
+  };
   S.aiEventTasks='loading';render();
   const btn=document.getElementById('aiGenBtn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Generating…';}
