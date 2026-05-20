@@ -1403,9 +1403,9 @@ async function authLogin(){
   if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
   try{
     const res=await fetch(`${API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw})});
-    if(!res.ok){const e=await res.json();toast(e.detail||'Login failed','err');return}
+    if(!res.ok){let msg='Login failed';try{const e=await res.json();msg=e.detail||msg;}catch(_){}toast(msg,'err');return}
     setCurrentUser(await res.json());
-  }catch(e){toast('Could not reach server — try again','err')}
+  }catch(e){toast('Could not reach server ('+e.message+')','err')}
 }
 async function authRegister(){
   const fn=document.getElementById('rFN')?.value?.trim();
@@ -1418,10 +1418,10 @@ async function authRegister(){
   if(pw.length<6){toast('Password must be at least 6 characters','err');return}
   try{
     const res=await fetch(`${API_URL}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw,role})});
-    if(!res.ok){const e=await res.json();toast(e.detail||'Registration failed','err');return}
+    if(!res.ok){let msg='Registration failed';try{const e=await res.json();msg=e.detail||msg;}catch(_){}toast(msg,'err');return}
     toast('Account created! Welcome 🎉','ok');
     setCurrentUser(await res.json());
-  }catch(e){toast('Could not reach server — try again','err')}
+  }catch(e){toast('Error: '+e.message,'err')}
 }
 function setCurrentUser(apiUser){
   const appUser={id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0};
