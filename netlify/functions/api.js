@@ -12,7 +12,7 @@ const headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
 function ok(body, status = 200) {
@@ -105,7 +105,24 @@ exports.handler = async (event) => {
 
     // ── ATTENDANCE ────────────────────────────────────────
 
-    if (path.includes('/attendance/checkin') && method === 'POST') {
+    // Check-in by name (no password — for QR code scanning)
+    if (path.includes('/attendance/checkin-name') && method === 'POST') {
+      const { code, first_name, last_name } = body;
+      if (!first_name || !last_name || !code) return err('Missing required fields');
+      const name = `${first_name.trim()} ${last_name.trim()}`;
+      const { data: userData } = await supabase.from('users').select('id').eq('name', name).single();
+      if (!userData) return err('Name not found. Check your spelling or create an account first.', 404);
+      const { data: evData } = await supabase.from('attendance_events').select('*').eq('code', code.toUpperCase());
+      if (!evData?.length) return err('Event not found — check the code', 404);
+      const ev = evData[0];
+      if (!ev.is_open) return err('This event is closed', 400);
+      const { data: dup } = await supabase.from('attendance_records').select('id').eq('event_id', ev.id).eq('user_id', userData.id);
+      if (dup?.length) return err('Already checked in to this event', 409);
+      await supabase.from('attendance_records').insert({ event_id: ev.id, user_id: userData.id });
+      return ok({ message: 'Checked in!', event: ev.name });
+    }
+
+    if (path.endsWith('/attendance/checkin') && method === 'POST') {
       const { code, user_id } = body;
       const { data: evData } = await supabase.from('attendance_events').select('*').eq('code', code.toUpperCase());
       if (!evData?.length) return err('Event not found — check the code', 404);
@@ -145,6 +162,23 @@ exports.handler = async (event) => {
     }
 
     // ── USERS ─────────────────────────────────────────────
+
+    if (path.match(/\/users\/[^/]+$/) && method === 'PATCH') {
+      const userId = path.split('/users/')[1];
+      const { role } = body;
+      if (!['member', 'officer', 'advisor'].includes(role)) return err('Invalid role');
+      const { data, error } = await supabase.from('users').update({ role }).eq('id', userId).select('id, name, role, email, created_at');
+      if (error) return err(error.message, 500);
+      if (!data?.length) return err('User not found', 404);
+      return ok(data[0]);
+    }
+
+    if (path.match(/\/users\/[^/]+$/) && method === 'DELETE') {
+      const userId = path.split('/users/')[1];
+      const { error } = await supabase.from('users').delete().eq('id', userId);
+      if (error) return err(error.message, 500);
+      return ok({ message: 'User deleted' });
+    }
 
     if ((path.endsWith('/users') || path.endsWith('/users/')) && method === 'GET') {
       const { data } = await supabase.from('users').select('id, name, role, email, created_at').order('created_at');

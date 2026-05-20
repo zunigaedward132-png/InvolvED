@@ -540,6 +540,10 @@ const S={
   selectedEventId:null,
   clubEvents:[],
   usersList:[],
+  aiEventTasks:[],
+  showLogin:false,
+  aiResumeBullets:null,
+  qrCheckinSuccess:false,
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -599,8 +603,35 @@ function showXPGain(xp){
   setTimeout(()=>el.remove(),1400);
 }
 
+// ── RENDER QR CHECK-IN ────────────────────────────────
+function renderQRCheckin(){
+  if(S.qrCheckinSuccess){
+    return`<div class="login-page"><div class="login-card" style="text-align:center;padding:50px 40px">
+      <div style="font-size:72px;margin-bottom:16px">✅</div>
+      <div style="font-size:24px;font-weight:900;margin-bottom:8px">Checked In!</div>
+      <div style="font-size:15px;color:var(--stone);margin-bottom:28px">You're checked in to <strong>${S.qrCheckinSuccess}</strong></div>
+      <button class="btn btn-pri" style="width:100%;justify-content:center" onclick="S.qrCheckinSuccess=false;render()">Done</button>
+    </div></div>`;
+  }
+  return`<div class="login-page"><div class="login-card">
+    <div style="margin-bottom:22px">
+      <div class="login-logo">Involv<span style="color:var(--forest2)">Ed</span></div>
+      <div class="login-tagline">Event Check-In</div>
+    </div>
+    <div style="background:#E8F0EB;border-radius:var(--rsm);padding:12px 14px;margin-bottom:18px;font-size:13px;color:var(--forest);font-weight:600">
+      ✅ Checking in to event — just enter your name
+    </div>
+    <div class="fg"><label class="fl">First Name</label><input class="fi" id="qFN" placeholder="Alex" autofocus></div>
+    <div class="fg"><label class="fl">Last Name</label><input class="fi" id="qLN" placeholder="Rivera" onkeydown="if(event.key==='Enter')checkInByName()"></div>
+    <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="checkInByName()">Check In ✓</button>
+    <div class="or-text" style="margin:16px 0">or</div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="S.showLogin=true;render()">Sign in with full account</button>
+  </div></div>`;
+}
+
 // ── RENDER LOGIN ──────────────────────────────────────
 function renderLogin(){
+  if(S.pendingCheckin&&!S.showLogin)return renderQRCheckin();
   const tab=S.authTab||'login';
   return`<div class="login-page">
   <div class="login-card">
@@ -624,7 +655,18 @@ function renderLogin(){
       </div>
       <div class="fg"><label class="fl">Password</label><input class="fi" id="rPW" type="password" placeholder="Min 6 characters"></div>
       <div class="fg"><label class="fl">Confirm Password</label><input class="fi" id="rPW2" type="password" placeholder="Repeat password"></div>
-      <div class="fg"><label class="fl">Role</label><select class="fsel" id="rRole"><option value="member">Member</option><option value="officer">Officer</option><option value="advisor">Advisor</option></select></div>
+      <div class="fg"><label class="fl">Role</label>
+        <select class="fsel" id="rRole" onchange="toggleRoleCode(this.value)">
+          <option value="member">Member</option>
+          <option value="officer">Officer</option>
+          <option value="advisor">Advisor</option>
+        </select>
+      </div>
+      <div class="fg" id="roleCodeRow" style="display:none">
+        <label class="fl">Authorization Code</label>
+        <input class="fi" id="rCode" type="password" placeholder="Enter officer/advisor code">
+        <div style="font-size:11px;color:var(--stone);margin-top:4px">Required for officer and advisor roles</div>
+      </div>
       <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="authRegister()">Create Account →</button>
     `}
   </div>
@@ -635,9 +677,9 @@ function renderLogin(){
 function renderTopbar(){
   const u=me();
   const navs={
-    member: [['dashboard','Home'],['tasks','Tasks'],['events','Events'],['checkin','Check In'],['feed','Feed']],
-    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['feed','Feed']],
-    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['feed','Feed']],
+    member: [['dashboard','Home'],['tasks','Tasks'],['events','Events'],['checkin','Check In'],['resume','Resume Ready'],['feed','Feed']],
+    officer:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
+    advisor:[['dashboard','Home'],['tasks','Tasks'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -812,9 +854,27 @@ function renderMembers(){
 // ── RESUME READY ─────────────────────────────────────
 function renderResume(){
   const u=me();const done=approvedByUser(u.id);
+  const bulletsHTML=S.aiResumeBullets===null
+    ?`<div style="font-size:13px;color:var(--stone);font-style:italic">${done.length?'Click "Generate Bullets" to get personalized resume bullets from InvoAI.':'Complete tasks first to generate resume bullets.'}</div>`
+    :S.aiResumeBullets==='loading'
+    ?`<div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is writing your bullets…</span></div>`
+    :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
   return`<div class="page-hdr">
   <div><div class="page-title">Resume Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
   <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
+</div>
+<div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:20px 22px;margin-bottom:20px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--ink)">🤖 AI Resume Bullets</div>
+      <div style="font-size:12px;color:var(--stone);margin-top:2px">InvoAI writes precise, quantifiable bullets from your completed work</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-ai btn-sm" onclick="generateAIResumeBullets()" ${!done.length?'disabled':''}>Generate Bullets</button>
+      ${S.aiResumeBullets&&S.aiResumeBullets!=='loading'?`<button class="btn btn-ghost btn-sm" onclick="S.aiResumeBullets=null;render()">Clear</button>`:''}
+    </div>
+  </div>
+  ${bulletsHTML}
 </div>
 <div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:16px">
   <div class="sec-row"><div class="sec-title" style="margin:0">🛠️ Skills Bank</div><span style="font-size:12px;color:var(--muted)">${u.skills.length} skills earned</span></div>
@@ -928,8 +988,7 @@ function renderAttendance(){
     <div class="att-event-meta">📍 ${ev.date}${ev.location?' · '+ev.location:''}</div>
     <div class="att-code">${ev.code}</div>
     <div class="qr-wrap">
-      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrData}&bgcolor=ffffff&color=1E3A2F&margin=6" width="110" height="110" loading="lazy">
-      <img class="qr-mascot" src="https://i.imgur.com/KaSEx7u.png" onerror="this.style.display='none'">
+      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}&bgcolor=ffffff&color=1E3A2F&margin=8" width="130" height="130" loading="lazy">
     </div>
     <div class="att-count" style="margin-top:12px">👥 ${checkedIn.length} checked in</div>
     ${checkNames.length?`<div class="checkin-list">${checkNames.map(n=>`<span class="checkin-chip">${n.split(' ')[0]}</span>`).join('')}</div>`:''}
@@ -1050,21 +1109,94 @@ function renderModal(){
 
   else if(m==='createClubEvent'){
     const ICONS=['🎪','🏆','🎉','📚','🎤','🌟','🤝','🎨','🚀','🏅'];
+    const taskListHTML=S.aiEventTasks.length?`
+    <div style="margin-top:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:800;color:var(--ink)">✅ InvoAI Generated ${S.aiEventTasks.length} Tasks — Edit Below</div>
+        <button class="btn btn-ghost btn-sm" onclick="S.aiEventTasks=[];render()">Clear All</button>
+      </div>
+      ${S.aiEventTasks.map((t,i)=>`<div style="background:var(--cream);border:1.5px solid var(--sand);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input class="fi" style="flex:1;padding:7px 10px;font-size:13px" value="${t.title.replace(/"/g,'&quot;')}" oninput="S.aiEventTasks[${i}].title=this.value" placeholder="Task title">
+          <button onclick="S.aiEventTasks.splice(${i},1);render()" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:18px;padding:2px 6px;flex-shrink:0">✕</button>
+        </div>
+        <textarea class="fta" style="min-height:50px;font-size:12px;margin-bottom:8px" oninput="S.aiEventTasks[${i}].desc=this.value">${t.desc}</textarea>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:11px;font-weight:700;color:var(--stone)">Slots:</label>
+          <input type="number" class="fi" style="width:60px;padding:4px 8px;font-size:12px" value="${t.slots}" min="1" max="20" oninput="S.aiEventTasks[${i}].slots=+this.value">
+          <select class="fsel" style="font-size:11px;padding:4px 8px;flex:1" onchange="S.aiEventTasks[${i}].competency=this.value">
+            ${Object.entries(COMPETENCY_AREAS).map(([k,v])=>`<option value="${k}" ${t.competency===k?'selected':''}>${v.icon} ${v.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('')}
+    </div>`:S.aiEventTasks==='loading'?`<div class="ai-loading-row" style="margin-top:12px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is generating tasks…</span></div>`:'';
     html=`<div class="modal-hdr"><div class="modal-ttl">🎪 Create New Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" placeholder="e.g. Spring Club Fair"></div>
-      <div class="fg"><label class="fl">Description</label><textarea class="fta" id="ceDesc" style="min-height:70px" placeholder="What is this event about?"></textarea></div>
+      <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" placeholder="e.g. TEDxTalk, Club Fair, Fundraiser"></div>
+      <div class="fg"><label class="fl">Describe the event for InvoAI</label><textarea class="fta" id="ceDesc" style="min-height:85px" placeholder="What is this event about? How many people involved? What needs to happen? Be specific — InvoAI will create tasks from this."></textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg"><label class="fl">Date</label><input class="fi" id="ceDate" placeholder="e.g. May 30, 2025"></div>
         <div class="fg"><label class="fl">Event Color</label><input type="color" id="ceColor" value="#1E3A2F" style="width:100%;height:42px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;padding:2px"></div>
       </div>
       <div class="fg"><label class="fl">Icon</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map(ic=>`<button type="button" class="skill-pick-toggle" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-ico="${ic}" class="skill-pick-toggle ico-pick${ic==='🎪'?' on':''}">${ic}</button>`).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map((ic,ii)=>`<button type="button" class="skill-pick-toggle ico-pick${ii===0?' on':''}" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-ico="${ic}">${ic}</button>`).join('')}</div>
         <input type="hidden" id="ceIcon" value="🎪">
       </div>
-      <div style="font-size:12px;color:var(--muted)">💡 You can add tasks after creating the event.</div>
+      <button class="btn btn-ai" id="aiGenBtn" style="width:100%;justify-content:center" onclick="aiGenerateEventTasks()">🤖 Generate Tasks with InvoAI</button>
+      ${taskListHTML}
     </div>
     <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="createClubEvent()">Create Event →</button></div>`;
+  }
+
+  else if(m==='userProfile'){
+    const uid=d;const pu=S.usersList.find(u=>u.id===uid);
+    if(!pu)html=`<div class="modal-body" style="padding:30px;text-align:center;color:var(--stone)">User not found</div>`;
+    else{
+      const isOfficer=me().role==='officer';
+      html=`<div class="modal-hdr"><div class="modal-ttl">👤 User Profile</div><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div style="width:68px;height:68px;border-radius:16px;background:${avColor(pu.role)};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;flex-shrink:0">${initials(pu.name)}</div>
+          <div>
+            <div style="font-size:20px;font-weight:900;letter-spacing:-.3px">${pu.name}</div>
+            <span class="role-pill ${pu.role}" style="font-size:11px">${pu.role}</span>
+            <div style="font-size:12px;color:var(--stone);margin-top:5px">Joined ${new Date(pu.created_at).toLocaleDateString()}</div>
+            ${pu.email?`<div style="font-size:12px;color:var(--stone)">📧 ${pu.email}</div>`:''}
+          </div>
+        </div>
+        ${isOfficer?`<div class="fg"><label class="fl">Change Role</label>
+          <select class="fsel" id="profileRole">
+            <option value="member" ${pu.role==='member'?'selected':''}>Member</option>
+            <option value="officer" ${pu.role==='officer'?'selected':''}>Officer</option>
+            <option value="advisor" ${pu.role==='advisor'?'selected':''}>Advisor</option>
+          </select>
+        </div>`:''}
+      </div>
+      <div class="modal-ftr">
+        ${isOfficer?`<button class="btn btn-danger" onclick="deleteUser('${pu.id}','${pu.name}')">Delete Account</button>`:''}
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        ${isOfficer?`<button class="btn btn-pri" onclick="changeUserRole('${pu.id}',document.getElementById('profileRole').value);closeModal()">Save Role</button>`:''}
+      </div>`;
+    }
+  }
+
+  else if(m==='addUser'){
+    html=`<div class="modal-hdr"><div class="modal-ttl">➕ Add User</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label class="fl">First Name *</label><input class="fi" id="auFN" placeholder="Alex"></div>
+        <div class="fg"><label class="fl">Last Name *</label><input class="fi" id="auLN" placeholder="Rivera"></div>
+      </div>
+      <div class="fg"><label class="fl">Password *</label><input class="fi" id="auPW" type="password" placeholder="Min 6 characters"></div>
+      <div class="fg"><label class="fl">Role</label>
+        <select class="fsel" id="auRole">
+          <option value="member">Member</option>
+          <option value="officer">Officer</option>
+          <option value="advisor">Advisor</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="addUserByOfficer()">Create Account</button></div>`;
   }
 
   else if(m==='addEventTask'){
@@ -1139,6 +1271,7 @@ function renderView(){
     case'events':      return renderEvents();
     case'eventDetail': return renderEventDetail();
     case'feed':        return renderFeed();
+    case'resume':      return renderResume();
     default:           return '';
   }
 }
@@ -1416,6 +1549,7 @@ async function authRegister(){
   if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
   if(pw!==pw2){toast('Passwords do not match','err');return}
   if(pw.length<6){toast('Password must be at least 6 characters','err');return}
+  if((role==='officer'||role==='advisor')&&document.getElementById('rCode')?.value!=='123456'){toast('Invalid authorization code for officer/advisor role','err');return}
   try{
     const res=await fetch(`${API_URL}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw,role})});
     if(!res.ok){let msg='Registration failed';try{const e=await res.json();msg=e.detail||msg;}catch(_){}toast(msg,'err');return}
@@ -1449,7 +1583,7 @@ function logout(){
 function nav(v){
   S.view=v;S.filter='all';
   if(v==='attendance'||v==='checkin')loadAttendanceEvents().then(render);
-  else if(v==='members')loadUsersList().then(render);
+  else if(v==='members'||v==='users')loadUsersList().then(render);
   else render();
 }
 function setF(f){S.filter=f;render()}
@@ -1486,10 +1620,13 @@ function createClubEvent(){
   const color=document.getElementById('ceColor')?.value||'#1E3A2F';
   if(!title){toast('Add a title','err');return}
   const id='cle'+Date.now();
-  S.clubEvents.push({id,title,desc:desc||'',date:date||'TBD',icon,color,createdBy:S.uid,createdAt:Date.now(),tasks:[]});
+  const aiTasks=Array.isArray(S.aiEventTasks)?S.aiEventTasks:[];
+  const tasks=aiTasks.map(t=>({id:'clet'+Date.now()+Math.random().toString(36).slice(2,5),title:t.title||'Task',desc:t.desc||'',slots:Math.max(1,parseInt(t.slots)||1),signups:[],skills:Array.isArray(t.skills)?t.skills:[],competency:t.competency||'leadership'}));
+  S.clubEvents.push({id,title,desc:desc||'',date:date||'TBD',icon,color,createdBy:S.uid,createdAt:Date.now(),tasks});
+  S.aiEventTasks=[];
   closeModal();
   openEvent(id);
-  toast('Event created! Add tasks now 🎉','ok');
+  toast(tasks.length?`Event created with ${tasks.length} AI-generated tasks! 🎉`:'Event created! Add tasks now 🎉','ok');
 }
 
 function addEventTask(){
@@ -1579,7 +1716,7 @@ function coachForRole(roleId){
   sendAI({internshipRole:role.title});
 }
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
-function closeModal(){S.modal=null;S.modalData=null;render()}
+function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];render()}
 
 function claimTask(id){
   const t=S.tasks.find(t=>t.id===id);if(!t)return;
@@ -1794,12 +1931,28 @@ async function loadUsersList(){
 function renderUsers(){
   const u=me();
   if(u.role==='member')return`<div class="empty"><div class="empty-ico">🔒</div><div class="empty-ttl">Officers only</div></div>`;
-  return`<div class="page-hdr"><div><div class="page-title">All Accounts</div><div class="page-sub">Every registered user in the system.</div></div></div>
-  <div class="member-list">${S.usersList.length?S.usersList.map(u=>`
+  const isOfficer=u.role==='officer';
+  return`<div class="page-hdr">
+    <div><div class="page-title">All Accounts</div><div class="page-sub">Every registered user in the system.</div></div>
+    ${isOfficer?`<button class="btn btn-pri" onclick="openModal('addUser')">+ Add User</button>`:''}
+  </div>
+  <div class="member-list">${S.usersList.length?S.usersList.map(pu=>`
   <div class="m-row">
-    <div class="m-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
-    <div><div class="m-name">${u.name}</div><div class="m-sub">${u.role} · Joined ${new Date(u.created_at).toLocaleDateString()}</div></div>
-    <div style="margin-left:auto"><span class="role-pill ${u.role}">${u.role}</span></div>
+    <div class="m-av" style="background:${avColor(pu.role)}">${initials(pu.name)}</div>
+    <div style="flex:1;min-width:0">
+      <div class="m-name" style="cursor:pointer;color:var(--forest);text-decoration:underline;text-underline-offset:3px" onclick="openModal('userProfile','${pu.id}')">${pu.name}</div>
+      <div class="m-sub">${pu.role} · Joined ${new Date(pu.created_at).toLocaleDateString()}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0">
+      ${isOfficer?`
+        <select class="fsel" style="font-size:12px;padding:5px 8px;width:auto" onchange="changeUserRole('${pu.id}',this.value)">
+          <option value="member" ${pu.role==='member'?'selected':''}>Member</option>
+          <option value="officer" ${pu.role==='officer'?'selected':''}>Officer</option>
+          <option value="advisor" ${pu.role==='advisor'?'selected':''}>Advisor</option>
+        </select>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${pu.id}','${pu.name}')">Delete</button>
+      `:`<span class="role-pill ${pu.role}">${pu.role}</span>`}
+    </div>
   </div>`).join(''):`<div class="empty"><div class="empty-ico">👤</div><div class="empty-ttl">No accounts yet</div></div>`}
   </div>`;
 }
@@ -2066,13 +2219,119 @@ function exportToExcel(){
   toast(`Exported ${fileName} ✅`,'ok');
 }
 
+// ── ROLE CODE TOGGLE ─────────────────────────────────
+function toggleRoleCode(role){
+  const row=document.getElementById('roleCodeRow');
+  if(row)row.style.display=(role==='officer'||role==='advisor')?'block':'none';
+}
+
+// ── QR CHECK-IN WITHOUT PASSWORD ──────────────────────
+async function checkInByName(){
+  const fn=document.getElementById('qFN')?.value?.trim();
+  const ln=document.getElementById('qLN')?.value?.trim();
+  if(!fn||!ln){toast('Enter your first and last name','err');return}
+  try{
+    const res=await fetch(`${API_URL}/attendance/checkin-name`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:S.pendingCheckin,first_name:fn,last_name:ln})});
+    const data=await res.json();
+    if(res.ok){
+      S.pendingCheckin=null;S.showLogin=false;
+      window.history.replaceState({},'',window.location.pathname);
+      S.qrCheckinSuccess=data.event;
+      render();
+    }else toast(data.detail||'Check-in failed','err');
+  }catch(e){toast('Could not reach server','err')}
+}
+
+// ── USER MANAGEMENT (officers) ────────────────────────
+async function changeUserRole(userId,role){
+  if(!['member','officer','advisor'].includes(role))return;
+  try{
+    const res=await fetch(`${API_URL}/users/${userId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});
+    if(res.ok){
+      const idx=S.usersList.findIndex(u=>u.id===userId);
+      if(idx>=0)S.usersList[idx].role=role;
+      toast('Role updated','ok');render();
+    }else{const e=await res.json();toast(e.detail||'Failed to update role','err');}
+  }catch(e){toast('Could not reach server','err')}
+}
+
+async function deleteUser(userId,name){
+  if(!confirm(`Delete ${name}'s account? This cannot be undone.`))return;
+  try{
+    const res=await fetch(`${API_URL}/users/${userId}`,{method:'DELETE'});
+    if(res.ok){
+      S.usersList=S.usersList.filter(u=>u.id!==userId);
+      toast(`${name} deleted`,'ok');closeModal();render();
+    }else{const e=await res.json();toast(e.detail||'Failed to delete','err');}
+  }catch(e){toast('Could not reach server','err')}
+}
+
+async function addUserByOfficer(){
+  const fn=document.getElementById('auFN')?.value?.trim();
+  const ln=document.getElementById('auLN')?.value?.trim();
+  const pw=document.getElementById('auPW')?.value;
+  const role=document.getElementById('auRole')?.value||'member';
+  if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
+  if(pw.length<6){toast('Password must be at least 6 characters','err');return}
+  try{
+    const res=await fetch(`${API_URL}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw,role})});
+    if(!res.ok){const e=await res.json();toast(e.detail||'Failed to create account','err');return}
+    await loadUsersList();
+    closeModal();
+    toast(`Account created for ${fn} ${ln}!`,'ok');
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+// ── AI EVENT TASK GENERATION ──────────────────────────
+async function aiGenerateEventTasks(){
+  const title=document.getElementById('ceTitle')?.value?.trim();
+  const desc=document.getElementById('ceDesc')?.value?.trim();
+  if(!title&&!desc){toast('Add an event title or description first','err');return}
+  S.aiEventTasks='loading';render();
+  const btn=document.getElementById('aiGenBtn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generating…';}
+  try{
+    const prompt=`Event: "${title||'Unnamed Event'}"\nDescription: ${desc||'A club event'}\n\nGenerate 4-6 specific volunteer tasks for members to sign up for. Each task must be concrete and doable by a student. Return ONLY a JSON array, no commentary:\n[{"title":"...","desc":"...","slots":1,"skills":["skill1","skill2"],"competency":"marketing|finance|tech|leadership|research|creative|community"},...]`;
+    const res=await callGroq('You are a college club event coordinator. Generate specific, actionable volunteer tasks for events. Return only a valid JSON array. No explanation, no markdown, just the array.',prompt,[], 800);
+    let tasks;
+    try{const m=res.match(/\[[\s\S]*\]/);tasks=JSON.parse(m?m[0]:res);}catch(e){throw new Error('AI returned unexpected format — try again');}
+    if(!Array.isArray(tasks)||!tasks.length)throw new Error('No tasks generated');
+    S.aiEventTasks=tasks.map(t=>({title:t.title||'Task',desc:t.desc||t.description||'',slots:Math.max(1,Math.min(20,parseInt(t.slots)||1)),skills:Array.isArray(t.skills)?t.skills:[],competency:t.competency||'leadership'}));
+    toast(`InvoAI created ${S.aiEventTasks.length} tasks! Review and edit below.`,'ok');
+  }catch(e){
+    S.aiEventTasks=[];
+    toast('Could not generate tasks: '+e.message,'err');
+  }
+  render();
+}
+
+// ── AI RESUME BULLETS ─────────────────────────────────
+async function generateAIResumeBullets(){
+  const u=me();const done=approvedByUser(u.id);
+  if(!done.length){toast('Complete tasks first to generate bullets','err');return}
+  S.aiResumeBullets='loading';render();
+  const taskSummary=done.map(t=>{
+    const sub=t.submissions.find(s=>s.userId===u.id&&s.status==='approved');
+    const entry=u.portfolioEntries.find(e=>e.taskId===t.id);
+    return`- ${t.title} [${t.cat}]: Skills: ${t.skills.join(', ')}${sub?.aiSkills?.length?' | AI-detected: '+sub.aiSkills.join(', '):''}${entry?' | My description: '+entry.text:''}`;
+  }).join('\n');
+  try{
+    const res=await callGroq(
+      'You are a professional resume writer for college students. Generate precise, quantifiable resume bullet points. Use strong action verbs. Be specific about what was done. Include numbers where possible (team size, audience size, % improvement). Format: one bullet per line. No headers, no lists — just the bullets. 3-5 bullets maximum.',
+      `Student: ${u.name}\nCompleted tasks:\n${taskSummary}\n\nGenerate 3-5 strong resume bullets. Start each with an action verb. Include quantifiable impact where possible. Focus on transferable business/professional skills.`
+    );
+    S.aiResumeBullets=res;
+  }catch(e){S.aiResumeBullets=null;toast('Could not generate bullets','err');}
+  render();
+}
+
 // ── GROQ API HELPER (proxied through backend) ─────────
-async function callGroq(system,user,history=[]){
+async function callGroq(system,user,history=[],max_tokens=512){
   const messages=[...history,{role:'user',content:user}];
   const res=await fetch(`${API_URL}/chat/`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system,messages})
+    body:JSON.stringify({system,messages,max_tokens})
   });
   if(!res.ok){const e=await res.json();throw new Error(e.detail||'API error')}
   const data=await res.json();
