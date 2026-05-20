@@ -544,6 +544,7 @@ const S={
   showLogin:false,
   aiResumeBullets:null,
   qrCheckinSuccess:false,
+  aiDistribution:null,
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -1109,7 +1110,9 @@ function renderModal(){
 
   else if(m==='createClubEvent'){
     const ICONS=['🎪','🏆','🎉','📚','🎤','🌟','🤝','🎨','🚀','🏅'];
-    const taskListHTML=S.aiEventTasks.length?`
+    const taskListHTML=S.aiEventTasks==='loading'
+    ?`<div class="ai-loading-row" style="margin-top:14px;background:var(--cream2);border-radius:var(--rsm);padding:14px;border:1px solid var(--sand)"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is generating tasks…</span></div>`
+    :Array.isArray(S.aiEventTasks)&&S.aiEventTasks.length?`
     <div style="margin-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:13px;font-weight:800;color:var(--ink)">✅ InvoAI Generated ${S.aiEventTasks.length} Tasks — Edit Below</div>
@@ -1129,7 +1132,7 @@ function renderModal(){
           </select>
         </div>
       </div>`).join('')}
-    </div>`:S.aiEventTasks==='loading'?`<div class="ai-loading-row" style="margin-top:12px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is generating tasks…</span></div>`:'';
+    </div>`:'';
     html=`<div class="modal-hdr"><div class="modal-ttl">🎪 Create New Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
       <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" placeholder="e.g. TEDxTalk, Club Fair, Fundraiser"></div>
@@ -1376,10 +1379,12 @@ function renderEventDetail(){
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${isOfficer?`
         <button class="btn btn-ghost btn-sm" onclick="openModal('addEventTask','${ev.id}')">+ Add Task</button>
-        <button class="btn btn-ai btn-sm" onclick="distributeEventWithAI('${ev.id}')">🤖 AI Distribute</button>
+        ${ev.tasks.length?`<button class="btn btn-ai btn-sm" onclick="distributeEventWithAI('${ev.id}')" ${S.aiDistribution&&S.aiDistribution!==null?'disabled':''}>🤖 Suggest Assignments</button>`:''}
       `:''}
     </div>
   </div>
+
+  ${renderDistributionPanel(ev)}
 
   <div class="event-task-list">${taskItems||`<div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-ttl">No tasks yet</div>${isOfficer?'<div>Add tasks for members to sign up for.</div>':''}</div>`}</div>
 </div>`;
@@ -1655,16 +1660,111 @@ function saveEventTask(){
   toast('Task updated ✅','ok');render();
 }
 
+// ── AI DISTRIBUTION PANEL ─────────────────────────────
+function renderDistributionPanel(ev){
+  const d=S.aiDistribution;
+  if(!d||d.evId!==ev.id)return'';
+
+  if(d.loading){
+    return`<div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:18px 20px;margin-bottom:16px">
+      <div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span style="margin-left:10px;font-size:13px;color:var(--stone);font-weight:600">InvoAI is analyzing members and tasks…</span></div>
+    </div>`;
+  }
+
+  if(!d.tasks||!d.tasks.length)return'';
+
+  const rows=d.tasks.map(td=>{
+    const task=ev.tasks.find(t=>t.id===td.taskId);
+    if(!task)return'';
+    const spotsLeft=task.slots-task.signups.length;
+    const bubbles=td.suggestions.map(s=>{
+      const alreadyIn=task.signups.includes(s.userId);
+      const isFull=!alreadyIn&&spotsLeft<=0;
+      return`<button
+        class="btn btn-sm"
+        style="background:${alreadyIn?'var(--forest)':'var(--card)'};color:${alreadyIn?'#fff':'var(--ink)'};border:1.5px solid ${alreadyIn?'var(--forest)':'var(--sand)'};transition:all .18s;opacity:${isFull?'.45':'1'}"
+        title="${s.reason}"
+        onclick="${alreadyIn||isFull?'':` assignMemberToTask('${ev.id}','${task.id}','${s.userId}')`}"
+        ${isFull&&!alreadyIn?'disabled':''}>
+        ${alreadyIn?'✓ ':''}<strong>${s.name.split(' ')[0]}</strong> ${s.name.split(' ').slice(1).join(' ')}
+      </button>`;
+    }).join('');
+    return`<div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:800;color:var(--ink);margin-bottom:7px">
+        ${task.title}
+        <span style="font-size:11px;font-weight:500;color:var(--stone);margin-left:6px">${spotsLeft} slot${spotsLeft!==1?'s':''} open</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${bubbles}</div>
+    </div>`;
+  }).join('');
+
+  return`<div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:18px 20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--ink)">🤖 InvoAI Suggested Assignments</div>
+        <div style="font-size:11px;color:var(--stone);margin-top:2px">Click a name to assign them to that task</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="S.aiDistribution=null;render()">✕ Close</button>
+    </div>
+    ${rows}
+  </div>`;
+}
+
 async function distributeEventWithAI(evId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  if(!ev||!ev.tasks.length){toast('Add tasks to the event first','err');return}
+  const memberList=members();
+  if(!memberList.length){toast('No members to assign yet','err');return}
+
+  S.aiDistribution={evId,loading:true,tasks:[]};
+  render();
+
+  const taskLines=ev.tasks.map((t,i)=>`${i}|${t.id}|"${t.title}" — needs: ${t.skills.join(', ')||'general'}, competency: ${t.competency||'general'}, slots: ${t.slots}`).join('\n');
+  const memberLines=memberList.map(m=>`"${m.name}": skills=[${m.skills.join(', ')||'none'}], completed=${approvedByUser(m.id).length} tasks`).join('\n');
+
+  try{
+    const res=await callGroq(
+      'You are assigning club event tasks to members. Return ONLY a valid JSON array. No explanation.',
+      `Event: "${ev.title}"\n\nTasks (index|id|details):\n${taskLines}\n\nMembers:\n${memberLines}\n\nFor each task, suggest the 2-3 best-fit members. Spread work across different members. Return:\n[{"taskId":"<exact task id from above>","taskTitle":"<title>","suggestions":[{"name":"<exact member name>","reason":"<10 words max>"},...]}]`,
+      [],
+      800
+    );
+
+    let parsed;
+    try{const m=res.match(/\[[\s\S]*\]/);parsed=JSON.parse(m?m[0]:res);}
+    catch(e){throw new Error('Could not parse AI response');}
+
+    const tasks=parsed.map(item=>{
+      const task=ev.tasks.find(t=>t.id===item.taskId)||ev.tasks.find(t=>t.title===item.taskTitle);
+      if(!task)return null;
+      const suggestions=(item.suggestions||[]).map(s=>{
+        const user=memberList.find(m=>m.name===s.name)||memberList.find(m=>m.name.toLowerCase()===s.name.toLowerCase());
+        if(!user)return null;
+        return{userId:user.id,name:user.name,reason:s.reason||''};
+      }).filter(Boolean);
+      return{taskId:task.id,taskTitle:task.title,suggestions};
+    }).filter(Boolean);
+
+    if(!tasks.length)throw new Error('No assignments generated');
+    S.aiDistribution={evId,loading:false,tasks};
+    toast(`InvoAI suggested assignments for ${tasks.length} task${tasks.length!==1?'s':''}!`,'ok');
+  }catch(e){
+    S.aiDistribution=null;
+    toast('Could not generate assignments: '+e.message,'err');
+  }
+  render();
+}
+
+function assignMemberToTask(evId,taskId,userId){
   const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
-  const panel=document.getElementById('aiPanel');
-  if(panel&&!panel.classList.contains('open'))toggleAI();
-  const memberSummary=members().map(m=>`• ${m.name}: ${m.skills.join(', ')||'no skills yet'}`).join('\n');
-  const taskSummary=ev.tasks.map(t=>{const comp=t.competency?COMPETENCY_AREAS[t.competency]:null;return`• "${t.title}" — needs: ${t.skills.join(', ')||'general'}${comp?' ['+comp.label+']':''} (${t.slots} slot${t.slots>1?'s':''})`}).join('\n');
-  const msg=`I'm an officer planning the "${ev.title}" event. Help me assign tasks to members based on their skills and competency areas.\n\nTasks:\n${taskSummary}\n\nMembers and their skills:\n${memberSummary}\n\nSuggest who should take each task and why, aiming to cover different competency areas (marketing, finance, tech, leadership, research, creative, community) and maximize the number of members involved. Be specific.`;
-  const input=document.getElementById('aiInput');
-  if(input)input.value=msg;
-  sendAI({isDistribute:true});
+  const t=ev.tasks.find(t=>t.id===taskId);if(!t)return;
+  if(t.signups.includes(userId)){toast('Already assigned','err');return}
+  if(t.signups.length>=t.slots){toast('No slots left for this task','err');return}
+  const user=S.users.find(u=>u.id===userId)||S.usersList.find(u=>u.id===userId);
+  t.signups.push(userId);
+  toast(`${user?user.name.split(' ')[0]:'Member'} assigned! ✅`,'ok');
+  render();
 }
 
 function postFeedMessage(){
