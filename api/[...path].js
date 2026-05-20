@@ -14,13 +14,25 @@ function setCORS(res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
 }
 
+async function parseBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', chunk => { raw += chunk; });
+    req.on('end', () => {
+      try { resolve(JSON.parse(raw)); } catch { resolve({}); }
+    });
+    req.on('error', () => resolve({}));
+  });
+}
+
 module.exports = async (req, res) => {
   setCORS(res);
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
   const path = req.url.split('?')[0];
   const method = req.method;
-  const body = req.body || {};
+  const body = await parseBody(req);
 
   try {
     // ── AUTH ──────────────────────────────────────────────
