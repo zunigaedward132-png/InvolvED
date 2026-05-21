@@ -386,6 +386,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── REQUEST CARD ── */
 .request-card{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--sand);box-shadow:var(--sh)}
 
+/* ── SUBMIT STEP TOGGLE ── */
+.submit-tab-toggle{display:flex;gap:0;border:1.5px solid var(--sand);border-radius:var(--rsm);overflow:hidden;margin-bottom:16px}
+.submit-tab-btn{flex:1;padding:8px 14px;background:var(--cream);border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--stone);transition:all .2s}
+.submit-tab-btn.active{background:var(--forest);color:#fff}
+.review-feedback-box{background:#FFF8E7;border:1px solid #FDE68A;border-radius:var(--rsm);padding:8px 12px;font-size:12px;color:#92400E;margin-top:8px}
+.request-actions{display:flex;gap:6px;flex-wrap:wrap}
+
 /* ── OPPORTUNITY CARD ── */
 .opportunity-card{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--sand);box-shadow:var(--sh);transition:transform .22s,box-shadow .22s}
 .opportunity-card:hover{transform:translateY(-3px);box-shadow:var(--shmd)}
@@ -579,6 +586,14 @@ const S={
   pendingEventForm:{title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'},
   careerLabel:null,
   taskRequests:[],
+  submitStep:1,
+  submitDesc:'',
+  submitAnalysis:null,
+  submitAnalyzing:false,
+  submitFileMode:'file',
+  submitDocLink:null,
+  profileMemberEdits:{},
+  attendancePanelEvId:null,
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -713,8 +728,8 @@ function renderTopbar(){
   const u=me();
   const navs={
     member: [['dashboard','Home'],['events','Events'],['resume','Career Ready'],['addme','Add Me']],
-    officer:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['attendance','Attendance'],['users','Users']],
-    advisor:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['attendance','Attendance'],['users','Users']],
+    officer:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['users','Users']],
+    advisor:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['users','Users']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -778,20 +793,23 @@ function renderDashboard(){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
     const approved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
     const pendingTasks=S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review'));
-    const taskRequestsHtml=S.taskRequests.length?S.taskRequests.map(req=>{
+    const taskRequestsHtml=S.taskRequests.filter(r=>r.status!=='dismissed').length?S.taskRequests.filter(r=>r.status!=='dismissed').map(req=>{
       const requester=S.users.find(u=>u.id===req.userId)||S.usersList.find(u=>u.id===req.userId);
       return`<div class="request-card">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
           <div style="flex:1">
             <div style="font-size:13px;font-weight:800">${requester?.name||'Unknown'}</div>
             <div style="font-size:11px;color:var(--stone);margin-bottom:5px">Skill area: <strong>${req.area}</strong></div>
             <div style="font-size:13px;color:var(--ink);line-height:1.55">${req.comment}</div>
             <div style="font-size:10px;color:var(--stone);margin-top:4px">${req.createdAt}</div>
+            ${req.status==='unavailable'?`<div style="font-size:11px;color:var(--terra);margin-top:4px;font-weight:600">Response sent: Not available yet</div>`:''}
+            ${req.status==='actioned'?`<div style="font-size:11px;color:var(--forest);margin-top:4px;font-weight:600">✓ Task created</div>`:''}
           </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            <span class="status-badge ${req.status==='seen'?'past':'upcoming'}">${req.status}</span>
-            ${req.status!=='seen'?`<button class="btn btn-ghost btn-sm" onclick="S.taskRequests=S.taskRequests.filter(r=>r.id!=='${req.id}');render()">Mark Seen</button>`:''}
-          </div>
+        </div>
+        <div class="request-actions">
+          <button class="btn btn-teal btn-sm" onclick="S.modalData={prefillTitle:'${req.area.replace(/'/g,"\\'")}',prefillDesc:'${req.comment.replace(/'/g,"\\'").replace(/\n/g,' ')}',prefillSkill:'${req.area}'};S.taskRequests=S.taskRequests.map(r=>r.id==='${req.id}'?{...r,status:'actioned'}:r);openModal('createTask',S.modalData)">Create Task</button>
+          <button class="btn btn-ghost btn-sm" onclick="S.taskRequests=S.taskRequests.map(r=>r.id==='${req.id}'?{...r,status:'unavailable'}:r);toast('Response sent','ok');render()">Not Available Yet</button>
+          <button class="btn btn-danger btn-sm" onclick="S.taskRequests=S.taskRequests.map(r=>r.id==='${req.id}'?{...r,status:'dismissed'}:r);render()">Dismiss</button>
         </div>
       </div>`;
     }).join(''):`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">No requests yet.</div>`;
@@ -845,6 +863,9 @@ function taskCard(task){
     else if(st==='open')action=`<button class="btn btn-danger btn-sm" onclick="delTask('${task.id}')">Delete</button>`;
   }
 
+  const feedbackBox=mySub?.officerFeedback&&(mySub.status==='pending_review'||mySub.status==='approved')
+    ?`<div class="review-feedback-box">💬 <strong>Officer feedback:</strong> ${mySub.officerFeedback}</div>`
+    :'';
   return`<div class="tcard">
   <div class="tcard-top" style="background:${cat.c}"></div>
   <div class="tcard-body">
@@ -856,6 +877,7 @@ function taskCard(task){
     <div class="tcard-title">${task.title}</div>
     <div class="tcard-desc">${task.desc}</div>
     <div class="tcard-skills">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
+    ${feedbackBox}
     <div class="tcard-footer">
       <div>
         <span class="xp-chip">⚡${task.xp} XP</span>
@@ -1133,6 +1155,8 @@ ${careerIdentityCard}
 <div class="sec-title">📁 Portfolio Entries</div>
 ${done.length?done.map(task=>{
   const e=u.portfolioEntries.find(e=>e.taskId===task.id);
+  const sub=task.submissions.find(s=>s.userId===u.id&&s.status==='approved');
+  const bullets=sub?.resumeBullets||[];
   return`<div class="pe-card">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
     <div style="flex:1">
@@ -1141,6 +1165,10 @@ ${done.length?done.map(task=>{
     </div>
     <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add'}</button>
   </div>
+  ${bullets.length?`<div style="margin-top:10px;background:#EEF4EC;border-radius:var(--rsm);padding:10px 12px">
+    <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">📄 Resume Bullets</div>
+    ${bullets.map(b=>`<div style="display:flex;gap:6px;font-size:12px;line-height:1.6;margin-bottom:4px"><span style="color:var(--forest);flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
+  </div>`:`<div style="margin-top:8px"><button class="btn btn-ai btn-sm" onclick="openModal('submit','${task.id}')">Generate Bullets</button></div>`}
   <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
 </div>`;}).join(''):`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">No completed tasks yet</div><div>Complete tasks to add entries.</div></div>`}`;
 }
@@ -1294,10 +1322,13 @@ function renderModal(){
   let html='';
 
   if(m==='createTask'){
+    const prefillTitle=d?.prefillTitle||'';
+    const prefillDesc=d?.prefillDesc||'';
     html=`<div class="modal-hdr"><div class="modal-ttl">📋 Create New Task</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
-      <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="tTitle" placeholder="e.g. Design Club Flyer"></div>
-      <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="tDesc" placeholder="What should members do? Be specific about deliverables."></textarea></div>
+      ${prefillTitle?`<div style="background:#EEF4EC;border:1px solid var(--sage2);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--forest)">💡 Pre-filled from member request — review and adjust as needed</div>`:''}
+      <div class="fg"><label class="fl">Task Title *</label><input class="fi" id="tTitle" placeholder="e.g. Design Club Flyer" value="${prefillTitle.replace(/"/g,'&quot;')}"></div>
+      <div class="fg"><label class="fl">Description *</label><textarea class="fta" id="tDesc" placeholder="What should members do? Be specific about deliverables.">${prefillDesc}</textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg"><label class="fl">Category</label><select class="fsel" id="tCat">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v.icon} ${v.lbl}</option>`).join('')}</select></div>
         <div class="fg"><label class="fl">Capacity (# members)</label><input class="fi" id="tCap" type="number" min="1" max="10" value="1"></div>
@@ -1315,33 +1346,60 @@ function renderModal(){
 
   else if(m==='submit'){
     const task=S.tasks.find(t=>t.id===d);
-    const aiSkills=S.pendingAISkills;
-    html=`<div class="modal-hdr"><div class="modal-ttl">📤 Submit Work</div><button class="close-btn" onclick="closeModal()">×</button></div>
-    <div class="modal-body">
-      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:14px">
-        <div style="font-weight:800;font-size:14px;color:${CAT[task.cat]?.c||'var(--pri)'}">${CAT[task.cat]?.icon||'📌'} ${task.title}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px">${task.desc}</div>
-      </div>
-      <div class="fg"><label class="fl">Describe what you did *</label><textarea class="fta" id="workText" placeholder="What did you create/research/do? What tools did you use? What were the results?"></textarea></div>
-      <div class="fg">
-        <label class="fl">Upload your work (optional)</label>
-        <div class="file-input-wrap" onclick="document.getElementById('fileIn').click()">
-          <input type="file" id="fileIn" onchange="handleFile(this)">
-          <div id="fileLbl" style="color:var(--muted);font-size:13px">📎 Click to attach a file (PDF, image, doc...)</div>
+    if(S.submitStep===1){
+      html=`<div class="modal-hdr"><div class="modal-ttl">📤 Submit Your Work</div><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:16px">
+          <div style="font-weight:800;font-size:14px;color:${CAT[task.cat]?.c||'var(--pri)'}">${CAT[task.cat]?.icon||'📌'} ${task.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">${task.desc}</div>
         </div>
-      </div>
-      <button class="btn btn-ai" style="width:100%;justify-content:center;margin-bottom:10px" onclick="analyzeSkills('${d}')" ${S.modalAILoading?'disabled':''}>
-        ${S.modalAILoading?'<span style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>':'✨ Analyze with InvoAI — detect my skills'}
-      </button>
-      ${aiSkills.length?`<div style="margin-bottom:12px">
-        <label class="fl">AI-Detected Skills (toggle to confirm)</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px" id="aiSkillChips">
-          ${aiSkills.map(s=>`<button type="button" class="ai-skill-chip" onclick="this.classList.toggle('off')">${s}</button>`).join('')}
+        <div class="submit-tab-toggle">
+          <button class="submit-tab-btn${S.submitFileMode==='file'?' active':''}" onclick="S.submitFileMode='file';render()">📎 Upload File</button>
+          <button class="submit-tab-btn${S.submitFileMode==='link'?' active':''}" onclick="S.submitFileMode='link';render()">🔗 Google Docs Link</button>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:5px">These skills will be added to your Resume Ready tab on approval.</div>
-      </div>`:''}
-    </div>
-    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="submitWork('${d}')">Submit for Review →</button></div>`;
+        ${S.submitFileMode==='file'?`<div class="fg">
+          <div class="file-input-wrap" onclick="document.getElementById('fileIn').click()">
+            <input type="file" id="fileIn" accept=".pdf,.doc,.docx" onchange="handleFile(this)">
+            <div id="fileLbl" style="color:var(--muted);font-size:13px">📎 Click to attach a file</div>
+          </div>
+          <div style="font-size:11px;color:var(--stone);margin-top:5px">PDF or Word document only</div>
+        </div>`:`<div class="fg">
+          <label class="fl">Google Docs URL</label>
+          <input class="fi" id="googleDocLink" placeholder="https://docs.google.com/..." value="${S.submitDocLink||''}">
+          <div style="font-size:11px;color:var(--stone);margin-top:4px">Must be a Google Docs link (docs.google.com)</div>
+        </div>`}
+        <div class="fg"><label class="fl">Describe what you did *</label><textarea class="fta" id="workText" placeholder="Briefly describe what you did and the impact...">${S.submitDesc||''}</textarea></div>
+      </div>
+      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="proceedToSubmitStep2('${d}')">Continue to Review →</button></div>`;
+    }else{
+      // Step 2 — Metrics + Resume Bullets
+      const analysis=S.submitAnalysis;
+      const isAnalyzing=S.submitAnalyzing;
+      if(isAnalyzing){
+        html=`<div class="modal-hdr"><div class="modal-ttl">📤 Analyzing…</div><button class="close-btn" onclick="closeModal()">×</button></div>
+        <div class="modal-body" style="text-align:center;padding:40px 24px">
+          <div class="ai-loading-row" style="justify-content:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div style="font-size:13px;color:var(--stone);margin-top:14px">InvoAI is analyzing your submission…</div>
+        </div>`;
+      }else{
+        const questions=analysis?.metrics_questions||['How many people did this impact?','What was the end result or outcome?','How much time did you spend on this?'];
+        const skills=analysis?.skills_detected||[];
+        html=`<div class="modal-hdr"><div class="modal-ttl">📊 Add Metrics</div><button class="close-btn" onclick="closeModal()">×</button></div>
+        <div class="modal-body">
+          <div style="background:#EEF4EC;border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--forest);font-weight:600">💡 Adding metrics makes your resume bullets 3x more impactful!</div>
+          ${skills.length?`<div class="fg"><label class="fl">Detected Skills (uncheck to remove)</label><div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${skills.map((s,i)=>`<button type="button" class="ai-skill-chip" id="dskill_${i}" onclick="this.classList.toggle('off')">${s}</button>`).join('')}
+          </div></div>`:''}
+          <div class="fg"><label class="fl">${questions[0]||'How many people did this impact?'}</label><input class="fi" id="metric0" placeholder="e.g. 50 people, 3 events..."></div>
+          <div class="fg"><label class="fl">${questions[1]||'What was the end result?'}</label><input class="fi" id="metric1" placeholder="e.g. 20% increase, completed on time..."></div>
+          <div class="fg"><label class="fl">${questions[2]||'How much time did you spend?'}</label><input class="fi" id="metric2" placeholder="e.g. 5 hours, 2 weeks..."></div>
+        </div>
+        <div class="modal-ftr">
+          <button class="btn btn-ghost" onclick="S.submitStep=1;render()">← Back</button>
+          <button class="btn btn-teal" onclick="generateBulletsAndSubmit('${d}')">Generate Resume Bullets →</button>
+        </div>`;
+      }
+    }
   }
 
   else if(m==='review'){
@@ -1357,13 +1415,19 @@ function renderModal(){
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">📝 Submission</div>
         <div style="font-size:13px;line-height:1.6">${sub.work}</div>
         ${sub.fileName?`<div style="margin-top:8px"><span class="file-attached">📎 ${sub.fileName}</span></div>`:''}
+        ${sub.docLink?`<div style="margin-top:8px"><a href="${sub.docLink}" target="_blank" class="file-attached">🔗 Google Doc</a></div>`:''}
+        ${sub.resumeBullets?.length?`<div style="margin-top:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--forest);margin-bottom:5px">📄 RESUME BULLETS</div>
+          ${sub.resumeBullets.map(b=>`<div style="font-size:12px;margin-bottom:4px;line-height:1.5">• ${b}</div>`).join('')}
+        </div>`:''}
       </div>
       ${sub.aiSkills?.length?`<div style="margin-bottom:12px">
         <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">✨ AI-DETECTED SKILLS</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${sub.aiSkills.map(s=>`<span class="sk-tag" style="background:#D1FAE5;color:#065F46">${s}</span>`).join('')}</div>
       </div>`:''}
       <div style="font-size:12px;color:var(--muted);margin-bottom:7px">Task skills to award on approval:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
+      <div class="fg"><label class="fl">Feedback for student (optional)</label><textarea class="fta" id="reviewFeedback" placeholder="Leave feedback for the student (optional)..." rows="3" style="width:100%;min-height:70px">${sub.officerFeedback||''}</textarea></div>
     </div>
     <div class="modal-ftr"><button class="btn btn-danger" onclick="rejectSub('${d}','${sub.userId}')">Reject</button><button class="btn btn-ghost" onclick="closeModal()">Later</button><button class="btn btn-teal" onclick="approveSub('${d}','${sub.userId}')">✓ Approve</button></div>`;
   }
@@ -1551,38 +1615,120 @@ function renderModal(){
     const bulletPreview=S.aiResumeBullets&&S.aiResumeBullets!=='loading'
       ?S.aiResumeBullets.split('\n').filter(l=>l.trim())[0]?.replace(/^[•\-\*\d\.]+\s*/,'')
       :null;
-    html=`<div class="modal-hdr">
-      <div>
-        <div class="modal-ttl">${u.name}</div>
-        ${careerL?`<div style="font-size:12px;color:var(--stone);margin-top:3px">${careerL.icon} ${careerL.label}</div>`:`<div style="font-size:12px;color:var(--stone);margin-top:3px">${u.role}</div>`}
-      </div>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-        <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
-          <div style="font-size:28px;font-weight:900;color:var(--forest)">${done.length}</div>
-          <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Tasks Completed</div>
+
+    if(u.role==='officer'||u.role==='advisor'){
+      // Officer/Advisor profile with club stats
+      const ms=members();
+      const totalMembers=ms.length;
+      const tasksApproved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
+      const eventsCreated=S.attendance.events.filter(e=>e.createdBy===u.id).length;
+      const activeMembers=ms.filter(m=>S.tasks.some(t=>t.submissions.some(s=>s.userId===m.id))).length;
+      const participationRate=totalMembers?Math.round((activeMembers/totalMembers)*100):0;
+      const retentionRate=totalMembers?Math.round((activeMembers/totalMembers)*100):0;
+      const profileEditStates=S.profileMemberEdits||{};
+
+      html=`<div class="modal-hdr">
+        <div>
+          <div class="modal-ttl">${u.name}</div>
+          <div style="font-size:12px;color:var(--stone);margin-top:3px">${u.role}</div>
         </div>
-        <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
-          <div style="font-size:28px;font-weight:900;color:var(--sky)">${attCount}</div>
-          <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Events Attended</div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:18px">
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:22px;font-weight:900;color:var(--forest)">${totalMembers}</div>
+            <div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Members</div>
+          </div>
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:22px;font-weight:900;color:var(--green)">${tasksApproved}</div>
+            <div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Approved</div>
+          </div>
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:22px;font-weight:900;color:var(--sky)">${eventsCreated}</div>
+            <div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Events</div>
+          </div>
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:22px;font-weight:900;color:var(--terra)">${participationRate}%</div>
+            <div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Participation</div>
+          </div>
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:22px;font-weight:900;color:var(--gold)">${retentionRate}%</div>
+            <div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Retention</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--stone);background:#FFF8E7;border:1px solid #FDE68A;border-radius:var(--rsm);padding:8px 12px;margin-bottom:14px;font-size:11px">🔒 Passwords are securely hashed and cannot be viewed. Use 'Delete Account' in Users tab to remove a user.</div>
+        <div style="font-size:13px;font-weight:800;margin-bottom:10px">Member Overview</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:var(--cream2)">
+              <th style="text-align:left;padding:8px 10px;font-weight:700;color:var(--stone);font-size:11px;text-transform:uppercase">Name</th>
+              <th style="text-align:left;padding:8px 10px;font-weight:700;color:var(--stone);font-size:11px;text-transform:uppercase">Career Label</th>
+              <th style="text-align:center;padding:8px 10px;font-weight:700;color:var(--stone);font-size:11px;text-transform:uppercase">Skills</th>
+              <th style="text-align:center;padding:8px 10px;font-weight:700;color:var(--stone);font-size:11px;text-transform:uppercase">Done</th>
+              <th style="padding:8px 10px"></th>
+            </tr></thead>
+            <tbody>
+              ${ms.map(m=>{
+                const ml=CAREER_LABELS.find(c=>c.id===m.careerLabel);
+                const tasksDone=approvedByUser(m.id).length;
+                const editing=profileEditStates[m.id];
+                return`<tr style="border-top:1px solid var(--sand)">
+                  <td style="padding:8px 10px;font-weight:600">${m.name}</td>
+                  <td style="padding:8px 10px">${editing?`<select class="fsel" style="font-size:11px;padding:3px 6px" id="pme_label_${m.id}">
+                    <option value="">No label</option>
+                    ${CAREER_LABELS.map(c=>`<option value="${c.id}" ${m.careerLabel===c.id?'selected':''}>${c.icon} ${c.label}</option>`).join('')}
+                  </select>`:ml?`${ml.icon} ${ml.label}`:'—'}</td>
+                  <td style="text-align:center;padding:8px 10px">${editing?`<input class="fi" style="font-size:11px;padding:3px 6px;width:100%" id="pme_skills_${m.id}" value="${m.skills.join(', ')}" placeholder="comma separated">`:m.skills.length}</td>
+                  <td style="text-align:center;padding:8px 10px">${tasksDone}</td>
+                  <td style="padding:8px 10px">
+                    ${editing?`<div style="display:flex;gap:4px">
+                      <button class="btn btn-teal btn-sm" style="padding:3px 8px;font-size:11px" onclick="saveMemberProfileEdit('${m.id}')">Save</button>
+                      <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px" onclick="S.profileMemberEdits={...S.profileMemberEdits,${m.id}:false};render()">Cancel</button>
+                    </div>`:`<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px" onclick="S.profileMemberEdits={...S.profileMemberEdits,${m.id}:true};render()">Edit</button>`}
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
         </div>
       </div>
-      ${done.length?`<div style="margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Tasks Completed</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          ${done.map(t=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--forest);font-size:15px">✓</span>${t.title}</div>`).join('')}
+      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`;
+    } else {
+      // Member profile
+      html=`<div class="modal-hdr">
+        <div>
+          <div class="modal-ttl">${u.name}</div>
+          ${careerL?`<div style="font-size:12px;color:var(--stone);margin-top:3px">${careerL.icon} ${careerL.label}</div>`:`<div style="font-size:12px;color:var(--stone);margin-top:3px">${u.role}</div>`}
         </div>
-      </div>`:''}
-      <div style="margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Career Aspirations</div>
-        ${careerL?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:20px">${careerL.icon}</span><div style="font-weight:700;color:var(--forest)">${careerL.label}</div></div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No career identity set — visit Career Ready</div>'}
-        ${topSkills.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${topSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
-        ${bulletPreview?`<div style="background:var(--cream2);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:12px;line-height:1.6;color:var(--ink)">${bulletPreview}</div>`:`<div style="font-size:12px;color:var(--stone);font-style:italic">Visit Career Ready to generate AI resume bullets</div>`}
+        <button class="close-btn" onclick="closeModal()">×</button>
       </div>
-    </div>
-    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-pri" onclick="closeModal();nav('resume')">Career Ready →</button></div>`;
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:28px;font-weight:900;color:var(--forest)">${done.length}</div>
+            <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Tasks Completed</div>
+          </div>
+          <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
+            <div style="font-size:28px;font-weight:900;color:var(--sky)">${attCount}</div>
+            <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Events Attended</div>
+          </div>
+        </div>
+        ${done.length?`<div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Tasks Completed</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            ${done.map(t=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--forest);font-size:15px">✓</span>${t.title}</div>`).join('')}
+          </div>
+        </div>`:''}
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Career Aspirations</div>
+          ${careerL?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:20px">${careerL.icon}</span><div style="font-weight:700;color:var(--forest)">${careerL.label}</div></div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No career identity set — visit Career Ready</div>'}
+          ${topSkills.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${topSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
+          ${bulletPreview?`<div style="background:var(--cream2);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:12px;line-height:1.6;color:var(--ink)">${bulletPreview}</div>`:`<div style="font-size:12px;color:var(--stone);font-style:italic">Visit Career Ready to generate AI resume bullets</div>`}
+        </div>
+      </div>
+      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-pri" onclick="closeModal();nav('resume')">Career Ready →</button></div>`;
+    }
   }
 
   return`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
@@ -1602,11 +1748,8 @@ function renderView(){
     case'tasks':       return renderTasks();
     case'members':     return renderMembers();
     case'users':       return renderUsers();
-    case'checkin':     return renderCheckin();
-    case'attendance':  return renderAttendance();
     case'events':      return renderEvents();
     case'eventDetail': return renderEventDetail();
-    case'feed':        return renderFeed();
     case'resume':      return renderResume();
     case'addme':       return renderAddMe();
     case'memberProfile': return renderMemberProfile(S.viewingMemberId);
@@ -1759,7 +1902,88 @@ function renderEventDetail(){
   ${renderDistributionPanel(ev)}
 
   <div class="event-task-list">${taskItems||`<div class="empty" style="padding:28px"><div class="empty-ico">📋</div><div class="empty-ttl">No tasks yet</div>${isOfficer?'<div>Add tasks for members to sign up for.</div>':''}</div>`}</div>
+
+  ${isOfficer?renderEventAttendanceSection(ev):''}
 </div>`;
+}
+
+// ── EVENT ATTENDANCE SECTION ──────────────────────────
+function renderEventAttendanceSection(ev){
+  const checkedIn=S.attendance.records[ev.id]||[];
+  const checkNames=checkedIn.map(uid=>{
+    const u=getUser(uid)||S.usersList.find(u=>u.id===uid);
+    return u?u.name:uid;
+  });
+  const showPanel=S.attendancePanelEvId===ev.id;
+  const allMembers=S.users.filter(u=>u.role!=='advisor'&&u.role!=='officer'||(u.role==='member'));
+
+  return`<div style="background:var(--card);border:1px solid var(--sand);border-radius:var(--r);padding:20px 22px;margin-top:16px;margin-bottom:80px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="font-size:14px;font-weight:800">📅 Attendance (${checkedIn.length} checked in)</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="S.attendancePanelEvId=${showPanel?'null':"'"+ev.id+"'"};render()">${showPanel?'Hide Panel':'Mark Attendance'}</button>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;position:relative">
+          Import CSV
+          <input type="file" accept=".csv" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="importAttendanceCSV(event,'${ev.id}')">
+        </label>
+      </div>
+    </div>
+    ${checkedIn.length?`<div class="checkin-list" style="margin-bottom:12px">${checkNames.map(n=>`<span class="checkin-chip">${n.split(' ')[0]}</span>`).join('')}</div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No check-ins yet.</div>'}
+    ${showPanel?`<div style="border-top:1px solid var(--sand);padding-top:12px;margin-top:4px">
+      <div style="font-size:12px;font-weight:700;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Mark Attendance Manually</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+        ${S.users.filter(u=>u.role==='member').map(m=>{
+          const attended=checkedIn.includes(m.id);
+          return`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:${attended?'#E8F0EB':'var(--cream)'};border:1px solid ${attended?'var(--forest3)':'var(--sand)'};border-radius:var(--rsm);cursor:${attended?'default':'pointer'}" onclick="${attended?'':'markAttendance(\''+ev.id+'\',\''+m.id+'\')'}" >
+            <span style="font-size:14px">${attended?'✅':'⬜'}</span>
+            <span style="font-size:13px;font-weight:${attended?700:400}">${m.name}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function markAttendance(evId,userId){
+  if(!S.attendance.records[evId])S.attendance.records[evId]=[];
+  if(S.attendance.records[evId].includes(userId)){toast('Already marked','');return}
+  S.attendance.records[evId].push(userId);
+  const u=getUser(userId)||S.usersList.find(u=>u.id===userId);
+  toast(`${u?u.name.split(' ')[0]:'Member'} marked as attended ✅`,'ok');
+  render();
+}
+
+function importAttendanceCSV(event,evId){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result;
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    if(!lines.length){toast('Empty CSV file','err');return}
+    // Parse header row
+    const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+    const nameIdx=headers.findIndex(h=>['name','full name','student name','student','fullname'].includes(h));
+    if(nameIdx<0){toast('Could not find a Name column in CSV','err');return}
+    let matched=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',').map(c=>c.trim().replace(/"/g,''));
+      const rawName=cols[nameIdx];
+      if(!rawName)continue;
+      const lname=rawName.toLowerCase();
+      const user=S.users.find(u=>u.name.toLowerCase()===lname)||S.usersList.find(u=>u.name&&u.name.toLowerCase()===lname);
+      if(user){
+        if(!S.attendance.records[evId])S.attendance.records[evId]=[];
+        if(!S.attendance.records[evId].includes(user.id)){
+          S.attendance.records[evId].push(user.id);
+          matched++;
+        }
+      }
+    }
+    toast(`Imported ${matched} attendee${matched!==1?'s':''}${matched<lines.length-1?` (${lines.length-1-matched} not found)`:''}`,matched>0?'ok':'');
+    render();
+  };
+  reader.readAsText(file);
 }
 
 // ── RENDER INTERNSHIPS ────────────────────────────────
@@ -2196,7 +2420,7 @@ function coachForRole(roleId){
   sendAI({internshipRole:role.title});
 }
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
-function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];S.pendingEventForm={title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'};render()}
+function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];S.pendingEventForm={title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'};S.submitStep=1;S.submitDesc='';S.submitAnalysis=null;S.submitAnalyzing=false;render()}
 
 function claimTask(id){
   const t=S.tasks.find(t=>t.id===id);if(!t)return;
@@ -2239,6 +2463,99 @@ async function analyzeSkills(taskId){
   S.modalAILoading=false;render();
 }
 
+async function proceedToSubmitStep2(taskId){
+  const mode=S.submitFileMode;
+  const desc=document.getElementById('workText')?.value?.trim();
+  if(!desc){toast('Describe what you did first','err');return}
+  if(mode==='file'&&!S.pendingFile){toast('Please attach a file','err');return}
+  if(mode==='link'){
+    const link=document.getElementById('googleDocLink')?.value?.trim();
+    if(!link||!link.includes('docs.google.com')){toast('Please enter a valid Google Docs link','err');return}
+    S.submitDocLink=link;
+  }
+  S.submitDesc=desc;
+  S.submitStep=2;
+  S.submitAnalyzing=true;
+  render();
+  await analyzeSubmissionWithAI(taskId,desc);
+}
+
+async function analyzeSubmissionWithAI(taskId,description){
+  const task=S.tasks.find(t=>t.id===taskId);
+  try{
+    const res=await callGroq(
+      'You analyze student work submissions for resume building. Return ONLY valid JSON, no markdown, no extra text.',
+      `Analyze this task submission and extract: the key skill areas demonstrated, quantifiable outcomes if any, and suggest 3 specific metrics questions to ask the student to make their resume bullets more impactful.\n\nTask: ${task?.title||'Club task'}\nDescription: ${task?.desc||''}\nSubmission: ${description}\n\nReturn JSON: {"skills_detected":["skill1","skill2"],"metrics_questions":["question1","question2","question3"]}`,
+      [],
+      400
+    );
+    let parsed;
+    try{const m=res.match(/\{[\s\S]*\}/);parsed=JSON.parse(m?m[0]:res);}catch(e){parsed={skills_detected:[],metrics_questions:['How many people were impacted?','What was the final outcome or result?','How much time did you spend on this?']};}
+    S.submitAnalysis=parsed;
+  }catch(e){
+    S.submitAnalysis={skills_detected:[],metrics_questions:['How many people were impacted?','What was the final outcome or result?','How much time did you spend on this?']};
+  }
+  S.submitAnalyzing=false;
+  render();
+}
+
+async function generateBulletsAndSubmit(taskId){
+  const m0=document.getElementById('metric0')?.value?.trim();
+  const m1=document.getElementById('metric1')?.value?.trim();
+  const m2=document.getElementById('metric2')?.value?.trim();
+  const task=S.tasks.find(t=>t.id===taskId);
+  const sub=task?.submissions.find(s=>s.userId===S.uid);
+  if(!sub)return;
+
+  // Collect confirmed skills
+  const confirmedSkills=[...document.querySelectorAll('.ai-skill-chip:not(.off)')].map(c=>c.textContent.trim());
+
+  toast('Generating resume bullets…','');
+  try{
+    const res=await callGroq(
+      'You are a professional resume writer. Generate EXACTLY 3 resume bullets. Return ONLY a JSON array of 3 strings. No markdown, no explanations.',
+      `Task: ${task.title}\nDescription: ${task.desc}\nStudent submission: ${S.submitDesc}\nMetrics provided:\n- ${m0||'not provided'}\n- ${m1||'not provided'}\n- ${m2||'not provided'}\n\nGenerate EXACTLY 3 resume bullets. Each bullet must: start with a strong action verb, include specific numbers/percentages from the metrics if provided, be 1-2 sentences max.\nReturn as JSON array: ["bullet1","bullet2","bullet3"]`,
+      [],
+      400
+    );
+    let bullets;
+    try{const match=res.match(/\[[\s\S]*\]/);bullets=JSON.parse(match?match[0]:res);}catch(e){bullets=[res];}
+    if(!Array.isArray(bullets))bullets=[String(bullets)];
+    sub.resumeBullets=bullets.slice(0,3);
+  }catch(e){
+    sub.resumeBullets=[];
+  }
+
+  // Mark as pending_review
+  sub.status='pending_review';
+  sub.work=S.submitDesc;
+  sub.fileName=S.pendingFile?.name||null;
+  sub.fileDataUrl=S.pendingFile?.dataUrl||null;
+  sub.docLink=S.submitDocLink||null;
+  sub.aiSkills=confirmedSkills;
+
+  // Save to backend
+  const u=me();
+  if(u.id){
+    try{
+      const r=await fetch(`${API_URL}/activities/`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({user_id:u.id,title:task.title,raw_submission:S.submitDesc,category:task.cat})});
+      if(r.ok){
+        const data=await r.json();
+        const ai=data.ai_metrics;
+        if(ai){
+          const backendSkills=[...(ai.competency_tags||[]),...(ai.linkedin_keywords||[])];
+          sub.aiSkills=[...new Set([...sub.aiSkills,...backendSkills])];
+        }
+      }
+    }catch(e){}
+  }
+
+  S.pendingFile=null;S.pendingAISkills=[];S.submitDocLink=null;
+  closeModal();
+  toast('Submitted with resume bullets! Officer will review soon. 🚀','ok');
+}
+
 async function submitWork(taskId){
   const work=document.getElementById('workText')?.value?.trim();
   if(!work){toast('Describe your work first','err');return}
@@ -2277,7 +2594,9 @@ function approveSub(taskId,userId){
   const t=S.tasks.find(t=>t.id===taskId);
   const sub=t.submissions.find(s=>s.userId===userId);
   const claimer=getUser(userId);const officer=me();
+  const feedback=document.getElementById('reviewFeedback')?.value||'';
   sub.status='approved';
+  if(feedback)sub.officerFeedback=feedback;
   const prevLvl=lvl(claimer.xp);
   claimer.xp+=t.xp;
   claimer.streak=(claimer.streak||0)+1;
@@ -2292,7 +2611,9 @@ function approveSub(taskId,userId){
 function rejectSub(taskId,userId){
   const t=S.tasks.find(t=>t.id===taskId);
   const sub=t.submissions.find(s=>s.userId===userId);
+  const feedback=document.getElementById('reviewFeedback')?.value||'';
   sub.status='claimed';sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
+  if(feedback)sub.officerFeedback=feedback;
   closeModal();toast('Submission rejected. Member can revise and resubmit.','');
 }
 
@@ -2585,14 +2906,28 @@ function buildSys(u,done,isDistribute=false){
   if(isDistribute){
     return`You are InvoAI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills and competency areas (marketing, finance, tech, leadership, research, creative, community). Aim to cover different competency areas and maximize the number of members involved. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
   }
-  return`You are InvoAI, a career coach for community college club students. Be warm, encouraging, and SHORT — max 2-3 sentences or bullet points. No long paragraphs.
-Student: ${u.name}, Level ${lvl(u.xp)}, ${u.xp} XP
+
+  // Build context about open tasks and upcoming events
+  const openTaskTitles=S.tasks.filter(t=>taskStatus(t)==='open'&&!t.submissions.some(s=>s.userId===u.id)).map(t=>t.title).slice(0,5).join(', ')||'none';
+  const upcomingEvents=S.clubEvents.filter(ev=>getEventStatus(ev)!=='past').map(ev=>`${ev.title} (${ev.date})`).slice(0,4).join(', ')||'none';
+
+  return`You are InvoAI, the smart assistant for InvolvED — a college club management app. Be short, direct, and helpful. Never give long paragraphs. Use 1-3 sentences max per response.
+
+Pages available: Home (dashboard), Events (club events and tasks), Career Ready (resume bullets and skills), Add Me (request tasks), Members (officer only), Users (officer only).
+
+Current club data will be provided in context. When a student asks about a specific task or event that exists in the data, ALWAYS end your response with a JSON navigation hint like: {"nav":"events","label":"View Events"} or {"nav":"addme","label":"Request This Skill"}.
+
+When an officer asks to create an event, gather info step by step: ask for event name first, then description, then date, then skills needed. After all 4 collected, respond with: {"action":"createEvent","data":{"title":"...","desc":"...","date":"...","skills":[...]}}
+
+When a task is not available, suggest: {"nav":"addme","label":"Submit an Add Me Request"}.
+
+Student: ${u.name} (${u.role}), Level ${lvl(u.xp)}, ${u.xp} XP
 Club Skills: ${u.skills.join(', ')||'none yet'}
 LinkedIn Keywords: ${liSkills.join(', ')||'none yet'}
 Internship Roles Qualified For: ${matches.join(', ')||'none yet — keep building skills!'}
 Completed Tasks: ${done.map(t=>t.title).join(', ')||'none'}
-Streak: ${u.streak||0} days.
-Use their real data. When giving internship advice, mention specific LinkedIn keywords they should add to their profile.`;
+Open Tasks Available: ${openTaskTitles}
+Upcoming Events: ${upcomingEvents}`;
 }
 
 function sendAIChip(idx){
@@ -2610,9 +2945,36 @@ function appendAIMsg(role,content,loading=false){
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
 }
 
+function parseAINavHints(content){
+  let displayContent=content;
+  let extraHTML='';
+  // Find all JSON objects in the response
+  const jsonMatches=content.match(/\{[^{}]+\}/g);
+  if(jsonMatches){
+    for(const jStr of jsonMatches){
+      try{
+        const hint=JSON.parse(jStr);
+        if(hint.nav){
+          extraHTML+=`<div style="margin-top:8px"><button onclick="nav('${hint.nav}');S.aiOpen=false;render()" class="btn btn-teal btn-sm" style="margin-top:6px">${hint.label||'Go →'}</button></div>`;
+          displayContent=displayContent.replace(jStr,'').trim();
+        } else if(hint.action==='createEvent'&&hint.data){
+          const dataStr=JSON.stringify(hint.data).replace(/"/g,'&quot;');
+          extraHTML+=`<div style="margin-top:8px"><button onclick="openModal('createClubEvent',JSON.parse(this.dataset.d))" data-d='${JSON.stringify(hint.data).replace(/'/g,"&#39;")}' class="btn btn-pri btn-sm" style="margin-top:6px">Create This Event →</button></div>`;
+          displayContent=displayContent.replace(jStr,'').trim();
+        }
+      }catch(e){}
+    }
+  }
+  return{displayContent,extraHTML};
+}
+
 function replaceLastAIMsg(content){
   const loading=document.getElementById('aiLoading');
-  if(loading){loading.innerHTML=`<div class="ai-msg-lbl">InvoAI</div>${content}`;loading.removeAttribute('id');}
+  if(loading){
+    const{displayContent,extraHTML}=parseAINavHints(content);
+    loading.innerHTML=`<div class="ai-msg-lbl">InvoAI</div>${displayContent}${extraHTML}`;
+    loading.removeAttribute('id');
+  }
   const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
 }
 
@@ -2697,6 +3059,22 @@ function exportToExcel(){
   const fileName=`InvolvED_Export_${date.replace(/,?\s/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fileName);
   toast(`Exported ${fileName} ✅`,'ok');
+}
+
+function saveMemberProfileEdit(memberId){
+  const m=S.users.find(u=>u.id===memberId);
+  if(!m)return;
+  const labelEl=document.getElementById(`pme_label_${memberId}`);
+  const skillsEl=document.getElementById(`pme_skills_${memberId}`);
+  if(labelEl)m.careerLabel=labelEl.value||null;
+  if(skillsEl){
+    const newSkills=skillsEl.value.split(',').map(s=>s.trim()).filter(Boolean);
+    m.skills=newSkills;
+  }
+  if(!S.profileMemberEdits)S.profileMemberEdits={};
+  S.profileMemberEdits[memberId]=false;
+  toast(`${m.name.split(' ')[0]}'s profile updated`,'ok');
+  render();
 }
 
 // ── ROLE CODE TOGGLE ─────────────────────────────────
