@@ -371,6 +371,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .signee-chip{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--cream2);color:var(--stone);font-weight:600}
 .signee-chip.me{background:#E8F0EB;color:var(--forest);font-weight:700}
 
+/* ── CAREER LABELS ── */
+.career-label-grid{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.career-label-btn{display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;border:2px solid var(--sand);background:var(--card);color:var(--ink);font-family:inherit;transition:all .18s}
+.career-label-btn:hover{border-color:var(--forest2);background:var(--cream2)}
+.career-label-btn.active{border-color:var(--forest);background:#E8F0EB;color:var(--forest)}
+
+/* ── STATUS BADGES ── */
+.status-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.status-badge.ongoing{background:#D1FAE5;color:var(--green)}
+.status-badge.upcoming{background:#DBEAFE;color:#1D4ED8}
+.status-badge.past{background:var(--cream2);color:var(--stone)}
+
+/* ── REQUEST CARD ── */
+.request-card{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--sand);box-shadow:var(--sh)}
+
+/* ── OPPORTUNITY CARD ── */
+.opportunity-card{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--sand);box-shadow:var(--sh);transition:transform .22s,box-shadow .22s}
+.opportunity-card:hover{transform:translateY(-3px);box-shadow:var(--shmd)}
+
 /* ── FEED ── */
 .feed-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:80px}
 .feed-msg{background:var(--card);border-radius:var(--r);padding:16px 18px;border:1px solid var(--sand);box-shadow:var(--sh);transition:box-shadow .2s}
@@ -519,6 +538,17 @@ const ALL_SKILLS=Object.keys(SKILL_CATS);
 const XP_PER_LEVEL=200;
 const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 
+const CAREER_LABELS=[
+  {id:'organizer',   icon:'📋', label:'Organizer'},
+  {id:'planner',     icon:'🗓️', label:'Planner'},
+  {id:'researcher',  icon:'🔬', label:'Researcher'},
+  {id:'marketer',    icon:'📣', label:'Marketer'},
+  {id:'designer',    icon:'🎨', label:'Designer'},
+  {id:'communicator',icon:'💬', label:'Communicator'},
+  {id:'analyst',     icon:'📊', label:'Analyst'},
+  {id:'developer',   icon:'💻', label:'Developer'},
+];
+
 // ── STATE ──────────────────────────────────────────────
 const S={
   uid:null,
@@ -547,6 +577,8 @@ const S={
   aiDistribution:null,
   viewingMemberId:null,
   pendingEventForm:{title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'},
+  careerLabel:null,
+  taskRequests:[],
 };
 
 // ── UTILS ──────────────────────────────────────────────
@@ -680,9 +712,9 @@ function renderLogin(){
 function renderTopbar(){
   const u=me();
   const navs={
-    member: [['dashboard','Home'],['events','Events'],['checkin','Check In'],['resume','Resume Ready'],['feed','Feed']],
-    officer:[['dashboard','Home'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
-    advisor:[['dashboard','Home'],['events','Events'],['members','Members'],['users','Users'],['attendance','Attendance'],['resume','Resume Ready'],['feed','Feed']],
+    member: [['dashboard','Home'],['events','Events'],['resume','Career Ready'],['addme','Add Me']],
+    officer:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['attendance','Attendance'],['users','Users']],
+    advisor:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['attendance','Attendance'],['users','Users']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -693,10 +725,10 @@ function renderTopbar(){
   <div class="logo">Involv<span class="logo-t">Ed</span></div>
   <nav class="topnav">${items}</nav>
   <div class="topbar-right">
-    <div class="user-chip">
+    <div class="user-chip" onclick="openModal('myProfile')" style="cursor:pointer">
       <div class="u-av" style="background:${avColor(u.role)}">${initials(u.name)}</div>
       <span class="u-name">${u.name.split(' ')[0]}</span>
-      <span class="role-pill ${u.role}">${u.role}</span>
+      ${(u.role==='member'&&u.careerLabel)?`<span class="role-pill member">${CAREER_LABELS.find(c=>c.id===u.careerLabel)?.icon||''} ${CAREER_LABELS.find(c=>c.id===u.careerLabel)?.label||u.role}</span>`:`<span class="role-pill ${u.role}">${u.role}</span>`}
     </div>
     <button class="icon-btn" onclick="logout()" title="Switch user">⇄</button>
   </div>
@@ -708,7 +740,12 @@ function renderDashboard(){
   const u=me();const done=approvedByUser(u.id);
   if(u.role==='member'){
     const active=S.tasks.filter(t=>t.submissions.some(s=>s.userId===u.id&&s.status!=='approved'&&s.status!=='rejected'));
-    const open=S.tasks.filter(t=>taskStatus(t)==='open');
+    const eventsJoined=S.clubEvents.reduce((n,ev)=>n+ev.tasks.filter(t=>t.signups.includes(u.id)).length,0);
+    // Open opportunities: event tasks the user hasn't signed up for
+    const openOpportunities=S.clubEvents.flatMap(ev=>
+      ev.tasks.filter(t=>!t.signups.includes(u.id)&&t.signups.length<t.slots)
+        .map(t=>({ev,task:t}))
+    ).slice(0,6);
     return`
     <div class="welcome-banner">
       <div><div class="welcome-title">Hey ${u.name.split(' ')[0]}! 👋</div><div class="welcome-sub">Every task you complete is proof of your skills.</div></div>
@@ -717,22 +754,58 @@ function renderDashboard(){
       <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--forest)">${done.length}</div><div class="stat-lbl">Tasks Done</div></div>
       <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--sky)">${u.skills.length}</div><div class="stat-lbl">Skills Earned</div></div>
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${active.length}</div><div class="stat-lbl">In Progress</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--gold)"><div class="stat-ico">🎪</div><div class="stat-val" style="color:var(--gold)">${eventsJoined}</div><div class="stat-lbl">Events Joined</div></div>
     </div>
-    ${active.length?`<div class="sec-title">In Progress</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
-    ${open.length?`<div class="sec-row"><div class="sec-title">Open Tasks</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View Events →</button></div><div class="task-grid">${open.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
+    ${active.length?`<div class="sec-title">My Active Tasks</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
+    ${openOpportunities.length?`<div class="sec-row"><div class="sec-title">Open Opportunities</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View All →</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px">
+      ${openOpportunities.map(({ev,task})=>{
+        const comp=task.competency?COMPETENCY_AREAS[task.competency]:null;
+        return`<div class="opportunity-card">
+          <div style="font-size:11px;font-weight:700;color:var(--stone);margin-bottom:4px">${ev.icon} ${ev.title}</div>
+          <div style="font-size:14px;font-weight:800;margin-bottom:6px">${task.title}</div>
+          ${task.skills.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${task.skills.slice(0,3).map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
+          ${comp?`<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${comp.color}18;color:${comp.color};font-weight:700;display:inline-block;margin-bottom:8px">${comp.icon} ${comp.label}</span>`:''}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+            <span style="font-size:11px;color:var(--stone)">${task.signups.length}/${task.slots} slots</span>
+            <button class="btn btn-teal btn-sm" onclick="signupEventTask('${ev.id}','${task.id}')">Sign Up</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:''}`;
   }
   if(u.role==='officer'){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
     const approved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
+    const pendingTasks=S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review'));
+    const taskRequestsHtml=S.taskRequests.length?S.taskRequests.map(req=>{
+      const requester=S.users.find(u=>u.id===req.userId)||S.usersList.find(u=>u.id===req.userId);
+      return`<div class="request-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800">${requester?.name||'Unknown'}</div>
+            <div style="font-size:11px;color:var(--stone);margin-bottom:5px">Skill area: <strong>${req.area}</strong></div>
+            <div style="font-size:13px;color:var(--ink);line-height:1.55">${req.comment}</div>
+            <div style="font-size:10px;color:var(--stone);margin-top:4px">${req.createdAt}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span class="status-badge ${req.status==='seen'?'past':'upcoming'}">${req.status}</span>
+            ${req.status!=='seen'?`<button class="btn btn-ghost btn-sm" onclick="S.taskRequests=S.taskRequests.filter(r=>r.id!=='${req.id}');render()">Mark Seen</button>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join(''):`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">No requests yet.</div>`;
     return`
     <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Manage tasks, review submissions, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
     <div class="stat-grid">
       <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
       <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending}</div><div class="stat-lbl">Needs Review</div></div>
       <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
-      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Approved</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Tasks Approved</div></div>
     </div>
-    ${pending?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Needs Review</div></div><div class="task-grid">${S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review')).slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}`;
+    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review</div></div><div class="task-grid">${pendingTasks.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}
+    <div class="sec-row" style="margin-top:8px"><div class="sec-title">Task Requests</div><span style="font-size:12px;color:var(--stone)">${S.taskRequests.length} request${S.taskRequests.length!==1?'s':''}</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">${taskRequestsHtml}</div>`;
   }
   // advisor
   const ms=members();const uniqueSkills=[...new Set(ms.flatMap(m=>m.skills))].length;
@@ -972,17 +1045,67 @@ function renderMemberProfile(uid){
 }
 
 // ── RESUME READY ─────────────────────────────────────
+function setCareerLabel(id){
+  const u=me();
+  u.careerLabel=id;
+  S.careerLabel=id;
+  // persist to localStorage
+  const saved=localStorage.getItem('involved_user');
+  if(saved){try{const su=JSON.parse(saved);su.careerLabel=id;localStorage.setItem('involved_user',JSON.stringify(su));}catch(e){}}
+  toast('Career identity updated!','ok');
+  render();
+}
+
 function renderResume(){
   const u=me();const done=approvedByUser(u.id);
+  const isOfficer=u.role==='officer'||u.role==='advisor';
+
+  // Career Identity card
+  const selectedLabel=CAREER_LABELS.find(c=>c.id===u.careerLabel);
+  const careerIdentityCard=`<div style="background:var(--card);border-radius:var(--r);padding:20px 22px;border:1px solid var(--sand);box-shadow:var(--sh);margin-bottom:20px">
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px">🎯 Your Career Identity</div>
+    <div style="font-size:12px;color:var(--stone);margin-bottom:14px">Choose a label that reflects your interests — this shows on your profile instead of 'member'</div>
+    ${selectedLabel?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:22px">${selectedLabel.icon}</span><div><div style="font-size:15px;font-weight:800;color:var(--forest)">You are a ${selectedLabel.icon} ${selectedLabel.label}</div><div style="font-size:12px;color:var(--stone)">Click another to change</div></div></div>`:''}
+    <div class="career-label-grid">
+      ${CAREER_LABELS.map(c=>`<button class="career-label-btn${u.careerLabel===c.id?' active':''}" onclick="setCareerLabel('${c.id}')">${c.icon} ${c.label}</button>`).join('')}
+    </div>
+  </div>`;
+
+  // Officer: Member Skills Overview
+  let officerSkillsOverview='';
+  if(isOfficer){
+    const ms=members();
+    officerSkillsOverview=`<div style="background:var(--card);border-radius:var(--r);padding:20px 22px;border:1px solid var(--sand);box-shadow:var(--sh);margin-bottom:24px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:4px">👥 Member Skills Overview</div>
+      <div style="font-size:12px;color:var(--stone);margin-bottom:14px">Career labels and skills earned by each member</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${ms.length?ms.map(m=>{
+          const ml=CAREER_LABELS.find(c=>c.id===m.careerLabel);
+          const topSkills=m.skills.slice(0,3);
+          return`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--cream);border-radius:var(--rsm);border:1px solid var(--sand)">
+            <div style="width:36px;height:36px;border-radius:10px;background:${avColor(m.role)};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${initials(m.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700">${m.name}</div>
+              <div style="font-size:11px;color:var(--stone)">${ml?`${ml.icon} ${ml.label}`:'No label set'} · ${m.skills.length} skills${topSkills.length?' · '+topSkills.join(', '):''}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="viewMemberProfile('${m.id}')">View Portfolio</button>
+          </div>`;
+        }).join(''):`<div style="font-size:13px;color:var(--stone);font-style:italic">No members yet.</div>`}
+      </div>
+    </div>`;
+  }
+
   const bulletsHTML=S.aiResumeBullets===null
     ?`<div style="font-size:13px;color:var(--stone);font-style:italic">${done.length?'Click "Generate Bullets" to get personalized resume bullets from InvoAI.':'Complete tasks first to generate resume bullets.'}</div>`
     :S.aiResumeBullets==='loading'
     ?`<div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is writing your bullets…</span></div>`
     :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
   return`<div class="page-hdr">
-  <div><div class="page-title">Resume Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
+  <div><div class="page-title">Career Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
   <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
 </div>
+${officerSkillsOverview}
+${careerIdentityCard}
 <div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:20px 22px;margin-bottom:20px">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
     <div>
@@ -1020,6 +1143,52 @@ ${done.length?done.map(task=>{
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
 </div>`;}).join(''):`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">No completed tasks yet</div><div>Complete tasks to add entries.</div></div>`}`;
+}
+
+// ── ADD ME ────────────────────────────────────────────
+function submitTaskRequest(){
+  const area=document.getElementById('reqArea')?.value;
+  const comment=document.getElementById('reqComment')?.value?.trim();
+  if(!area||!comment){toast('Fill in both fields','err');return}
+  const req={id:Date.now().toString(),userId:S.uid,area,comment,status:'pending',createdAt:new Date().toLocaleDateString()};
+  S.taskRequests.push(req);
+  document.getElementById('reqArea').value='';
+  document.getElementById('reqComment').value='';
+  toast('Request submitted!','ok');
+  render();
+}
+
+function renderAddMe(){
+  const u=me();
+  const myRequests=S.taskRequests.filter(r=>r.userId===u.id);
+  const areaOptions=[
+    ...CAREER_LABELS.map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`),
+    `<option disabled>── Specific Skills ──</option>`,
+    ...ALL_SKILLS.map(s=>`<option value="${s}">${s}</option>`)
+  ].join('');
+  return`<div>
+  <div class="page-hdr">
+    <div><div class="page-title">Add Me</div><div class="page-sub">Request to be added to a skill area or task. Officers will review your request.</div></div>
+  </div>
+  <div style="background:var(--card);border-radius:var(--r);padding:22px 24px;border:1px solid var(--sand);box-shadow:var(--sh);margin-bottom:24px">
+    <div class="fg"><label class="fl">What skill area are you interested in?</label><select class="fsel" id="reqArea"><option value="">— Select an area —</option>${areaOptions}</select></div>
+    <div class="fg"><label class="fl">What could you work on?</label><textarea class="fta" id="reqComment" placeholder="Be specific about your ideas — what task or project would you like to contribute to?"></textarea></div>
+    <button class="btn btn-pri" onclick="submitTaskRequest()">Submit Request →</button>
+  </div>
+  ${myRequests.length?`<div class="sec-title">Your Requests</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+    ${myRequests.map(r=>`<div class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--stone);margin-bottom:4px">Skill area: <strong>${r.area}</strong></div>
+          <div style="font-size:13px;line-height:1.55;margin-bottom:5px">${r.comment}</div>
+          <div style="font-size:10px;color:var(--stone)">${r.createdAt}</div>
+        </div>
+        <span class="status-badge ${r.status==='seen'?'past':'upcoming'}">${r.status}</span>
+      </div>
+    </div>`).join('')}
+  </div>`:`<div class="empty" style="padding:32px"><div class="empty-ico">✋</div><div class="empty-ttl">No requests yet</div><div>Submit your first request above!</div></div>`}
+</div>`;
 }
 
 // ── LEADERBOARD ───────────────────────────────────────
@@ -1372,6 +1541,50 @@ function renderModal(){
     <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`;
   }
 
+  else if(m==='myProfile'){
+    const u=me();
+    const done=approvedByUser(u.id);
+    const careerL=CAREER_LABELS.find(c=>c.id===u.careerLabel);
+    const attCount=Object.values(S.attendance.records).filter(arr=>arr.includes(u.id)).length;
+    const topSkills=u.skills.slice(0,3);
+    // First AI bullet preview
+    const bulletPreview=S.aiResumeBullets&&S.aiResumeBullets!=='loading'
+      ?S.aiResumeBullets.split('\n').filter(l=>l.trim())[0]?.replace(/^[•\-\*\d\.]+\s*/,'')
+      :null;
+    html=`<div class="modal-hdr">
+      <div>
+        <div class="modal-ttl">${u.name}</div>
+        ${careerL?`<div style="font-size:12px;color:var(--stone);margin-top:3px">${careerL.icon} ${careerL.label}</div>`:`<div style="font-size:12px;color:var(--stone);margin-top:3px">${u.role}</div>`}
+      </div>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+        <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
+          <div style="font-size:28px;font-weight:900;color:var(--forest)">${done.length}</div>
+          <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Tasks Completed</div>
+        </div>
+        <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;text-align:center;border:1px solid var(--sand)">
+          <div style="font-size:28px;font-weight:900;color:var(--sky)">${attCount}</div>
+          <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.3px">Events Attended</div>
+        </div>
+      </div>
+      ${done.length?`<div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Tasks Completed</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          ${done.map(t=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--forest);font-size:15px">✓</span>${t.title}</div>`).join('')}
+        </div>
+      </div>`:''}
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Career Aspirations</div>
+        ${careerL?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:20px">${careerL.icon}</span><div style="font-weight:700;color:var(--forest)">${careerL.label}</div></div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No career identity set — visit Career Ready</div>'}
+        ${topSkills.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${topSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
+        ${bulletPreview?`<div style="background:var(--cream2);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:12px;line-height:1.6;color:var(--ink)">${bulletPreview}</div>`:`<div style="font-size:12px;color:var(--stone);font-style:italic">Visit Career Ready to generate AI resume bullets</div>`}
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-pri" onclick="closeModal();nav('resume')">Career Ready →</button></div>`;
+  }
+
   return`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
 }
 
@@ -1395,23 +1608,42 @@ function renderView(){
     case'eventDetail': return renderEventDetail();
     case'feed':        return renderFeed();
     case'resume':      return renderResume();
+    case'addme':       return renderAddMe();
     case'memberProfile': return renderMemberProfile(S.viewingMemberId);
     default:           return '';
   }
 }
 
 // ── RENDER EVENTS ─────────────────────────────────────
+function getEventStatus(ev){
+  const today=new Date();today.setHours(0,0,0,0);
+  if(ev.is_open===false){return'past';}
+  let evDate=null;
+  if(ev.date){try{evDate=new Date(ev.date);if(isNaN(evDate))evDate=null;}catch(e){evDate=null;}}
+  if(evDate&&evDate<today){return'past';}
+  if(ev.is_open===true){return'ongoing';}
+  if(evDate){const diffMs=evDate-today;const diffDays=diffMs/(1000*60*60*24);if(diffDays<=7)return'ongoing';}
+  return'upcoming';
+}
+
 function renderEvents(){
   const u=me();
   const isOfficer=u.role==='officer'||u.role==='advisor';
-  const cards=S.clubEvents.map(ev=>{
+
+  function makeCard(ev){
     const totalSlots=ev.tasks.reduce((n,t)=>n+t.slots,0);
     const totalSignups=ev.tasks.reduce((n,t)=>n+t.signups.length,0);
     const mySignups=ev.tasks.filter(t=>t.signups.includes(u.id)).length;
+    const st=getEventStatus(ev);
+    const badgeClass=st==='ongoing'?'ongoing':st==='past'?'past':'upcoming';
+    const badgeLabel=st==='ongoing'?'Ongoing':st==='past'?'Past':'Upcoming';
     return`<div class="event-card" onclick="openEvent('${ev.id}')">
       <div class="event-card-band" style="background:${ev.color}"></div>
       <div class="event-card-body">
-        <div class="event-card-icon">${ev.icon}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:8px">
+          <div class="event-card-icon" style="margin:0">${ev.icon}</div>
+          <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+        </div>
         <div class="event-card-title">${ev.title}</div>
         <div class="event-card-desc">${ev.desc}</div>
         <div class="event-card-footer">
@@ -1424,14 +1656,27 @@ function renderEvents(){
         </div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  const ongoing=S.clubEvents.filter(ev=>getEventStatus(ev)==='ongoing');
+  const upcoming=S.clubEvents.filter(ev=>getEventStatus(ev)==='upcoming');
+  const past=S.clubEvents.filter(ev=>getEventStatus(ev)==='past');
+
+  let body='';
+  if(!S.clubEvents.length){
+    body=`<div class="empty"><div class="empty-ico">🎪</div><div class="empty-ttl">No events yet</div><div>Officers can create events from here.</div></div>`;
+  }else{
+    if(ongoing.length)body+=`<div class="sec-title" style="color:var(--green);margin-bottom:12px">🟢 Ongoing</div><div class="event-grid" style="margin-bottom:24px">${ongoing.map(makeCard).join('')}</div>`;
+    if(upcoming.length)body+=`<div class="sec-title" style="color:#1D4ED8;margin-bottom:12px">📅 Upcoming</div><div class="event-grid" style="margin-bottom:24px">${upcoming.map(makeCard).join('')}</div>`;
+    if(past.length)body+=`<div class="sec-title" style="color:var(--stone);margin-bottom:12px">⏳ Past</div><div class="event-grid" style="margin-bottom:24px">${past.map(makeCard).join('')}</div>`;
+  }
 
   return`<div>
   <div class="page-hdr">
     <div><div class="page-title">🎪 Events</div><div class="page-sub">Click an event to see tasks and sign up</div></div>
     ${isOfficer&&u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createClubEvent')">+ New Event</button>`:''}
   </div>
-  <div class="event-grid">${cards||`<div class="empty"><div class="empty-ico">🎪</div><div class="empty-ttl">No events yet</div><div>Officers can create events from here.</div></div>`}</div>
+  ${body}
 </div>`;
 }
 
@@ -1484,11 +1729,16 @@ function renderEventDetail(){
     </div>`;
   }).join('');
 
+  const evSt=getEventStatus(ev);
+  const evBadgeClass=evSt==='ongoing'?'ongoing':evSt==='past'?'past':'upcoming';
   return`<div>
   <button class="btn btn-ghost btn-sm" onclick="nav('events')" style="margin-bottom:16px">← All Events</button>
   <div class="event-detail-hero" style="background:linear-gradient(135deg,${ev.color},#FF4D8B)">
     <div style="position:relative;z-index:2">
-      <div class="event-detail-icon">${ev.icon}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="event-detail-icon" style="margin:0">${ev.icon}</div>
+        <span class="status-badge ${evBadgeClass}" style="font-size:11px;padding:3px 10px">${evSt.charAt(0).toUpperCase()+evSt.slice(1)}</span>
+      </div>
       <div class="event-detail-title">${ev.title}</div>
       <div class="event-detail-meta">📅 ${ev.date} &nbsp;·&nbsp; ${ev.tasks.length} tasks &nbsp;·&nbsp; ${totalFilled}/${totalSlots} slots filled</div>
       <div style="font-size:13px;opacity:.85;margin-top:6px">${ev.desc}</div>
@@ -1499,6 +1749,7 @@ function renderEventDetail(){
     <div class="sec-title" style="margin:0">Tasks — Sign Up Below</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${isOfficer?`
+        <button class="btn btn-ghost btn-sm" onclick="toggleClubEventOpen('${ev.id}')">${ev.is_open===false?'▶ Mark as Ongoing':'⏹ Mark as Past / Closed'}</button>
         <button class="btn btn-ghost btn-sm" onclick="openModal('addEventTask','${ev.id}')">+ Add Task</button>
         ${ev.tasks.length?`<button class="btn btn-ai btn-sm" onclick="distributeEventWithAI('${ev.id}')" ${S.aiDistribution&&S.aiDistribution!==null?'disabled':''}>🤖 Suggest Assignments</button>`:''}
       `:''}
@@ -1684,11 +1935,12 @@ async function authRegister(){
   }catch(e){toast('Error: '+e.message,'err')}
 }
 function setCurrentUser(apiUser){
-  const appUser={id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0};
+  const appUser={id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0,careerLabel:apiUser.careerLabel||null};
   const idx=S.users.findIndex(u=>u.id===appUser.id);
   if(idx>=0)S.users[idx]={...S.users[idx],...appUser};
   else S.users.push(appUser);
   S.uid=appUser.id;
+  S.careerLabel=appUser.careerLabel||null;
   S.view='dashboard';
   S.filter='all';
   localStorage.setItem('involved_user',JSON.stringify(appUser));
@@ -1874,6 +2126,13 @@ async function distributeEventWithAI(evId){
     S.aiDistribution=null;
     toast('Could not generate assignments: '+e.message,'err');
   }
+  render();
+}
+
+function toggleClubEventOpen(evId){
+  const ev=S.clubEvents.find(e=>e.id===evId);if(!ev)return;
+  ev.is_open=ev.is_open===false?true:false;
+  toast(ev.is_open===false?'Event marked as Past / Closed':'Event marked as Ongoing','ok');
   render();
 }
 
