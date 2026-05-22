@@ -4,7 +4,10 @@ const bcrypt = require('bcryptjs');
 
 let _supabase, _groq;
 function getSupabase() {
-  if (!_supabase) _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  if (!_supabase) _supabase = createClient(
+    process.env.SUPABASE_URL?.trim(),
+    process.env.SUPABASE_SERVICE_KEY?.trim()
+  );
   return _supabase;
 }
 function getGroq() {
@@ -208,7 +211,7 @@ module.exports = async (req, res) => {
       } catch(e) { dbErr = e.message; }
       res.status(200).json({
         ok: true,
-        supabase_url: process.env.SUPABASE_URL?.slice(0,30) + '...',
+        supabase_url: process.env.SUPABASE_URL?.trim(),
         groq_key: !!process.env.GROQ_API_KEY,
         db_connected: dbOk,
         db_error: dbErr
