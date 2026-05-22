@@ -32,7 +32,8 @@ module.exports = async (req, res) => {
   setCORS(res);
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-  const path = (req.headers['x-original-url'] || req.headers['x-rewrite-url'] || req.url).split('?')[0];
+  const qpath = req.query?._path;
+  const path = qpath ? '/api/' + (Array.isArray(qpath) ? qpath.join('/') : qpath) : req.url.split('?')[0];
   const method = req.method;
 
   try {
