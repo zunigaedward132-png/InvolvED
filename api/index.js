@@ -199,7 +199,20 @@ module.exports = async (req, res) => {
 
     // ── DEBUG ─────────────────────────────────────────────
     if (path.includes('/ping') && method === 'GET') {
-      res.status(200).json({ ok: true, supabase_url: !!process.env.SUPABASE_URL, groq_key: !!process.env.GROQ_API_KEY });
+      let dbOk = false, dbErr = null;
+      try {
+        const sb = getSupabase();
+        const { error } = await sb.from('users').select('id').limit(1);
+        dbOk = !error;
+        dbErr = error?.message || null;
+      } catch(e) { dbErr = e.message; }
+      res.status(200).json({
+        ok: true,
+        supabase_url: process.env.SUPABASE_URL?.slice(0,30) + '...',
+        groq_key: !!process.env.GROQ_API_KEY,
+        db_connected: dbOk,
+        db_error: dbErr
+      });
       return;
     }
 
