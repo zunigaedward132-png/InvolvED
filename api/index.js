@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
   setCORS(res);
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-  const path = req.url.split('?')[0];
+  const path = (req.headers['x-original-url'] || req.headers['x-rewrite-url'] || req.url).split('?')[0];
   const method = req.method;
 
   try {
