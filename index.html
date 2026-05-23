@@ -94,7 +94,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .s-approved{background:#E8F0EB;color:var(--green)}
 .s-full{background:var(--cream2);color:var(--stone)}
 .sk-tag{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--cream2);color:var(--forest2);font-weight:600;border:1px solid var(--sand)}
-.xp-chip{font-size:11px;padding:3px 9px;border-radius:999px;background:#FEF6E4;color:var(--gold);font-weight:800;border:1px solid #DEB96A}
+
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--rsm);font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:all .22s cubic-bezier(.25,.46,.45,.94);line-height:1;font-family:inherit;letter-spacing:.1px}
@@ -142,8 +142,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lb-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff}
 .lb-name{font-weight:700;font-size:15px;letter-spacing:-.1px}
 .lb-sub{font-size:12px;color:var(--stone)}
-.lb-xp{font-size:22px;font-weight:900;color:var(--forest)}
-.lb-xplbl{font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.4px}
 
 /* ── RESUME ── */
 .skill-bank{display:flex;flex-wrap:wrap;gap:8px}
@@ -279,7 +277,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .task-bubble:hover{border-color:var(--forest2);background:var(--cream);transform:translateY(-3px);box-shadow:var(--shmd)}
 .tb-icon{font-size:20px;margin-bottom:4px}
 .tb-title{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:4px}
-.tb-xp{font-size:11px;font-weight:800;color:var(--gold)}
 .summary-card{background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--rsm);padding:16px;margin-top:10px}
 .summary-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
 .summary-stat{text-align:center;flex:1;min-width:50px}
@@ -544,7 +541,6 @@ const INTERNSHIP_ROLES=[
    desc:'Support office operations, coordinate schedules, handle correspondence, manage records.'},
 ];
 const ALL_SKILLS=Object.keys(SKILL_CATS);
-const XP_PER_LEVEL=200;
 const rndCode=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 
 const CAREER_LABELS=[
@@ -618,9 +614,6 @@ const S={
 // ── UTILS ──────────────────────────────────────────────
 const getUser=id=>S.users.find(u=>u.id===id);
 const me=()=>getUser(S.uid);
-const lvl=xp=>Math.floor(xp/XP_PER_LEVEL)+1;
-const xpInLvl=xp=>xp%XP_PER_LEVEL;
-const xpPct=xp=>(xpInLvl(xp)/XP_PER_LEVEL)*100;
 const initials=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const avColor=role=>role==='advisor'?'#B8860B':role==='officer'?'#A0522D':'#1E3A2F';
 
@@ -662,14 +655,6 @@ function toast(msg,type=''){
   d.textContent=ico+' '+msg;
   w.appendChild(d);
   setTimeout(()=>{d.style.opacity='0';d.style.transform='translateY(10px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300)},3200);
-}
-
-function showXPGain(xp){
-  const el=document.createElement('div');
-  el.className='xp-float';el.textContent='+'+xp+' XP!';
-  el.style.cssText=`right:80px;bottom:100px`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),1400);
 }
 
 // ── RENDER QR CHECK-IN ────────────────────────────────
@@ -991,8 +976,7 @@ function taskCard(task){
     ${feedbackBox}
     <div class="tcard-footer">
       <div>
-        <span class="xp-chip">⚡${task.xp} XP</span>
-        ${task.capacity>1?`<span class="tcard-cap" style="margin-left:6px">👥 ${spotsLeft}/${task.capacity} spots</span>`:''}
+        ${task.capacity>1?`<span class="tcard-cap">👥 ${spotsLeft}/${task.capacity} spots</span>`:''}
       </div>
       ${action}
     </div>
@@ -1020,7 +1004,7 @@ function renderTasks(){
     :[['all','All'],[`review`,`⏳ Review${pendingN?` (${pendingN})`:''}`],['open','Open'],['approved','Approved']];
 
   return`<div class="page-hdr">
-  <div><div class="page-title">Tasks</div><div class="page-sub">${u.role==='member'?'Claim tasks to earn XP and real skills.':'Create tasks and review submissions.'}</div></div>
+  <div><div class="page-title">Tasks</div><div class="page-sub">${u.role==='member'?'Claim tasks to build real skills.':'Create tasks and review submissions.'}</div></div>
   ${u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createTask')">+ Create Task</button>`:''}
 </div>
 <div class="filter-row">${filters.map(([k,l])=>`<button class="ftab ${f===k?'active':''}" onclick="setF('${k}')">${l}</button>`).join('')}</div>
@@ -1472,7 +1456,6 @@ function renderModal(){
         <div class="fg"><label class="fl">Capacity (# members)</label><input class="fi" id="tCap" type="number" min="1" max="10" value="1"></div>
       </div>
       <div class="fg"><label class="fl">Skills members will earn</label><div class="skill-picks">${ALL_SKILLS.map(s=>`<button type="button" class="skill-pick-toggle" onclick="this.classList.toggle('on')" data-skill="${s}">${s}</button>`).join('')}</div></div>
-      <div style="font-size:13px;color:var(--muted);margin-top:6px">⚡ Members earn <strong>200 XP</strong> on approval</div>
       <div id="distSugg"></div>
     </div>
     <div class="modal-ftr">
@@ -1636,7 +1619,7 @@ function renderModal(){
         <div style="display:flex;flex-wrap:wrap;gap:5px">${sub.aiSkills.map(s=>`<span class="sk-tag" style="background:#D1FAE5;color:#065F46">${s}</span>`).join('')}</div>
       </div>`:''}
       <div style="font-size:12px;color:var(--muted);margin-bottom:7px">Task skills to award on approval:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
       <div class="fg"><label class="fl">Feedback for student (optional)</label><textarea class="fta" id="reviewFeedback" placeholder="Leave feedback for the student (optional)..." rows="3" style="width:100%;min-height:70px">${sub.officerFeedback||''}</textarea></div>
     </div>
     <div class="modal-ftr"><button class="btn btn-danger" onclick="rejectSub('${d}','${sub.userId}')">Reject</button><button class="btn btn-ghost" onclick="closeModal()">Later</button><button class="btn btn-teal" onclick="approveSub('${d}','${sub.userId}')">✓ Approve</button></div>`;
@@ -2705,7 +2688,6 @@ function claimTask(id){
   const u=me();
   if(t.submissions.some(s=>s.userId===u.id)){toast('Already claimed','err');return}
   t.submissions.push({userId:u.id,status:'claimed',work:null,fileName:null,fileDataUrl:null,aiSkills:[]});
-  u.streak=(u.streak||0)+1;
   const nb=awardBadges(u.id);
   toast('Task claimed! 💪','ok');
   if(nb.length)setTimeout(()=>openModal('badgeUnlocked',nb[0]),500);
@@ -2962,9 +2944,6 @@ function approveSub(taskId,userId){
   const feedback=document.getElementById('reviewFeedback')?.value||'';
   sub.status='approved';
   if(feedback)sub.officerFeedback=feedback;
-  const prevLvl=lvl(claimer.xp);
-  claimer.xp+=t.xp;
-  claimer.streak=(claimer.streak||0)+1;
   // merge task skills + AI skills, deduplicate
   const allSkills=[...new Set([...t.skills,...(sub.aiSkills||[])])];
   allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
@@ -2994,7 +2973,6 @@ function approveEventSub(evId,taskId,userId){
   if(member){
     const allSkills=[...new Set([...(task.skills||[]),...(sub.aiSkills||[])])];
     allSkills.forEach(s=>{if(!member.skills.includes(s))member.skills.push(s)});
-    member.xp=(member.xp||0)+200;
   }
   me().tasksApproved=(me().tasksApproved||0)+1;
   closeModal();
@@ -3026,7 +3004,7 @@ function createTask(){
   const skills=[...document.querySelectorAll('.skill-pick-toggle.on')].map(b=>b.dataset.skill);
   if(!title||!desc){toast('Title and description required','err');return}
   if(!skills.length){toast('Select at least one skill','err');return}
-  S.tasks.unshift({id:'t'+Date.now(),title,desc,skills,cat,xp:200,capacity:cap,createdBy:S.uid,createdAt:Date.now(),submissions:[]});
+  S.tasks.unshift({id:'t'+Date.now(),title,desc,skills,cat,capacity:cap,createdBy:S.uid,createdAt:Date.now(),submissions:[]});
   closeModal();toast('Task created!','ok');
 }
 
@@ -3244,13 +3222,13 @@ function showInternshipCard(){
     <span style="font-size:11px;font-weight:700;color:${m.qualified?'#059669':'var(--muted)'}">${m.pct}%</span>
   </div>`).join('')}
   ${liSkills.length?`<div style="font-size:11px;color:#3730A3;margin-top:8px">📎 Add to LinkedIn: ${liSkills.slice(0,4).join(' · ')}</div>`:''}
-  <button onclick="nav('internships')" style="margin-top:8px;background:var(--pri);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">See full breakdown →</button>`;
+  <button onclick="toggleAI();nav('resume')" style="margin-top:8px;background:var(--pri);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">View Career Ready →</button>`;
   appendAIMsg('ai',html);
 }
 
 function claimFromAI(taskId){
   claimTask(taskId);
-  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Task claimed! 💪 Head to the Tasks tab to submit your work when you're done.`);
+  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Task claimed! 💪 Head to Events to submit your work when you're done.<div style="margin-top:8px"><button onclick="toggleAI();nav('events')" class="btn btn-teal btn-sm">Go to Events →</button></div>`);
 }
 
 const aiMsgHistory=[];
@@ -3330,9 +3308,37 @@ Upcoming Events: ${upcomingEvents}`;
 
 function sendAIChip(idx){
   const chip=AI_CHIPS[idx];if(!chip)return;
+  if(S.aiLoading)return;
   const input=document.getElementById('aiInput');
   if(input)input.value=chip.msg;
-  sendAI(chip);
+  // Show the user message immediately then fire
+  const msg=chip.msg;
+  if(input)input.value='';
+  appendAIMsg('user',msg);
+  aiMsgHistory.push({role:'user',content:msg});
+  if(chip.showSummary){showSummaryCard();return}
+  if(chip.showInternships){showInternshipCard();return}
+  if(chip.showTasks){
+    S.aiLoading=true;
+    appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
+    const u=me();const done=approvedByUser(u.id);
+    callGroq(buildSys(u,done),msg,aiMsgHistory.slice(-6)).then(res=>{
+      aiMsgHistory.push({role:'assistant',content:res});
+      replaceLastAIMsg(res);
+      S.aiLoading=false;
+      showTaskBubbles();
+    }).catch(e=>{replaceLastAIMsg(`Error: ${e.message}`);S.aiLoading=false;});
+    return;
+  }
+  // General chip — fire the AI call directly
+  S.aiLoading=true;
+  appendAIMsg('ai','<div style="display:flex;gap:5px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>',true);
+  const u=me();const done=approvedByUser(u.id);
+  callGroq(buildSys(u,done),msg,aiMsgHistory.slice(-6)).then(res=>{
+    aiMsgHistory.push({role:'assistant',content:res});
+    replaceLastAIMsg(res);
+    S.aiLoading=false;
+  }).catch(e=>{replaceLastAIMsg(`Error: ${e.message}`);S.aiLoading=false;});
 }
 
 function appendAIMsg(role,content,loading=false){
@@ -3353,7 +3359,7 @@ function parseAINavHints(content){
       try{
         const hint=JSON.parse(jStr);
         if(hint.nav){
-          extraHTML+=`<div style="margin-top:8px"><button onclick="nav('${hint.nav}');S.aiOpen=false;render()" class="btn btn-teal btn-sm" style="margin-top:6px">${hint.label||'Go →'}</button></div>`;
+          extraHTML+=`<div style="margin-top:8px"><button onclick="toggleAI();nav('${hint.nav}')" class="btn btn-teal btn-sm" style="margin-top:6px">${hint.label||'Go →'}</button></div>`;
           displayContent=displayContent.replace(jStr,'').trim();
         } else if(hint.action==='createEvent'&&hint.data){
           const dataStr=JSON.stringify(hint.data).replace(/"/g,'&quot;');
