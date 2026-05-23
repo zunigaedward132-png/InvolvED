@@ -1064,7 +1064,7 @@ function renderMemberProfile(uid){
   if(!m)return`<div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">Member not found</div></div>`;
 
   // Gather data
-  const richData=S.users.find(u=>u.id===uid); // has xp/skills/badges if they logged in this session
+  const richData=S.users.find(u=>u.id===uid); // has skills/badges if they logged in this session
   const doneTasks=richData?approvedByUser(uid):[];
   const activeSubs=richData?S.tasks.filter(t=>t.submissions.some(s=>s.userId===uid&&s.status!=='approved'&&s.status!=='rejected')):[];
   const pendingReview=richData?S.tasks.filter(t=>t.submissions.some(s=>s.userId===uid&&s.status==='pending_review')):[];
@@ -1111,7 +1111,6 @@ function renderMemberProfile(uid){
     ?doneTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--sand)">
         <span style="background:var(--forest);color:#fff;border-radius:999px;font-size:10px;padding:2px 8px;font-weight:700;flex-shrink:0">✓ Done</span>
         <div style="flex:1;font-size:13px;font-weight:600">${t.title}</div>
-        <span class="xp-chip">+${t.xp} XP</span>
       </div>`).join('')
     :richData
       ?`<div style="font-size:13px;color:var(--stone);font-style:italic;padding:8px 0">No completed tasks yet.</div>`
@@ -1127,7 +1126,6 @@ function renderMemberProfile(uid){
       <div style="font-size:24px;font-weight:900;letter-spacing:-.4px">${m.name}</div>
       <div style="opacity:.75;margin-top:3px;font-size:13px">${m.role}${m.created_at?' · Joined '+new Date(m.created_at).toLocaleDateString():''}</div>
       ${richData?`<div style="display:flex;gap:16px;margin-top:10px">
-        <div style="text-align:center"><div style="font-size:22px;font-weight:900">${richData.xp||0}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">XP</div></div>
         <div style="text-align:center"><div style="font-size:22px;font-weight:900">${doneTasks.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Tasks Done</div></div>
         <div style="text-align:center"><div style="font-size:22px;font-weight:900">${eventSignups.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Signed Up</div></div>
         <div style="text-align:center"><div style="font-size:22px;font-weight:900">${attendedEvents.length}</div><div style="font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.4px">Attended</div></div>
@@ -1343,16 +1341,14 @@ function renderAddMe(){
 
 // ── LEADERBOARD ───────────────────────────────────────
 function renderLeaderboard(){
-  const u=me();const ranked=members().sort((a,b)=>b.xp-a.xp);
+  const u=me();const ranked=members().sort((a,b)=>approvedByUser(b.id).length-approvedByUser(a.id).length);
   const medals=['🥇','🥈','🥉'];
   return`<div class="page-title">🏆 Leaderboard</div>
-  <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Ranked by XP — earned through real work, not just showing up.</p>
   <div class="lb-list">${ranked.map((m,i)=>`
   <div class="lb-row ${m.id===u.id?'you':''}">
     <div class="rank ${i<3?`rank-${i+1}`:''}">${medals[i]||i+1}</div>
     <div class="lb-av" style="background:${avColor(m.role)}">${initials(m.name)}</div>
-    <div><div class="lb-name">${m.name}${m.id===u.id?' (you)':''}</div><div class="lb-sub">Lv${lvl(m.xp)} · ${approvedByUser(m.id).length} tasks · 🔥${approvedByUser(m.id).length}</div></div>
-    <div style="margin-left:auto;text-align:right"><div class="lb-xp">${m.xp}</div><div class="lb-xplbl">XP</div></div>
+    <div><div class="lb-name">${m.name}${m.id===u.id?' (you)':''}</div><div class="lb-sub">${approvedByUser(m.id).length} tasks completed</div></div>
   </div>`).join('')}</div>`;
 }
 
@@ -2416,9 +2412,9 @@ function setCurrentUser(apiUser){
   const existing=S.users.find(u=>u.id===apiUser.id);
   const appUser={
     id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,
-    xp:existing?.xp??0,skills:existing?.skills??[],badges:existing?.badges??[],
+    skills:existing?.skills??[],badges:existing?.badges??[],
     portfolioEntries:existing?.portfolioEntries??[],tasksApproved:existing?.tasksApproved??0,
-    streak:existing?.streak??0,careerLabel:apiUser.careerLabel||existing?.careerLabel||null
+    careerLabel:apiUser.careerLabel||existing?.careerLabel||null
   };
   const idx=S.users.findIndex(u=>u.id===appUser.id);
   if(idx>=0)S.users[idx]=appUser;
@@ -3014,7 +3010,7 @@ async function suggestDistribution(){
   const cap=document.getElementById('tCap')?.value||'1';
   const box=document.getElementById('distSugg');
   if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">InvoAI thinking...</span></div>`;
-  const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks, Lv${lvl(m.xp)}`).join('\n');
+  const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks`).join('\n');
   try{
     const res=await callGroq(
       'You help club officers distribute tasks. Given a task and member profiles, suggest who would benefit most (based on skill gaps and growth). Be concise — 2-3 sentences.',
@@ -3134,7 +3130,7 @@ function renderUsers(){
 
 function exportResume(){
   const u=me();const done=approvedByUser(u.id);
-  let txt=`INVOLVEД RESUME EXPORT\n${'='.repeat(30)}\n${u.name.toUpperCase()}\nLevel ${lvl(u.xp)} · ${u.xp} XP · 🔥${u.streak||0} day streak\n\nSKILLS\n------\n${u.skills.join(' · ')||'None'}\n\nPORTFOLIO\n---------\n`;
+  let txt=`INVOLVEД RESUME EXPORT\n${'='.repeat(30)}\n${u.name.toUpperCase()}\n\nSKILLS\n------\n${u.skills.join(' · ')||'None'}\n\nPORTFOLIO\n---------\n`;
   done.forEach(t=>{
     const e=u.portfolioEntries.find(e=>e.taskId===t.id);
     txt+=`• ${t.title}\n${e?'  '+e.text+'\n':''}  Skills: ${t.skills.join(', ')}\n\n`;
@@ -3181,7 +3177,6 @@ function showTaskBubbles(){
     return`<div class="task-bubble" onclick="claimFromAI('${t.id}')">
       <div class="tb-icon">${cat.icon}</div>
       <div class="tb-title">${t.title}</div>
-      <div class="tb-xp">⚡ +${t.xp} XP</div>
     </div>`;
   }).join('')}</div>`;
   appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Here are the open tasks you can claim:<br>${html}`);
@@ -3192,10 +3187,7 @@ function showSummaryCard(){
   const html=`<div class="ai-msg-lbl">InvoAI</div>Here's your progress snapshot:
   <div class="summary-card">
     <div class="summary-row">
-      <div class="summary-stat"><div class="summary-stat-v">${u.xp}</div><div class="summary-stat-l">XP</div></div>
-      <div class="summary-stat"><div class="summary-stat-v">${lvl(u.xp)}</div><div class="summary-stat-l">Level</div></div>
       <div class="summary-stat"><div class="summary-stat-v">${done}</div><div class="summary-stat-l">Tasks Done</div></div>
-      <div class="summary-stat"><div class="summary-stat-v">${u.streak||0}</div><div class="summary-stat-l">🔥 Streak</div></div>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SKILLS EARNED</div>
     <div class="summary-skills">${u.skills.length?u.skills.map(s=>`<span class="sk-tag">${s}</span>`).join(''):'<span style="color:var(--muted);font-size:12px">Complete tasks to earn skills!</span>'}</div>
@@ -3297,7 +3289,7 @@ When an officer asks to create an event, gather info step by step: ask for event
 
 When a task is not available, suggest: {"nav":"addme","label":"Submit an Add Me Request"}.
 
-Student: ${u.name} (${u.role}), Level ${lvl(u.xp)}, ${u.xp} XP
+Student: ${u.name} (${u.role})
 Club Skills: ${u.skills.join(', ')||'none yet'}
 LinkedIn Keywords: ${liSkills.join(', ')||'none yet'}
 Internship Roles Qualified For: ${matches.join(', ')||'none yet — keep building skills!'}
@@ -3390,27 +3382,27 @@ function exportToExcel(){
 
   // ── Members sheet ──
   const memberRows=[
-    ['Name','Role','XP','Level','Streak (days)','Tasks Completed','Skills','Badges Earned','LinkedIn Keywords']
+    ['Name','Role','Tasks Completed','Skills','Badges Earned','LinkedIn Keywords']
   ];
   S.users.forEach(u=>{
     const done=approvedByUser(u.id).length;
     const liKw=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean).join(', ');
-    memberRows.push([u.name,u.role,u.xp,lvl(u.xp),u.streak||0,done,u.skills.join(', '),u.badges.length,liKw]);
+    memberRows.push([u.name,u.role,done,u.skills.join(', '),u.badges.length,liKw]);
   });
   const wsMembers=XLSX.utils.aoa_to_sheet(memberRows);
-  wsMembers['!cols']=[{wch:20},{wch:10},{wch:6},{wch:6},{wch:14},{wch:18},{wch:40},{wch:14},{wch:50}];
+  wsMembers['!cols']=[{wch:20},{wch:10},{wch:18},{wch:40},{wch:14},{wch:50}];
   XLSX.utils.book_append_sheet(wb,wsMembers,'Members');
 
   // ── Tasks sheet ──
-  const taskRows=[['Title','Category','XP','Capacity','Status','Skills','Claimed By','Pending Review','Approved By']];
+  const taskRows=[['Title','Category','Capacity','Status','Skills','Claimed By','Pending Review','Approved By']];
   S.tasks.forEach(t=>{
     const claimed=t.submissions.filter(s=>s.status==='claimed').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
     const pending=t.submissions.filter(s=>s.status==='pending_review').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
     const approved=t.submissions.filter(s=>s.status==='approved').map(s=>getUser(s.userId)?.name||s.userId).join(', ');
-    taskRows.push([t.title,CAT[t.cat]?.lbl||t.cat,t.xp,t.capacity,taskStatus(t),t.skills.join(', '),claimed,pending,approved]);
+    taskRows.push([t.title,CAT[t.cat]?.lbl||t.cat,t.capacity,taskStatus(t),t.skills.join(', '),claimed,pending,approved]);
   });
   const wsTasks=XLSX.utils.aoa_to_sheet(taskRows);
-  wsTasks['!cols']=[{wch:36},{wch:14},{wch:6},{wch:10},{wch:10},{wch:36},{wch:20},{wch:20},{wch:20}];
+  wsTasks['!cols']=[{wch:36},{wch:14},{wch:10},{wch:10},{wch:36},{wch:20},{wch:20},{wch:20}];
   XLSX.utils.book_append_sheet(wb,wsTasks,'Tasks');
 
   // ── Attendance sheet ──
@@ -3441,12 +3433,12 @@ function exportToExcel(){
   XLSX.utils.book_append_sheet(wb,wsEv,'Club Events');
 
   // ── Leaderboard sheet ──
-  const lbRows=[['Rank','Name','Role','XP','Level','Tasks Completed','Streak (days)','Skills']];
-  members().sort((a,b)=>b.xp-a.xp).forEach((m,i)=>{
-    lbRows.push([i+1,m.name,m.role,m.xp,lvl(m.xp),approvedByUser(m.id).length,m.streak||0,m.skills.join(', ')]);
+  const lbRows=[['Rank','Name','Role','Tasks Completed','Skills']];
+  members().sort((a,b)=>approvedByUser(b.id).length-approvedByUser(a.id).length).forEach((m,i)=>{
+    lbRows.push([i+1,m.name,m.role,approvedByUser(m.id).length,m.skills.join(', ')]);
   });
   const wsLb=XLSX.utils.aoa_to_sheet(lbRows);
-  wsLb['!cols']=[{wch:6},{wch:20},{wch:10},{wch:6},{wch:6},{wch:18},{wch:14},{wch:40}];
+  wsLb['!cols']=[{wch:6},{wch:20},{wch:10},{wch:18},{wch:40}];
   XLSX.utils.book_append_sheet(wb,wsLb,'Leaderboard');
 
   // ── Feed sheet ──
@@ -3629,17 +3621,17 @@ async function callGroq(system,user,history=[],max_tokens=512){
 
   // 10 members + 1 officer
   const demoUsers=[
-    {id:'u_edward',   name:'Edward Zuniga',   role:'officer', xp:1600, skills:['Leadership','Organization','Management','Event Planning'], badges:[], portfolioEntries:[], tasksApproved:8, streak:5, careerLabel:'organizer'},
-    {id:'u_sofia',    name:'Sofia Martinez',  role:'member',  xp:900,  skills:['Marketing','Social Media','Creativity'],                  badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'marketer'},
-    {id:'u_marcus',   name:'Marcus Johnson',  role:'member',  xp:1100, skills:['Leadership','Organization','Event Planning','Communication'], badges:[], portfolioEntries:[], tasksApproved:0, streak:4, careerLabel:'organizer'},
-    {id:'u_priya',    name:'Priya Patel',     role:'member',  xp:700,  skills:['Research','Analysis','Writing'],                         badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'researcher'},
-    {id:'u_diego',    name:'Diego Rivera',    role:'member',  xp:800,  skills:['Design','Creativity','Visual Communication'],            badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'designer'},
-    {id:'u_aisha',    name:'Aisha Williams',  role:'member',  xp:500,  skills:['Writing','Communication'],                               badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:'communicator'},
-    {id:'u_james',    name:'James Chen',      role:'member',  xp:400,  skills:['Technology','Programming'],                              badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'developer'},
-    {id:'u_natalie',  name:'Natalie Brooks',  role:'member',  xp:950,  skills:['Event Planning','Management','Organization'],            badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'planner'},
-    {id:'u_omar',     name:'Omar Hassan',     role:'member',  xp:600,  skills:['Data Analysis','Research'],                             badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'analyst'},
-    {id:'u_luna',     name:'Luna Torres',     role:'member',  xp:200,  skills:['Communication'],                                         badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:'communicator'},
-    {id:'u_tyler',    name:'Tyler Kim',       role:'member',  xp:300,  skills:['Writing','Social Media'],                               badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:null},
+    {id:'u_edward',   name:'Edward Zuniga',   role:'officer', skills:['Leadership','Organization','Management','Event Planning'], badges:[], portfolioEntries:[], tasksApproved:8, careerLabel:'organizer'},
+    {id:'u_sofia',    name:'Sofia Martinez',  role:'member',  skills:['Marketing','Social Media','Creativity'],                  badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'marketer'},
+    {id:'u_marcus',   name:'Marcus Johnson',  role:'member', skills:['Leadership','Organization','Event Planning','Communication'], badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'organizer'},
+    {id:'u_priya',    name:'Priya Patel',     role:'member',  skills:['Research','Analysis','Writing'],                         badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'researcher'},
+    {id:'u_diego',    name:'Diego Rivera',    role:'member',  skills:['Design','Creativity','Visual Communication'],            badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'designer'},
+    {id:'u_aisha',    name:'Aisha Williams',  role:'member',  skills:['Writing','Communication'],                               badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'communicator'},
+    {id:'u_james',    name:'James Chen',      role:'member',  skills:['Technology','Programming'],                              badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'developer'},
+    {id:'u_natalie',  name:'Natalie Brooks',  role:'member',  skills:['Event Planning','Management','Organization'],            badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'planner'},
+    {id:'u_omar',     name:'Omar Hassan',     role:'member',  skills:['Data Analysis','Research'],                             badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'analyst'},
+    {id:'u_luna',     name:'Luna Torres',     role:'member',  skills:['Communication'],                                         badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:'communicator'},
+    {id:'u_tyler',    name:'Tyler Kim',       role:'member',  skills:['Writing','Social Media'],                               badges:[], portfolioEntries:[], tasksApproved:0, careerLabel:null},
   ];
   S.users=demoUsers;
 
@@ -3647,7 +3639,7 @@ async function callGroq(system,user,history=[],max_tokens=512){
   S.tasks=[
     {
       id:'t_social',title:'Design a Social Media Campaign',desc:'Create a 5-post Instagram series promoting the club\'s upcoming events. Include graphics ideas and captions.',
-      skills:['Marketing','Social Media','Creativity'],cat:'marketing',xp:200,capacity:2,createdBy:'u_edward',createdAt:Date.now()-7*86400000,
+      skills:['Marketing','Social Media','Creativity'],cat:'marketing',capacity:2,createdBy:'u_edward',createdAt:Date.now()-7*86400000,
       submissions:[
         {userId:'u_sofia',   work:'Designed a cohesive 5-post series with a spring theme, boosted follower engagement by 34% in preview tests.',fileName:null,docLink:null,aiSkills:['Marketing','Social Media','Creativity'],resumeBullets:['Designed a 5-post Instagram campaign for 200+ member organization, increasing engagement by 34%','Developed cohesive visual brand identity across spring semester promotional content','Coordinated content calendar aligning posts with 3 upcoming club events'],status:'approved',submittedAt:'May 10, 2026',officerFeedback:'Great use of color and on-brand messaging. Really elevated our presence!'},
         {userId:'u_diego',   work:'Mocked up 5 Canva graphics with club colors and created caption templates for each post type.',fileName:null,docLink:null,aiSkills:['Design','Creativity','Social Media'],resumeBullets:['Created 5 branded social media graphics using Canva for 200+ member club','Developed reusable caption templates reducing content creation time by 40%','Maintained visual consistency across multi-platform promotional campaign'],status:'pending_review',submittedAt:'May 18, 2026'},
@@ -3655,14 +3647,14 @@ async function callGroq(system,user,history=[],max_tokens=512){
     },
     {
       id:'t_newsletter',title:'Write Club Newsletter Vol. 3',desc:'Draft the monthly newsletter covering recent events, member spotlights, and upcoming opportunities.',
-      skills:['Writing','Communication','Editing'],cat:'communication',xp:150,capacity:1,createdBy:'u_edward',createdAt:Date.now()-5*86400000,
+      skills:['Writing','Communication','Editing'],cat:'communication',capacity:1,createdBy:'u_edward',createdAt:Date.now()-5*86400000,
       submissions:[
         {userId:'u_aisha',work:null,fileName:null,docLink:null,aiSkills:[],resumeBullets:[],status:'claimed',submittedAt:null},
       ]
     },
     {
       id:'t_survey',title:'Analyze Member Survey Results',desc:'Review the 45 responses from the spring survey, identify key themes, and present a 1-page summary to the officer team.',
-      skills:['Research','Analysis','Data'],cat:'research',xp:200,capacity:2,createdBy:'u_edward',createdAt:Date.now()-10*86400000,
+      skills:['Research','Analysis','Data'],cat:'research',capacity:2,createdBy:'u_edward',createdAt:Date.now()-10*86400000,
       submissions:[
         {userId:'u_priya',work:'Coded all 45 responses into 6 theme categories, found that 78% of members want more career-focused events.',fileName:null,docLink:null,aiSkills:['Research','Analysis','Data'],resumeBullets:['Analyzed 45 member survey responses using thematic coding methodology','Identified 6 key organizational improvement areas, informing semester planning decisions','Presented data-driven summary report to 3-person officer team'],status:'approved',submittedAt:'May 8, 2026',officerFeedback:'Exactly what we needed. Your themes were spot-on.'},
         {userId:'u_omar',  work:'Built a spreadsheet breakdown by member class year and major to identify demographic trends in the responses.',fileName:null,docLink:null,aiSkills:['Data Analysis','Research'],resumeBullets:['Performed demographic segmentation analysis on 45 survey responses','Identified enrollment trend patterns informing recruitment strategy for 3 class cohorts','Created data visualization dashboard tracking member engagement metrics'],status:'pending_review',submittedAt:'May 20, 2026'},
@@ -3670,14 +3662,14 @@ async function callGroq(system,user,history=[],max_tokens=512){
     },
     {
       id:'t_website',title:'Update Club Website',desc:'Refresh the About and Events pages with current info, new photos, and updated officer bios.',
-      skills:['Technology','Web Development','Design'],cat:'tech',xp:250,capacity:1,createdBy:'u_edward',createdAt:Date.now()-3*86400000,
+      skills:['Technology','Web Development','Design'],cat:'tech',capacity:1,createdBy:'u_edward',createdAt:Date.now()-3*86400000,
       submissions:[
         {userId:'u_james',work:null,fileName:null,docLink:null,aiSkills:[],resumeBullets:[],status:'claimed',submittedAt:null},
       ]
     },
     {
       id:'t_social2',title:'Host End-of-Semester Social',desc:'Plan a casual end-of-year gathering for all members. Pick a venue, coordinate snacks, and handle RSVPs.',
-      skills:['Event Planning','Organization','Leadership'],cat:'leadership',xp:300,capacity:1,createdBy:'u_edward',createdAt:Date.now()-86400000,
+      skills:['Event Planning','Organization','Leadership'],cat:'leadership',capacity:1,createdBy:'u_edward',createdAt:Date.now()-86400000,
       submissions:[]
     },
   ];
