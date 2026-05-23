@@ -2430,9 +2430,15 @@ async function authRegister(){
   }catch(e){toast('Error: '+e.message,'err')}
 }
 function setCurrentUser(apiUser){
-  const appUser={id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,xp:0,skills:[],badges:[],portfolioEntries:[],tasksApproved:0,streak:0,careerLabel:apiUser.careerLabel||null};
+  const existing=S.users.find(u=>u.id===apiUser.id);
+  const appUser={
+    id:apiUser.id,name:apiUser.name,role:apiUser.role,email:apiUser.email||null,
+    xp:existing?.xp??0,skills:existing?.skills??[],badges:existing?.badges??[],
+    portfolioEntries:existing?.portfolioEntries??[],tasksApproved:existing?.tasksApproved??0,
+    streak:existing?.streak??0,careerLabel:apiUser.careerLabel||existing?.careerLabel||null
+  };
   const idx=S.users.findIndex(u=>u.id===appUser.id);
-  if(idx>=0)S.users[idx]={...S.users[idx],...appUser};
+  if(idx>=0)S.users[idx]=appUser;
   else S.users.push(appUser);
   S.uid=appUser.id;
   S.careerLabel=appUser.careerLabel||null;
