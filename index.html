@@ -756,11 +756,35 @@ function renderDashboard(){
   if(u.role==='member'){
     const active=S.tasks.filter(t=>t.submissions.some(s=>s.userId===u.id&&s.status!=='approved'&&s.status!=='rejected'));
     const eventsJoined=S.clubEvents.reduce((n,ev)=>n+ev.tasks.filter(t=>t.signups.includes(u.id)).length,0);
-    // Open opportunities: event tasks the user hasn't signed up for
+
+    // Event tasks signed up for — split by status
+    const myEventTasks=S.clubEvents.flatMap(ev=>
+      ev.tasks.filter(t=>t.signups.includes(u.id)).map(t=>({ev,task:t,sub:t.submissions?.find(s=>s.userId===u.id)}))
+    );
+    const pendingReview=myEventTasks.filter(({sub})=>sub?.status==='pending_review');
+    const notSubmitted=myEventTasks.filter(({sub})=>!sub);
+    const approved=myEventTasks.filter(({sub})=>sub?.status==='approved');
+
     const openOpportunities=S.clubEvents.flatMap(ev=>
       ev.tasks.filter(t=>!t.signups.includes(u.id)&&t.signups.length<t.slots)
         .map(t=>({ev,task:t}))
     ).slice(0,6);
+
+    const evTaskCard=({ev,task,sub})=>{
+      const statusColor=sub?.status==='approved'?'#059669':sub?.status==='pending_review'?'#D97706':'var(--forest)';
+      const statusLabel=sub?.status==='approved'?'✅ Approved':sub?.status==='pending_review'?'⏳ Under Review':'📤 Needs Submission';
+      return`<div style="background:var(--card);border:1.5px solid var(--sand);border-left:4px solid ${statusColor};border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${task.title}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${ev.icon} ${ev.title}</div>
+          <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}</div>
+        </div>
+        ${!sub?`<button class="btn btn-pri btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">Submit Work →</button>`
+          :sub.status==='pending_review'?`<button class="btn btn-ghost btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">View →</button>`
+          :`<button class="btn btn-ghost btn-sm" onclick="nav('resume')">See Bullets →</button>`}
+      </div>`;
+    };
+
     return`
     <div class="welcome-banner">
       <div><div class="welcome-title">Hey ${u.name.split(' ')[0]}! 👋</div><div class="welcome-sub">Every task you complete is proof of your skills.</div></div>
@@ -768,10 +792,19 @@ function renderDashboard(){
     <div class="stat-grid">
       <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--forest)">${done.length}</div><div class="stat-lbl">Tasks Done</div></div>
       <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">🛠️</div><div class="stat-val" style="color:var(--sky)">${u.skills.length}</div><div class="stat-lbl">Skills Earned</div></div>
-      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${active.length}</div><div class="stat-lbl">In Progress</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${notSubmitted.length+active.length}</div><div class="stat-lbl">In Progress</div></div>
       <div class="stat-card" style="border-top:3px solid var(--gold)"><div class="stat-ico">🎪</div><div class="stat-val" style="color:var(--gold)">${eventsJoined}</div><div class="stat-lbl">Events Joined</div></div>
     </div>
+    ${pendingReview.length?`
+      <div class="sec-row"><div class="sec-title" style="color:#D97706">⏳ Under Review (${pendingReview.length})</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${pendingReview.map(evTaskCard).join('')}</div>`:''}
+    ${notSubmitted.length?`
+      <div class="sec-row"><div class="sec-title">📤 Needs Submission</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View Events →</button></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${notSubmitted.map(evTaskCard).join('')}</div>`:''}
     ${active.length?`<div class="sec-title">My Active Tasks</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
+    ${approved.length?`
+      <div class="sec-row"><div class="sec-title" style="color:#059669">✅ Approved Work</div><button class="btn btn-ghost btn-sm" onclick="nav('resume')">See Bullets →</button></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${approved.map(evTaskCard).join('')}</div>`:''}
     ${openOpportunities.length?`<div class="sec-row"><div class="sec-title">Open Opportunities</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View All →</button></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px">
       ${openOpportunities.map(({ev,task})=>{
@@ -2542,10 +2575,24 @@ function claimTask(id){
 
 function handleFile(input){
   const file=input.files[0];if(!file)return;
+  const allowed=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if(!allowed.includes(file.type)&&!file.name.match(/\.(pdf|doc|docx)$/i)){toast('Only PDF or Word documents allowed','err');input.value='';return;}
   const reader=new FileReader();
   reader.onload=e=>{
     S.pendingFile={name:file.name,size:(file.size/1024).toFixed(0)+' KB',dataUrl:e.target.result};
     const lbl=document.getElementById('fileLbl');
+    if(lbl)lbl.innerHTML=`✅ <strong>${file.name}</strong> (${S.pendingFile.size})`;
+  };
+  reader.readAsDataURL(file);
+}
+function handleFile2(input){
+  const file=input.files[0];if(!file)return;
+  const allowed=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if(!allowed.includes(file.type)&&!file.name.match(/\.(pdf|doc|docx)$/i)){toast('Only PDF or Word documents allowed','err');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    S.pendingFile={name:file.name,size:(file.size/1024).toFixed(0)+' KB',dataUrl:e.target.result};
+    const lbl=document.getElementById('fileLbl2');
     if(lbl)lbl.innerHTML=`✅ <strong>${file.name}</strong> (${S.pendingFile.size})`;
   };
   reader.readAsDataURL(file);
