@@ -717,6 +717,12 @@ function renderLogin(){
       <div class="fg"><label class="fl">Last Name</label><input class="fi" id="aLN" placeholder="Rivera"></div>
       <div class="fg"><label class="fl">Password</label><input class="fi" id="aPW" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()"></div>
       <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="authLogin()">Sign In →</button>
+      <div style="margin-top:18px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--rsm);padding:12px 14px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--forest);margin-bottom:8px">🧪 Demo Accounts — password: demo123</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${S.users.map(du=>{const parts=du.name.split(' ');return`<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 9px" onclick="document.getElementById('aFN').value='${parts[0]}';document.getElementById('aLN').value='${parts.slice(1).join(' ')}';document.getElementById('aPW').value='demo123';authLogin()">${du.role==='officer'?'👑 ':''}${du.name}</button>`;}).join('')}
+        </div>
+      </div>
     `:`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg"><label class="fl">First Name</label><input class="fi" id="rFN" placeholder="Alex"></div>
@@ -2396,6 +2402,10 @@ async function authLogin(){
   const ln=document.getElementById('aLN')?.value?.trim();
   const pw=document.getElementById('aPW')?.value;
   if(!fn||!ln||!pw){toast('Fill in all fields','err');return}
+  // Check demo users first (password: demo123)
+  const fullName=`${fn} ${ln}`;
+  const demoUser=S.users.find(u=>u.name.toLowerCase()===fullName.toLowerCase());
+  if(demoUser&&pw==='demo123'){setCurrentUser(demoUser);return}
   try{
     const res=await fetch(`${API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({first_name:fn,last_name:ln,password:pw})});
     if(!res.ok){let msg='Login failed';try{const e=await res.json();msg=e.detail||msg;}catch(_){}toast(msg,'err');return}
@@ -3599,6 +3609,133 @@ async function callGroq(system,user,history=[],max_tokens=512){
   const data=await res.json();
   return data.content||'';
 }
+
+// ── DEMO SEED DATA ────────────────────────────────────
+(function seedDemo(){
+  // Only seed once
+  if(S.users.length)return;
+
+  // 10 members + 1 officer
+  const demoUsers=[
+    {id:'u_edward',   name:'Edward Zuniga',   role:'officer', xp:1600, skills:['Leadership','Organization','Management','Event Planning'], badges:[], portfolioEntries:[], tasksApproved:8, streak:5, careerLabel:'organizer'},
+    {id:'u_sofia',    name:'Sofia Martinez',  role:'member',  xp:900,  skills:['Marketing','Social Media','Creativity'],                  badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'marketer'},
+    {id:'u_marcus',   name:'Marcus Johnson',  role:'member',  xp:1100, skills:['Leadership','Organization','Event Planning','Communication'], badges:[], portfolioEntries:[], tasksApproved:0, streak:4, careerLabel:'organizer'},
+    {id:'u_priya',    name:'Priya Patel',     role:'member',  xp:700,  skills:['Research','Analysis','Writing'],                         badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'researcher'},
+    {id:'u_diego',    name:'Diego Rivera',    role:'member',  xp:800,  skills:['Design','Creativity','Visual Communication'],            badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'designer'},
+    {id:'u_aisha',    name:'Aisha Williams',  role:'member',  xp:500,  skills:['Writing','Communication'],                               badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:'communicator'},
+    {id:'u_james',    name:'James Chen',      role:'member',  xp:400,  skills:['Technology','Programming'],                              badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'developer'},
+    {id:'u_natalie',  name:'Natalie Brooks',  role:'member',  xp:950,  skills:['Event Planning','Management','Organization'],            badges:[], portfolioEntries:[], tasksApproved:0, streak:3, careerLabel:'planner'},
+    {id:'u_omar',     name:'Omar Hassan',     role:'member',  xp:600,  skills:['Data Analysis','Research'],                             badges:[], portfolioEntries:[], tasksApproved:0, streak:2, careerLabel:'analyst'},
+    {id:'u_luna',     name:'Luna Torres',     role:'member',  xp:200,  skills:['Communication'],                                         badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:'communicator'},
+    {id:'u_tyler',    name:'Tyler Kim',       role:'member',  xp:300,  skills:['Writing','Social Media'],                               badges:[], portfolioEntries:[], tasksApproved:0, streak:1, careerLabel:null},
+  ];
+  S.users=demoUsers;
+
+  // General tasks
+  S.tasks=[
+    {
+      id:'t_social',title:'Design a Social Media Campaign',desc:'Create a 5-post Instagram series promoting the club\'s upcoming events. Include graphics ideas and captions.',
+      skills:['Marketing','Social Media','Creativity'],cat:'marketing',xp:200,capacity:2,createdBy:'u_edward',createdAt:Date.now()-7*86400000,
+      submissions:[
+        {userId:'u_sofia',   work:'Designed a cohesive 5-post series with a spring theme, boosted follower engagement by 34% in preview tests.',fileName:null,docLink:null,aiSkills:['Marketing','Social Media','Creativity'],resumeBullets:['Designed a 5-post Instagram campaign for 200+ member organization, increasing engagement by 34%','Developed cohesive visual brand identity across spring semester promotional content','Coordinated content calendar aligning posts with 3 upcoming club events'],status:'approved',submittedAt:'May 10, 2026',officerFeedback:'Great use of color and on-brand messaging. Really elevated our presence!'},
+        {userId:'u_diego',   work:'Mocked up 5 Canva graphics with club colors and created caption templates for each post type.',fileName:null,docLink:null,aiSkills:['Design','Creativity','Social Media'],resumeBullets:['Created 5 branded social media graphics using Canva for 200+ member club','Developed reusable caption templates reducing content creation time by 40%','Maintained visual consistency across multi-platform promotional campaign'],status:'pending_review',submittedAt:'May 18, 2026'},
+      ]
+    },
+    {
+      id:'t_newsletter',title:'Write Club Newsletter Vol. 3',desc:'Draft the monthly newsletter covering recent events, member spotlights, and upcoming opportunities.',
+      skills:['Writing','Communication','Editing'],cat:'communication',xp:150,capacity:1,createdBy:'u_edward',createdAt:Date.now()-5*86400000,
+      submissions:[
+        {userId:'u_aisha',work:null,fileName:null,docLink:null,aiSkills:[],resumeBullets:[],status:'claimed',submittedAt:null},
+      ]
+    },
+    {
+      id:'t_survey',title:'Analyze Member Survey Results',desc:'Review the 45 responses from the spring survey, identify key themes, and present a 1-page summary to the officer team.',
+      skills:['Research','Analysis','Data'],cat:'research',xp:200,capacity:2,createdBy:'u_edward',createdAt:Date.now()-10*86400000,
+      submissions:[
+        {userId:'u_priya',work:'Coded all 45 responses into 6 theme categories, found that 78% of members want more career-focused events.',fileName:null,docLink:null,aiSkills:['Research','Analysis','Data'],resumeBullets:['Analyzed 45 member survey responses using thematic coding methodology','Identified 6 key organizational improvement areas, informing semester planning decisions','Presented data-driven summary report to 3-person officer team'],status:'approved',submittedAt:'May 8, 2026',officerFeedback:'Exactly what we needed. Your themes were spot-on.'},
+        {userId:'u_omar',  work:'Built a spreadsheet breakdown by member class year and major to identify demographic trends in the responses.',fileName:null,docLink:null,aiSkills:['Data Analysis','Research'],resumeBullets:['Performed demographic segmentation analysis on 45 survey responses','Identified enrollment trend patterns informing recruitment strategy for 3 class cohorts','Created data visualization dashboard tracking member engagement metrics'],status:'pending_review',submittedAt:'May 20, 2026'},
+      ]
+    },
+    {
+      id:'t_website',title:'Update Club Website',desc:'Refresh the About and Events pages with current info, new photos, and updated officer bios.',
+      skills:['Technology','Web Development','Design'],cat:'tech',xp:250,capacity:1,createdBy:'u_edward',createdAt:Date.now()-3*86400000,
+      submissions:[
+        {userId:'u_james',work:null,fileName:null,docLink:null,aiSkills:[],resumeBullets:[],status:'claimed',submittedAt:null},
+      ]
+    },
+    {
+      id:'t_social2',title:'Host End-of-Semester Social',desc:'Plan a casual end-of-year gathering for all members. Pick a venue, coordinate snacks, and handle RSVPs.',
+      skills:['Event Planning','Organization','Leadership'],cat:'leadership',xp:300,capacity:1,createdBy:'u_edward',createdAt:Date.now()-86400000,
+      submissions:[]
+    },
+  ];
+
+  // Club event with rich activity
+  S.clubEvents=[
+    {
+      id:'ev_career',title:'Spring Career Fair Prep',desc:'Getting every member ready for the campus career fair — promotional materials, logistics, and member coaching.',
+      date:'May 30, 2026',color:'#1E3A2F',icon:'🚀',is_open:true,createdBy:'u_edward',
+      tasks:[
+        {
+          id:'et_flyers',title:'Design promotional flyers',desc:'Create print-ready flyers for the career fair booth. 3 versions: 8.5x11, half-sheet, and table tent.',
+          slots:1,signups:['u_marcus'],skills:['Design','Creativity'],competency:'creative',
+          submissions:[
+            {userId:'u_marcus',work:'Delivered 3 print-ready flyer versions using club brand guidelines. Coordinated with print shop for 200-copy run.',fileName:null,docLink:null,aiSkills:['Design','Leadership','Creativity'],resumeBullets:['Designed 3 print-ready marketing materials for campus career fair booth serving 200+ attendees','Coordinated with external print vendor to produce 200 copies within 48-hour turnaround','Applied brand guidelines across multi-format collateral ensuring visual consistency'],status:'approved',submittedAt:'May 15, 2026',officerFeedback:'These look super professional. Members will be proud to hand these out.'}
+          ]
+        },
+        {
+          id:'et_schedule',title:'Coordinate volunteer schedule',desc:'Build the 6-hour shift schedule for 12 volunteers. Balance slots, send confirmations, handle last-minute changes.',
+          slots:1,signups:['u_natalie'],skills:['Organization','Event Planning','Management'],competency:'leadership',
+          submissions:[
+            {userId:'u_natalie',work:'Built a Google Sheets schedule with auto-notifications, coordinated 12 volunteers across 3 shifts, zero no-shows.',fileName:null,docLink:null,aiSkills:['Organization','Management','Event Planning'],resumeBullets:['Coordinated 12-person volunteer roster for 6-hour career fair event with zero scheduling conflicts','Built automated notification system in Google Sheets reducing coordinator follow-up time by 60%','Managed last-minute substitutions for 2 volunteers maintaining full coverage across all shifts'],status:'pending_review',submittedAt:'May 19, 2026'}
+          ]
+        },
+        {
+          id:'et_research',title:'Research participating companies',desc:'Compile a one-pager on the 10 companies attending so members can prep targeted questions.',
+          slots:2,signups:['u_priya','u_tyler'],skills:['Research','Writing'],competency:'research',
+          submissions:[
+            {userId:'u_priya', work:'Researched all 10 companies, wrote 150-word profiles for each with key talking points tailored to our members\' majors.',fileName:null,docLink:null,aiSkills:['Research','Writing','Analysis'],resumeBullets:['Produced 10 company research profiles supporting 50+ club members in career fair preparation','Synthesized publicly available financial, culture, and role data into actionable student-facing summaries','Coordinated with officer team to align research priorities with member major demographics'],status:'approved',submittedAt:'May 14, 2026',officerFeedback:'Members have been reading these obsessively. Great work!'},
+          ]
+        },
+        {
+          id:'et_posts',title:'Write career fair social posts',desc:'Draft 6 Instagram posts building hype in the week before the fair. Include tips, countdowns, and company spotlights.',
+          slots:1,signups:['u_sofia'],skills:['Writing','Social Media','Marketing'],competency:'marketing',
+          submissions:[
+            {userId:'u_sofia', work:'Drafted all 6 posts with visuals prompts, hashtag sets, and a posting schedule.',fileName:null,docLink:null,aiSkills:['Marketing','Social Media','Writing'],resumeBullets:['Developed 6-post pre-event social media series driving career fair attendance awareness','Created targeted hashtag strategy and content calendar for week-long promotional campaign','Authored company spotlight posts translating professional achievements into student-relevant narratives'],status:'pending_review',submittedAt:'May 21, 2026'}
+          ]
+        },
+        {
+          id:'et_table',title:'Set up registration table',desc:'Arrive early to arrange the booth: table, banner, sign-in sheet, materials. Coordinate with venue on layout.',
+          slots:2,signups:['u_luna','u_aisha'],skills:['Organization','Communication'],competency:'community',
+          submissions:[]
+        },
+        {
+          id:'et_coaching',title:'Run member interview prep session',desc:'Lead a 45-minute mock-interview workshop for members who signed up. Provide written feedback after.',
+          slots:1,signups:[],skills:['Public Speaking','Leadership','Communication'],competency:'leadership',
+          submissions:[]
+        },
+      ]
+    },
+    {
+      id:'ev_gm',title:'May General Meeting',desc:'Monthly all-hands with updates, officer elections preview, and member shoutouts.',
+      date:'May 22, 2026',color:'#5B21B6',icon:'📣',is_open:false,createdBy:'u_edward',
+      tasks:[
+        {
+          id:'et_slides',title:'Design meeting slide deck',desc:'Create a clean slide deck covering the meeting agenda, club stats, and upcoming event calendar.',
+          slots:1,signups:['u_diego'],skills:['Design','Visual Communication'],competency:'creative',
+          submissions:[
+            {userId:'u_diego',work:'Built a 14-slide deck with club branding, embedded stats from our tracker, and an animated event timeline.',fileName:null,docLink:null,aiSkills:['Design','Visual Communication','Creativity'],resumeBullets:['Designed 14-slide presentation deck for 80-person monthly general meeting','Integrated live data visualizations tracking club KPIs and event attendance metrics','Developed branded slide template adopted for all subsequent club presentations'],status:'approved',submittedAt:'May 19, 2026',officerFeedback:'Best deck we\'ve had all year — the stats section was really impressive.'}
+          ]
+        },
+        {
+          id:'et_recap',title:'Write meeting recap email',desc:'After the meeting, send a concise recap to all members: decisions made, next steps, key dates.',
+          slots:1,signups:['u_james'],skills:['Writing','Communication'],competency:'marketing',
+          submissions:[]
+        },
+      ]
+    },
+  ];
+})();
 
 // ── INIT ──────────────────────────────────────────────
 // Check for QR check-in param
