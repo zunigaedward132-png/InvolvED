@@ -3160,7 +3160,11 @@ async function aiGenerateEventTasks(){
     const prompt=`Event: "${title||'Unnamed Event'}"\nDescription: ${desc||'A club event'}\n\nGenerate 4-6 specific volunteer tasks for members to sign up for. Each task must be concrete and doable by a student. Return ONLY a JSON array, no commentary:\n[{"title":"...","desc":"...","slots":1,"skills":["skill1","skill2"],"competency":"marketing|finance|tech|leadership|research|creative|community"},...]`;
     const res=await callGroq('You are a college club event coordinator. Generate specific, actionable volunteer tasks for events. Return only a valid JSON array. No explanation, no markdown, just the array.',prompt,[], 800);
     let tasks;
-    try{const m=res.match(/\[[\s\S]*\]/);tasks=JSON.parse(m?m[0]:res);}catch(e){throw new Error('AI returned unexpected format — try again');}
+    try{
+      const cleaned=res.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+      const m=cleaned.match(/\[[\s\S]*\]/);
+      tasks=JSON.parse(m?m[0]:cleaned);
+    }catch(e){throw new Error('AI returned unexpected format — try again');}
     if(!Array.isArray(tasks)||!tasks.length)throw new Error('No tasks generated');
     S.aiEventTasks=tasks.map(t=>({title:t.title||'Task',desc:t.desc||t.description||'',slots:Math.max(1,Math.min(20,parseInt(t.slots)||1)),skills:Array.isArray(t.skills)?t.skills:[],competency:t.competency||'leadership'}));
     toast(`InvoAI created ${S.aiEventTasks.length} tasks! Review and edit below.`,'ok');
