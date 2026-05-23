@@ -763,6 +763,7 @@ function renderDashboard(){
     );
     const pendingReview=myEventTasks.filter(({sub})=>sub?.status==='pending_review');
     const notSubmitted=myEventTasks.filter(({sub})=>!sub);
+    const rejected=myEventTasks.filter(({sub})=>sub?.status==='rejected');
     const approved=myEventTasks.filter(({sub})=>sub?.status==='approved');
 
     const openOpportunities=S.clubEvents.flatMap(ev=>
@@ -771,15 +772,16 @@ function renderDashboard(){
     ).slice(0,6);
 
     const evTaskCard=({ev,task,sub})=>{
-      const statusColor=sub?.status==='approved'?'#059669':sub?.status==='pending_review'?'#D97706':'var(--forest)';
-      const statusLabel=sub?.status==='approved'?'✅ Approved':sub?.status==='pending_review'?'⏳ Under Review':'📤 Needs Submission';
+      const statusColor=sub?.status==='approved'?'#059669':sub?.status==='pending_review'?'#D97706':sub?.status==='rejected'?'#DC2626':'var(--forest)';
+      const statusLabel=sub?.status==='approved'?'✅ Approved':sub?.status==='pending_review'?'⏳ Under Review':sub?.status==='rejected'?'❌ Needs Revision':'📤 Needs Submission';
       return`<div style="background:var(--card);border:1.5px solid var(--sand);border-left:4px solid ${statusColor};border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${task.title}</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">${ev.icon} ${ev.title}</div>
           <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}</div>
+          ${sub?.officerFeedback?`<div style="font-size:12px;color:var(--ink);margin-top:5px;background:#FEF9C3;border-radius:6px;padding:6px 8px">💬 <strong>Officer:</strong> ${sub.officerFeedback}</div>`:''}
         </div>
-        ${!sub?`<button class="btn btn-pri btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">Submit Work →</button>`
+        ${!sub||sub.status==='rejected'?`<button class="btn btn-pri btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">Submit Work →</button>`
           :sub.status==='pending_review'?`<button class="btn btn-ghost btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">View →</button>`
           :`<button class="btn btn-ghost btn-sm" onclick="nav('resume')">See Bullets →</button>`}
       </div>`;
@@ -795,6 +797,9 @@ function renderDashboard(){
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">🔄</div><div class="stat-val" style="color:var(--terra)">${notSubmitted.length+active.length}</div><div class="stat-lbl">In Progress</div></div>
       <div class="stat-card" style="border-top:3px solid var(--gold)"><div class="stat-ico">🎪</div><div class="stat-val" style="color:var(--gold)">${eventsJoined}</div><div class="stat-lbl">Events Joined</div></div>
     </div>
+    ${rejected.length?`
+      <div class="sec-row"><div class="sec-title" style="color:#DC2626">❌ Needs Revision (${rejected.length})</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${rejected.map(evTaskCard).join('')}</div>`:''}
     ${pendingReview.length?`
       <div class="sec-row"><div class="sec-title" style="color:#D97706">⏳ Under Review (${pendingReview.length})</div></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${pendingReview.map(evTaskCard).join('')}</div>`:''}
@@ -826,6 +831,27 @@ function renderDashboard(){
     const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
     const approved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
     const pendingTasks=S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review'));
+
+    // collect pending event task submissions
+    const pendingEvSubs=[];
+    S.clubEvents.forEach(ev=>{
+      (ev.tasks||[]).forEach(t=>{
+        (t.submissions||[]).filter(s=>s.status==='pending_review').forEach(s=>{
+          pendingEvSubs.push({ev,task:t,sub:s,member:getUser(s.userId)});
+        });
+      });
+    });
+
+    const evSubHtml=pendingEvSubs.map(({ev,task,sub,member})=>`
+      <div style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh);display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--stone);margin-bottom:2px">${ev.title} · ${task.title}</div>
+          <div style="font-size:13px;font-weight:800;color:var(--ink)">${member?.name||'Unknown'}</div>
+          <div style="font-size:12px;color:var(--stone);margin-top:2px">Submitted ${sub.submittedAt||''}</div>
+        </div>
+        <button class="btn btn-pri btn-sm" onclick="openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${task.id}',userId:'${sub.userId}'})">Review →</button>
+      </div>`).join('');
+
     const taskRequestsHtml=S.taskRequests.filter(r=>r.status!=='dismissed').length?S.taskRequests.filter(r=>r.status!=='dismissed').map(req=>{
       const requester=S.users.find(u=>u.id===req.userId)||S.usersList.find(u=>u.id===req.userId);
       return`<div class="request-card">
@@ -850,11 +876,12 @@ function renderDashboard(){
     <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Manage tasks, review submissions, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
     <div class="stat-grid">
       <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
-      <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending}</div><div class="stat-lbl">Needs Review</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending+pendingEvSubs.length}</div><div class="stat-lbl">Needs Review</div></div>
       <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Tasks Approved</div></div>
     </div>
-    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review</div></div><div class="task-grid">${pendingTasks.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}
+    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review — General Tasks</div></div><div class="task-grid">${pendingTasks.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}
+    ${pendingEvSubs.length?`<div class="sec-row" style="margin-top:${pendingTasks.length?'8':'0'}px"><div class="sec-title" style="color:var(--sky)">Pending Review — Event Tasks</div><span style="font-size:12px;color:var(--stone)">${pendingEvSubs.length} submission${pendingEvSubs.length!==1?'s':''}</span></div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${evSubHtml}</div>`:''}
     <div class="sec-row" style="margin-top:8px"><div class="sec-title">Task Requests</div><span style="font-size:12px;color:var(--stone)">${S.taskRequests.length} request${S.taskRequests.length!==1?'s':''}</span></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">${taskRequestsHtml}</div>`;
   }
@@ -1209,8 +1236,8 @@ ${(()=>{
     const sub=t.submissions?.find(s=>s.userId===u.id);
     if(!sub)return null;
     const bullets=sub.resumeBullets||[];
-    const statusColor=sub.status==='approved'?'#059669':sub.status==='pending_review'?'#D97706':'#6B7280';
-    const statusLabel=sub.status==='approved'?'✅ Approved':sub.status==='pending_review'?'⏳ Under Review':'📝 Submitted';
+    const statusColor=sub.status==='approved'?'#059669':sub.status==='pending_review'?'#D97706':sub.status==='rejected'?'#DC2626':'#6B7280';
+    const statusLabel=sub.status==='approved'?'✅ Approved':sub.status==='pending_review'?'⏳ Under Review':sub.status==='rejected'?'❌ Needs Revision':'📝 Submitted';
     return`<div class="pe-card" style="border-left:3px solid ${statusColor}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
       <div style="flex:1">
@@ -1218,12 +1245,13 @@ ${(()=>{
         <div style="font-size:11px;color:var(--muted);margin-top:2px">📅 ${ev.title}</div>
         <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}</div>
       </div>
-      ${sub.status!=='pending_review'?`<button class="btn btn-ghost btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">Resubmit</button>`:''}
+      ${sub.status==='rejected'?`<button class="btn btn-pri btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">Resubmit →</button>`:sub.status!=='pending_review'&&sub.status!=='approved'?`<button class="btn btn-ghost btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">Resubmit</button>`:''}
     </div>
+    ${sub.officerFeedback&&sub.status==='rejected'?`<div style="font-size:12px;background:#FEF9C3;border-radius:6px;padding:8px 10px;margin-top:8px;border-left:3px solid #D97706">💬 <strong>Officer feedback:</strong> ${sub.officerFeedback}</div>`:''}
     ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
       <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets</div>
       ${bullets.map(b=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:6px"><span style="color:var(--forest);font-weight:800;flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
-    </div>`:`<div style="margin-top:8px;font-size:12px;color:var(--muted)">Bullets will appear here after officer approval.</div>`}
+    </div>`:`<div style="margin-top:8px;font-size:12px;color:var(--muted)">${sub.status==='rejected'?'Fix and resubmit to generate bullets.':'Bullets will appear here after officer approval.'}</div>`}
     ${sub.aiSkills?.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${sub.aiSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
     </div>`;
   }).filter(Boolean));
@@ -1558,6 +1586,44 @@ function renderModal(){
       <div class="fg"><label class="fl">Feedback for student (optional)</label><textarea class="fta" id="reviewFeedback" placeholder="Leave feedback for the student (optional)..." rows="3" style="width:100%;min-height:70px">${sub.officerFeedback||''}</textarea></div>
     </div>
     <div class="modal-ftr"><button class="btn btn-danger" onclick="rejectSub('${d}','${sub.userId}')">Reject</button><button class="btn btn-ghost" onclick="closeModal()">Later</button><button class="btn btn-teal" onclick="approveSub('${d}','${sub.userId}')">✓ Approve</button></div>`;
+  }
+
+  else if(m==='reviewEventTask'){
+    const {evId,taskId,userId}=d||{};
+    const ev=S.clubEvents.find(e=>e.id===evId);
+    const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+    const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+    const member=getUser(userId);
+    if(!ev||!task||!sub){html=`<div class="modal-hdr"><div class="modal-ttl">Not found</div><button class="close-btn" onclick="closeModal()">×</button></div><div class="modal-body"><p>Submission not found.</p></div>`;}
+    else{
+      html=`<div class="modal-hdr"><div class="modal-ttl">⚖️ Review Event Submission</div><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:3px">Submitted by <strong>${member?.name||userId}</strong></div>
+        <div style="font-size:11px;color:var(--stone);margin-bottom:10px">📅 ${ev.title} › ${task.title}</div>
+        <div style="background:#F8F7FF;border-radius:var(--rsm);padding:14px;margin-bottom:14px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">📝 Work Description</div>
+          <div style="font-size:13px;line-height:1.6">${sub.work||'—'}</div>
+          ${sub.fileName?`<div style="margin-top:8px"><span class="file-attached">📎 ${sub.fileName}</span></div>`:''}
+          ${sub.docLink?`<div style="margin-top:8px"><a href="${sub.docLink}" target="_blank" class="file-attached">🔗 Google Doc</a></div>`:''}
+          ${sub.resumeBullets?.length?`<div style="margin-top:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 12px">
+            <div style="font-size:11px;font-weight:700;color:var(--forest);margin-bottom:5px">📄 RESUME BULLETS</div>
+            ${sub.resumeBullets.map(b=>`<div style="font-size:12px;margin-bottom:4px;line-height:1.5">• ${b}</div>`).join('')}
+          </div>`:''}
+        </div>
+        ${sub.aiSkills?.length?`<div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">✨ AI-DETECTED SKILLS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${sub.aiSkills.map(s=>`<span class="sk-tag" style="background:#D1FAE5;color:#065F46">${s}</span>`).join('')}</div>
+        </div>`:''}
+        ${task.skills?.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px">Task skills awarded on approval:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
+        <div class="fg"><label class="fl">Feedback for member (optional)</label><textarea class="fta" id="evReviewFeedback" placeholder="Great work! You could also..." rows="3" style="width:100%;min-height:70px">${sub.officerFeedback||''}</textarea></div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-danger" onclick="rejectEventSub('${evId}','${taskId}','${userId}')">Reject</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Later</button>
+        <button class="btn btn-teal" onclick="approveEventSub('${evId}','${taskId}','${userId}')">✓ Approve</button>
+      </div>`;
+    }
   }
 
   else if(m==='portfolio'){
@@ -1972,7 +2038,11 @@ function renderEventDetail(){
     }).join('');
 
     let actionBtn='';
-    if(u.role==='member'||u.role==='advisor'){
+    if(u.role==='officer'){
+      const pendingSubs=(t.submissions||[]).filter(s=>s.status==='pending_review');
+      if(pendingSubs.length)
+        actionBtn=`<button class="btn btn-pri btn-sm" onclick="openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${t.id}',userId:'${pendingSubs[0].userId}'})" style="background:var(--sky)">⚖️ Review (${pendingSubs.length})</button>`;
+    } else if(u.role==='member'||u.role==='advisor'){
       const myEvSub=t.submissions?.find(s=>s.userId===u.id);
       if(isMine){
         if(!myEvSub)
@@ -2839,6 +2909,37 @@ function rejectSub(taskId,userId){
   const sub=t.submissions.find(s=>s.userId===userId);
   const feedback=document.getElementById('reviewFeedback')?.value||'';
   sub.status='claimed';sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
+  if(feedback)sub.officerFeedback=feedback;
+  closeModal();toast('Submission rejected. Member can revise and resubmit.','');
+}
+
+function approveEventSub(evId,taskId,userId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+  const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+  if(!sub)return;
+  const feedback=document.getElementById('evReviewFeedback')?.value||'';
+  sub.status='approved';
+  if(feedback)sub.officerFeedback=feedback;
+  const member=getUser(userId);
+  if(member){
+    const allSkills=[...new Set([...(task.skills||[]),...(sub.aiSkills||[])])];
+    allSkills.forEach(s=>{if(!member.skills.includes(s))member.skills.push(s)});
+    member.xp=(member.xp||0)+200;
+  }
+  me().tasksApproved=(me().tasksApproved||0)+1;
+  closeModal();
+  toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+}
+
+function rejectEventSub(evId,taskId,userId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+  const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+  if(!sub)return;
+  const feedback=document.getElementById('evReviewFeedback')?.value||'';
+  sub.status='rejected';
+  sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
   if(feedback)sub.officerFeedback=feedback;
   closeModal();toast('Submission rejected. Member can revise and resubmit.','');
 }
