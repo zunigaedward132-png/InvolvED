@@ -1152,25 +1152,51 @@ ${careerIdentityCard}
   </div>
   ${u.skills.length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${u.skills.map(s=>{const li=LINKEDIN_SKILL_MAP[s];return li?`<span class="li-skill-tag" title="Category: ${li.liCategory}">${li.liKeyword}</span>`:''}).filter(Boolean).join('')}</div>`:'<div style="font-size:13px;color:#6366F1">Complete tasks to earn LinkedIn keyword skills.</div>'}
 </div>
-<div class="sec-title">📁 Portfolio Entries</div>
-${done.length?done.map(task=>{
-  const e=u.portfolioEntries.find(e=>e.taskId===task.id);
-  const sub=task.submissions.find(s=>s.userId===u.id&&s.status==='approved');
-  const bullets=sub?.resumeBullets||[];
-  return`<div class="pe-card">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-    <div style="flex:1">
-      <div class="pe-title">${task.title}</div>
-      ${e?`<div class="pe-text">${e.text}</div>`:`<div class="pe-empty">No entry yet — describe what you did!</div>`}
+<div class="sec-title">📁 Resume Portfolio</div>
+${(()=>{
+  // General tasks with approved submissions
+  const generalCards=done.map(task=>{
+    const e=u.portfolioEntries.find(e=>e.taskId===task.id);
+    const sub=task.submissions.find(s=>s.userId===u.id&&s.status==='approved');
+    const bullets=sub?.resumeBullets||[];
+    return`<div class="pe-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+      <div style="flex:1"><div class="pe-title">${task.title}</div>${e?`<div class="pe-text">${e.text}</div>`:`<div class="pe-empty">No notes yet</div>`}</div>
+      <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add Note'}</button>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add'}</button>
-  </div>
-  ${bullets.length?`<div style="margin-top:10px;background:#EEF4EC;border-radius:var(--rsm);padding:10px 12px">
-    <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">📄 Resume Bullets</div>
-    ${bullets.map(b=>`<div style="display:flex;gap:6px;font-size:12px;line-height:1.6;margin-bottom:4px"><span style="color:var(--forest);flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
-  </div>`:`<div style="margin-top:8px"><button class="btn btn-ai btn-sm" onclick="openModal('submit','${task.id}')">Generate Bullets</button></div>`}
-  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}<span class="xp-chip">+${task.xp} XP</span></div>
-</div>`;}).join(''):`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">No completed tasks yet</div><div>Complete tasks to add entries.</div></div>`}`;
+    ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
+      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets</div>
+      ${bullets.map(b=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:6px"><span style="color:var(--forest);font-weight:800;flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
+    </div>`:`<div style="margin-top:8px"><button class="btn btn-ai btn-sm" onclick="openModal('submit','${task.id}')">🤖 Generate Bullets</button></div>`}
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
+    </div>`;
+  });
+  // Event tasks with submissions (any status, show bullets if available)
+  const eventCards=S.clubEvents.flatMap(ev=>ev.tasks.map(t=>{
+    const sub=t.submissions?.find(s=>s.userId===u.id);
+    if(!sub)return null;
+    const bullets=sub.resumeBullets||[];
+    const statusColor=sub.status==='approved'?'#059669':sub.status==='pending_review'?'#D97706':'#6B7280';
+    const statusLabel=sub.status==='approved'?'✅ Approved':sub.status==='pending_review'?'⏳ Under Review':'📝 Submitted';
+    return`<div class="pe-card" style="border-left:3px solid ${statusColor}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+      <div style="flex:1">
+        <div class="pe-title">${t.title}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">📅 ${ev.title}</div>
+        <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}</div>
+      </div>
+      ${sub.status!=='pending_review'?`<button class="btn btn-ghost btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">Resubmit</button>`:''}
+    </div>
+    ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
+      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets</div>
+      ${bullets.map(b=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:6px"><span style="color:var(--forest);font-weight:800;flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
+    </div>`:`<div style="margin-top:8px;font-size:12px;color:var(--muted)">Bullets will appear here after officer approval.</div>`}
+    ${sub.aiSkills?.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${sub.aiSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
+    </div>`;
+  }).filter(Boolean));
+  const all=[...generalCards,...eventCards];
+  return all.length?all.join(''):`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">No submissions yet</div><div>Sign up for event tasks and submit your work to build your resume portfolio.</div></div>`;
+})()}`;
 }
 
 // ── ADD ME ────────────────────────────────────────────
@@ -1397,6 +1423,75 @@ function renderModal(){
         <div class="modal-ftr">
           <button class="btn btn-ghost" onclick="S.submitStep=1;render()">← Back</button>
           <button class="btn btn-teal" onclick="generateBulletsAndSubmit('${d}')">Generate Resume Bullets →</button>
+        </div>`;
+      }
+    }
+  }
+
+  else if(m==='submitEventTask'){
+    const {evId,taskId}=d||{};
+    const ev=S.clubEvents.find(e=>e.id===evId);
+    const task=ev?.tasks.find(t=>t.id===taskId);
+    if(!task){html=`<div class="modal-hdr"><div class="modal-ttl">Error</div><button class="close-btn" onclick="closeModal()">×</button></div><div class="modal-body">Task not found.</div>`;
+    }else if(S.submitStep===1){
+      html=`<div class="modal-hdr"><div class="modal-ttl">📤 Submit Your Work</div><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:16px">
+          <div style="font-weight:800;font-size:14px;color:var(--forest)">📌 ${task.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">${task.desc}</div>
+          <div style="font-size:11px;color:var(--stone);margin-top:4px">Event: ${ev.title}</div>
+        </div>
+        <div class="submit-tab-toggle">
+          <button class="submit-tab-btn${S.submitFileMode==='file'?' active':''}" onclick="S.submitFileMode='file';render()">📎 Upload File</button>
+          <button class="submit-tab-btn${S.submitFileMode==='link'?' active':''}" onclick="S.submitFileMode='link';render()">🔗 Google Docs Link</button>
+        </div>
+        ${S.submitFileMode==='file'?`<div class="fg">
+          <div class="file-input-wrap" onclick="document.getElementById('fileIn2').click()">
+            <input type="file" id="fileIn2" accept=".pdf,.doc,.docx" onchange="handleFile2(this)">
+            <div id="fileLbl2" style="color:var(--muted);font-size:13px">📎 Click to attach PDF or Word doc</div>
+          </div>
+          <div style="font-size:11px;color:var(--stone);margin-top:5px">PDF or Word document only</div>
+        </div>`:`<div class="fg">
+          <label class="fl">Google Docs URL</label>
+          <input class="fi" id="googleDocLink2" placeholder="https://docs.google.com/..." value="${S.submitDocLink||''}">
+          <div style="font-size:11px;color:var(--stone);margin-top:4px">Must be a Google Docs link</div>
+        </div>`}
+        <div class="fg">
+          <label class="fl">What did you do? Be specific. *</label>
+          <textarea class="fta" id="workText2" rows="4" placeholder="Describe exactly what you contributed, any results, and the impact on the event or club...">${S.submitDesc||''}</textarea>
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-teal" onclick="proceedEventSubmitStep2('${evId}','${taskId}')">Continue with InvoAI →</button>
+      </div>`;
+    }else{
+      const analysis=S.submitAnalysis;
+      const isAnalyzing=S.submitAnalyzing;
+      if(isAnalyzing){
+        html=`<div class="modal-hdr"><div class="modal-ttl">🤖 InvoAI Analyzing…</div><button class="close-btn" onclick="closeModal()">×</button></div>
+        <div class="modal-body" style="text-align:center;padding:40px 24px">
+          <div class="ai-loading-row" style="justify-content:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div style="font-size:13px;color:var(--stone);margin-top:14px">InvoAI is reading your submission and building targeted questions…</div>
+        </div>`;
+      }else{
+        const questions=analysis?.metrics_questions||['How many people were impacted?','What was the measurable outcome or result?','How much time or effort did you invest?'];
+        const skills=analysis?.skills_detected||[];
+        html=`<div class="modal-hdr"><div class="modal-ttl">📊 Prove Your Impact</div><button class="close-btn" onclick="closeModal()">×</button></div>
+        <div class="modal-body">
+          <div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--forest2)">
+            <strong>Why this matters:</strong> Specific numbers make your resume bullet 3× more credible to employers. InvoAI will craft professional bullets from your answers.
+          </div>
+          ${skills.length?`<div class="fg"><label class="fl">✨ Competencies Detected (tap to deselect)</label><div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${skills.map((s,i)=>`<button type="button" class="ai-skill-chip" id="dskill2_${i}" onclick="this.classList.toggle('off')">${s}</button>`).join('')}
+          </div></div>`:''}
+          <div class="fg"><label class="fl" style="font-weight:800">${questions[0]}</label><input class="fi" id="evmetric0" placeholder="e.g. 80 attendees, 5 volunteers, 3 departments…"></div>
+          <div class="fg"><label class="fl" style="font-weight:800">${questions[1]}</label><input class="fi" id="evmetric1" placeholder="e.g. raised $500, completed in 2 hours, 95% satisfaction…"></div>
+          <div class="fg"><label class="fl" style="font-weight:800">${questions[2]}</label><input class="fi" id="evmetric2" placeholder="e.g. 6 hours over 2 weeks, led a team of 4…"></div>
+        </div>
+        <div class="modal-ftr">
+          <button class="btn btn-ghost" onclick="S.submitStep=1;render()">← Back</button>
+          <button class="btn btn-ai" onclick="generateEventBulletsAndSubmit('${evId}','${taskId}')">🤖 Generate Resume Bullets →</button>
         </div>`;
       }
     }
@@ -1845,7 +1940,18 @@ function renderEventDetail(){
 
     let actionBtn='';
     if(u.role==='member'||u.role==='advisor'){
-      if(isMine) actionBtn=`<button class="btn btn-ghost btn-sm" onclick="withdrawEventTask('${ev.id}','${t.id}')">Withdraw</button>`;
+      const myEvSub=t.submissions?.find(s=>s.userId===u.id);
+      if(isMine){
+        if(!myEvSub)
+          actionBtn=`<button class="btn btn-ghost btn-sm" onclick="withdrawEventTask('${ev.id}','${t.id}')">Withdraw</button>
+                     <button class="btn btn-pri btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">📤 Submit Work</button>`;
+        else if(myEvSub.status==='pending_review')
+          actionBtn=`<span class="s-chip s-review">⏳ Under Review</span>`;
+        else if(myEvSub.status==='approved')
+          actionBtn=`<span class="s-chip s-approved">✅ Approved</span>`;
+        else
+          actionBtn=`<button class="btn btn-pri btn-sm" onclick="openModal('submitEventTask',{evId:'${ev.id}',taskId:'${t.id}'})">📤 Resubmit</button>`;
+      }
       else if(!isFull) actionBtn=`<button class="btn btn-teal btn-sm" onclick="signupEventTask('${ev.id}','${t.id}')">Sign Up</button>`;
       else actionBtn=`<button class="btn btn-ghost btn-sm" disabled>Full</button>`;
     }
@@ -2554,6 +2660,79 @@ async function generateBulletsAndSubmit(taskId){
   S.pendingFile=null;S.pendingAISkills=[];S.submitDocLink=null;
   closeModal();
   toast('Submitted with resume bullets! Officer will review soon. 🚀','ok');
+}
+
+async function proceedEventSubmitStep2(evId,taskId){
+  const desc=document.getElementById('workText2')?.value?.trim();
+  if(!desc){toast('Describe what you did first','err');return}
+  if(S.submitFileMode==='file'&&!S.pendingFile){toast('Please attach a file','err');return}
+  if(S.submitFileMode==='link'){
+    const link=document.getElementById('googleDocLink2')?.value?.trim();
+    if(!link||!link.includes('docs.google.com')){toast('Please enter a valid Google Docs link','err');return}
+    S.submitDocLink=link;
+  }
+  S.submitDesc=desc;
+  S.submitStep=2;
+  S.submitAnalyzing=true;
+  render();
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=ev?.tasks.find(t=>t.id===taskId);
+  try{
+    const res=await callGroq(
+      'You analyze student work submissions for professional resume building. Return ONLY valid JSON.',
+      `Task: "${task?.title||'Event task'}"\nEvent: "${ev?.title||'Club event'}"\nTask description: ${task?.desc||''}\nStudent submission: ${desc}\n\nAnalyze this and return JSON: {"skills_detected":["skill1","skill2","skill3"],"metrics_questions":["specific question about scale/impact","specific question about outcome/result","specific question about process/time invested"]}`,
+      [],400
+    );
+    let parsed;
+    try{const m=res.replace(/```json|```/g,'').trim();parsed=JSON.parse(m.match(/\{[\s\S]*\}/)?.[0]||m);}
+    catch{parsed={skills_detected:[],metrics_questions:['How many people were impacted?','What was the measurable result or outcome?','How long did this take and what was your role?']};}
+    S.submitAnalysis=parsed;
+  }catch(e){
+    S.submitAnalysis={skills_detected:[],metrics_questions:['How many people were impacted?','What was the measurable result?','How long did this take?']};
+  }
+  S.submitAnalyzing=false;
+  render();
+}
+
+async function generateEventBulletsAndSubmit(evId,taskId){
+  const m0=document.getElementById('evmetric0')?.value?.trim()||'not provided';
+  const m1=document.getElementById('evmetric1')?.value?.trim()||'not provided';
+  const m2=document.getElementById('evmetric2')?.value?.trim()||'not provided';
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=ev?.tasks.find(t=>t.id===taskId);
+  if(!task)return;
+  const confirmedSkills=[...document.querySelectorAll('.ai-skill-chip:not(.off)')].map(c=>c.textContent.trim());
+  const questions=S.submitAnalysis?.metrics_questions||[];
+
+  toast('InvoAI is writing your resume bullets…','');
+  let bullets=[];
+  try{
+    const res=await callGroq(
+      'You are a professional resume writer for college students. Generate EXACTLY 3 powerful resume bullets. Return ONLY a JSON array of 3 strings. No markdown.',
+      `Event: "${ev.title}"\nTask: "${task.title}"\nRole/contribution: ${S.submitDesc}\n\n${questions[0]||'Impact'}: ${m0}\n${questions[1]||'Outcome'}: ${m1}\n${questions[2]||'Effort'}: ${m2}\n\nSkills demonstrated: ${confirmedSkills.join(', ')||'teamwork, communication'}\n\nWrite EXACTLY 3 resume bullets. Each must: start with a strong past-tense action verb, include specific metrics from above, show professional competency and real impact. Be concise (1-2 sentences each).\nReturn as JSON array: ["bullet1","bullet2","bullet3"]`,
+      [],500
+    );
+    try{const match=res.replace(/```json|```/g,'').trim().match(/\[[\s\S]*\]/);bullets=JSON.parse(match?match[0]:res);}
+    catch{bullets=[res.split('\n').filter(l=>l.trim())[0]];}
+    if(!Array.isArray(bullets))bullets=[String(bullets)];
+    bullets=bullets.slice(0,3);
+  }catch(e){bullets=['Contributed to '+task.title+' for '+ev.title];}
+
+  if(!task.submissions)task.submissions=[];
+  const existing=task.submissions.find(s=>s.userId===S.uid);
+  const submission={userId:S.uid,work:S.submitDesc,fileName:S.pendingFile?.name||null,docLink:S.submitDocLink||null,aiSkills:confirmedSkills,resumeBullets:bullets,status:'pending_review',submittedAt:new Date().toLocaleDateString()};
+  if(existing){Object.assign(existing,submission);}else{task.submissions.push(submission);}
+
+  // Also save to backend for Career Ready tracking
+  const u=me();
+  try{
+    await fetch(`${API_URL}/activities`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_id:u.id,title:task.title+' — '+ev.title,raw_submission:S.submitDesc,category:task.competency||'general'})});
+  }catch(e){}
+
+  S.pendingFile=null;S.submitDocLink=null;
+  closeModal();
+  toast('Submitted! InvoAI built your resume bullets. Officer will review soon. 🚀','ok');
 }
 
 async function submitWork(taskId){
