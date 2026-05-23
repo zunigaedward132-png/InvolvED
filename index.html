@@ -1472,7 +1472,7 @@ function renderModal(){
       </div>
       ${S.aiEventTasks.map((t,i)=>`<div style="background:var(--cream);border:1.5px solid var(--sand);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px">
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input class="fi" style="flex:1;padding:7px 10px;font-size:13px" value="${t.title.replace(/"/g,'&quot;')}" oninput="S.aiEventTasks[${i}].title=this.value" placeholder="Task title">
+          <input class="fi" style="flex:1;padding:7px 10px;font-size:13px" value="${(t.title||'').replace(/"/g,'&quot;')}" oninput="S.aiEventTasks[${i}].title=this.value" placeholder="Task title">
           <button onclick="S.aiEventTasks.splice(${i},1);render()" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:18px;padding:2px 6px;flex-shrink:0">✕</button>
         </div>
         <textarea class="fta" style="min-height:50px;font-size:12px;margin-bottom:8px" oninput="S.aiEventTasks[${i}].desc=this.value">${t.desc}</textarea>
@@ -3166,7 +3166,13 @@ async function aiGenerateEventTasks(){
       tasks=JSON.parse(m?m[0]:cleaned);
     }catch(e){throw new Error('AI returned unexpected format — try again');}
     if(!Array.isArray(tasks)||!tasks.length)throw new Error('No tasks generated');
-    S.aiEventTasks=tasks.map(t=>({title:t.title||'Task',desc:t.desc||t.description||'',slots:Math.max(1,Math.min(20,parseInt(t.slots)||1)),skills:Array.isArray(t.skills)?t.skills:[],competency:t.competency||'leadership'}));
+    S.aiEventTasks=tasks.map(t=>({
+      title:String(t.title||t.name||t.task_title||t.task||'Task'),
+      desc:String(t.desc||t.description||t.details||t.task_description||''),
+      slots:Math.max(1,Math.min(20,parseInt(t.slots||t.capacity||t.num_slots||t.members_needed)||1)),
+      skills:Array.isArray(t.skills)?t.skills:Array.isArray(t.required_skills)?t.required_skills:typeof t.skills==='string'?[t.skills]:[],
+      competency:t.competency||t.category||t.area||'leadership'
+    }));
     toast(`InvoAI created ${S.aiEventTasks.length} tasks! Review and edit below.`,'ok');
   }catch(e){
     S.aiEventTasks=[];
