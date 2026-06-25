@@ -1,0 +1,9 @@
+{
+  "name": "irc-rfa-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone RFA drafting assistant for IRC grant applications",
+  "dependencies": {
+    "groq-sdk": "^0.13.0"
+  }
+}
