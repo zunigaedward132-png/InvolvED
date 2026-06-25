@@ -68,13 +68,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stat-card{background:var(--card);border-radius:var(--r);padding:22px;border:1px solid var(--sand);box-shadow:var(--sh);cursor:default;transition:transform .25s cubic-bezier(.25,.46,.45,.94),box-shadow .25s}
 .stat-card:hover{transform:translateY(-3px);box-shadow:var(--shmd)}
 .stat-val{font-size:36px;font-weight:900;line-height:1;letter-spacing:-1px}
+.check-spring{display:inline-block;animation:checkSpring .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes checkSpring{0%{transform:scale(.3);opacity:0}55%{transform:scale(1.25)}80%{transform:scale(.92)}100%{transform:scale(1);opacity:1}}
+.approve-flash{animation:approveFlash .7s ease}
+@keyframes approveFlash{0%{background:var(--card)}30%{background:#E3F4E8}100%{background:var(--card)}}
 .stat-lbl{font-size:12px;color:var(--stone);margin-top:6px;font-weight:500;letter-spacing:.2px}
 .stat-ico{font-size:24px;margin-bottom:8px}
 
 /* ── TASK CARDS ── */
 .task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:24px}
-.tcard{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.25,.46,.45,.94),box-shadow .28s;min-height:240px;border:1px solid var(--sand)}
+.tcard{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.25,.46,.45,.94),box-shadow .28s;min-height:240px;border:1px solid var(--sand);animation:tcardIn .4s cubic-bezier(.25,.46,.45,.94) both}
 .tcard:hover{transform:translateY(-5px) scale(1.01);box-shadow:var(--shmd)}
+.tcard.tcard-leaving{animation:tcardOut .4s cubic-bezier(.25,.46,.45,.94) forwards;pointer-events:none}
+@keyframes tcardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tcardOut{0%{opacity:1;transform:scale(1)}60%{opacity:.4;transform:scale(.92) translateX(18px)}100%{opacity:0;transform:scale(.85) translateX(40px)}}
 .tcard-top{height:5px}
 .tcard-body{padding:18px;display:flex;flex-direction:column;flex:1}
 .tcard-cat-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
@@ -91,13 +98,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .s-open{background:#E8F0EB;color:var(--forest2)}
 .s-claimed{background:#FEF6E4;color:var(--gold)}
 .s-review{background:#E8EEF5;color:var(--sky)}
-.s-approved{background:#E8F0EB;color:var(--green)}
+.s-approved{background:#E8F0EB;color:var(--green);animation:checkSpring .5s cubic-bezier(.34,1.56,.64,1) both}
 .s-full{background:var(--cream2);color:var(--stone)}
 .sk-tag{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--cream2);color:var(--forest2);font-weight:600;border:1px solid var(--sand)}
 
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--rsm);font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:all .22s cubic-bezier(.25,.46,.45,.94);line-height:1;font-family:inherit;letter-spacing:.1px}
+.btn:hover:not(:disabled){box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .btn:active{transform:scale(.97)!important}
 .btn-pri{background:var(--forest);color:#fff;box-shadow:0 2px 8px rgba(30,58,47,.3)}
 .btn-pri:hover{background:var(--forest2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(30,58,47,.35)}
@@ -702,10 +710,17 @@ function renderLogin(){
       <div class="fg"><label class="fl">Last Name</label><input class="fi" id="aLN" placeholder="Rivera"></div>
       <div class="fg"><label class="fl">Password</label><input class="fi" id="aPW" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()"></div>
       <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:4px" onclick="authLogin()">Sign In →</button>
-      <div style="margin-top:18px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--rsm);padding:12px 14px">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--forest);margin-bottom:8px">🧪 Demo Accounts — password: demo123</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">
-          ${S.users.map(du=>{const parts=du.name.split(' ');return`<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 9px" onclick="document.getElementById('aFN').value='${parts[0]}';document.getElementById('aLN').value='${parts.slice(1).join(' ')}';document.getElementById('aPW').value='demo123';authLogin()">${du.role==='officer'?'👑 ':''}${du.name}</button>`;}).join('')}
+      <div style="margin-top:18px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--stone);margin-bottom:8px;text-align:center">— or jump right in —</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-pri" style="flex-direction:column;padding:16px 10px;gap:4px" onclick="previewLogin('officer')">
+            <span style="font-size:22px">👑</span>
+            <span>Preview as Officer</span>
+          </button>
+          <button class="btn btn-teal" style="flex-direction:column;padding:16px 10px;gap:4px" onclick="previewLogin('member')">
+            <span style="font-size:22px">🙋</span>
+            <span>Preview as Member</span>
+          </button>
         </div>
       </div>
     `:`
@@ -816,7 +831,7 @@ function renderDashboard(){
     ${notSubmitted.length?`
       <div class="sec-row"><div class="sec-title">📤 Needs Submission</div><button class="btn btn-ghost btn-sm" onclick="nav('events')">View Events →</button></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${notSubmitted.map(evTaskCard).join('')}</div>`:''}
-    ${active.length?`<div class="sec-title">My Active Tasks</div><div class="task-grid">${active.map(t=>taskCard(t)).join('')}</div>`:''}
+    ${active.length?`<div class="sec-title">My Active Tasks</div><div class="task-grid">${active.map((t,i)=>taskCard(t,i)).join('')}</div>`:''}
     ${approved.length?`
       <div class="sec-row"><div class="sec-title" style="color:#059669">✅ Approved Work</div><button class="btn btn-ghost btn-sm" onclick="nav('resume')">See Bullets →</button></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${approved.map(evTaskCard).join('')}</div>`:''}
@@ -915,7 +930,7 @@ function renderDashboard(){
       <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Tasks Approved</div></div>
     </div>
-    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review — General Tasks</div></div><div class="task-grid">${pendingTasks.slice(0,4).map(t=>taskCard(t)).join('')}</div>`:''}
+    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review — General Tasks</div></div><div class="task-grid">${pendingTasks.slice(0,4).map((t,i)=>taskCard(t,i)).join('')}</div>`:''}
     ${pendingEvSubs.length?`<div class="sec-row" style="margin-top:${pendingTasks.length?'8':'0'}px"><div class="sec-title" style="color:var(--sky)">Pending Review — Event Tasks</div><span style="font-size:12px;color:var(--stone)">${pendingEvSubs.length} submission${pendingEvSubs.length!==1?'s':''}</span></div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${evSubHtml}</div>`:''}
     <div class="sec-row" style="margin-top:8px"><div class="sec-title">Task Requests</div><span style="font-size:12px;color:var(--stone)">${S.taskRequests.length} request${S.taskRequests.length!==1?'s':''}</span></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">${taskRequestsHtml}</div>`;
@@ -934,7 +949,7 @@ function renderDashboard(){
 }
 
 // ── TASK CARD (SQUARE) ────────────────────────────────
-function taskCard(task){
+function taskCard(task,idx=0){
   const u=me();const cat=CAT[task.cat]||CAT.general;
   const st=taskStatus(task);const mySub=mySubmission(task);
   const active=task.submissions.filter(s=>s.status!=='rejected');
@@ -961,7 +976,7 @@ function taskCard(task){
   const feedbackBox=mySub?.officerFeedback&&(mySub.status==='pending_review'||mySub.status==='approved')
     ?`<div class="review-feedback-box">💬 <strong>Officer feedback:</strong> ${mySub.officerFeedback}</div>`
     :'';
-  return`<div class="tcard">
+  return`<div class="tcard" id="tcard-${task.id}" style="animation-delay:${Math.min(idx*60,480)}ms">
   <div class="tcard-top" style="background:${cat.c}"></div>
   <div class="tcard-body">
     <div class="tcard-cat-row">
@@ -1008,7 +1023,7 @@ function renderTasks(){
   ${u.role==='officer'?`<button class="btn btn-pri" onclick="openModal('createTask')">+ Create Task</button>`:''}
 </div>
 <div class="filter-row">${filters.map(([k,l])=>`<button class="ftab ${f===k?'active':''}" onclick="setF('${k}')">${l}</button>`).join('')}</div>
-${tasks.length?`<div class="task-grid">${tasks.map(t=>taskCard(t)).join('')}</div>`:`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Nothing here</div><div>Try a different filter.</div></div>`}`;
+${tasks.length?`<div class="task-grid">${tasks.map((t,i)=>taskCard(t,i)).join('')}</div>`:`<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Nothing here</div><div>Try a different filter.</div></div>`}`;
 }
 
 // ── BADGE GRID ────────────────────────────────────────
@@ -1970,6 +1985,22 @@ function render(){
   if(!S.uid){app.innerHTML=renderLogin();document.getElementById('aiFab').style.display='none';return}
   document.getElementById('aiFab').style.display='flex';
   app.innerHTML=`${renderTopbar()}<div class="app-body"><div class="main"><div class="main-inner">${renderView()}</div></div></div>${renderModal()}`;
+  animateStatVals();
+}
+
+function animateStatVals(){
+  document.querySelectorAll('.stat-val').forEach(el=>{
+    const target=parseInt(el.textContent,10);
+    if(isNaN(target)){return}
+    const dur=500;const start=performance.now();
+    function step(now){
+      const p=Math.min((now-start)/dur,1);
+      const eased=1-Math.pow(1-p,3);
+      el.textContent=Math.round(eased*target);
+      if(p<1)requestAnimationFrame(step);else el.textContent=target;
+    }
+    requestAnimationFrame(step);
+  });
 }
 
 function renderView(){
@@ -2376,6 +2407,16 @@ function renderFeed(){
 }
 
 // ── ACTIONS ───────────────────────────────────────────
+function previewLogin(role){
+  const du=S.users.find(u=>u.id===(role==='officer'?'u_edward':'u_sofia'))||S.users.find(u=>u.role===role);
+  if(!du){toast('Preview account not found','err');return}
+  const parts=du.name.split(' ');
+  document.getElementById('aFN').value=parts[0];
+  document.getElementById('aLN').value=parts.slice(1).join(' ');
+  document.getElementById('aPW').value='demo123';
+  authLogin();
+}
+
 async function authLogin(){
   const fn=document.getElementById('aFN')?.value?.trim();
   const ln=document.getElementById('aLN')?.value?.trim();
@@ -2944,8 +2985,22 @@ function approveSub(taskId,userId){
   const allSkills=[...new Set([...t.skills,...(sub.aiSkills||[])])];
   allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
   officer.tasksApproved=(officer.tasksApproved||0)+1;
-  closeModal();
-  toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`, 'ok');
+  playApproveSuccess(()=>{
+    closeModal();
+    toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`, 'ok');
+  });
+}
+
+function playApproveSuccess(then){
+  document.getElementById(`tcard-${S.modalData}`)?.classList.add('tcard-leaving');
+  const modal=document.querySelector('.modal');
+  if(!modal){then();return}
+  modal.classList.add('approve-flash');
+  modal.innerHTML=`<div class="modal-body" style="text-align:center;padding:56px 24px">
+    <div class="check-spring" style="font-size:56px">✅</div>
+    <div style="font-weight:800;font-size:16px;margin-top:14px;color:var(--forest)">Approved!</div>
+  </div>`;
+  setTimeout(then,650);
 }
 
 function rejectSub(taskId,userId){
@@ -2971,8 +3026,10 @@ function approveEventSub(evId,taskId,userId){
     allSkills.forEach(s=>{if(!member.skills.includes(s))member.skills.push(s)});
   }
   me().tasksApproved=(me().tasksApproved||0)+1;
-  closeModal();
-  toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+  playApproveSuccess(()=>{
+    closeModal();
+    toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+  });
 }
 
 function rejectEventSub(evId,taskId,userId){
