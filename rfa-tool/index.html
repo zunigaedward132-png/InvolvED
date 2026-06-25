@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRC RFA Drafting Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0F2A3F;--navy2:#16415F;--teal:#1F7A6C;--teal2:#2B9A86;
+  --bg:#F4F6F5;--card:#FFFFFF;--ink:#1A2530;--muted:#5C6B73;--border:#D7DEE0;
+  --warn:#A0522D;--good:#1F7A6C;--bad:#A8332A;
+  --r:10px;--sh:0 1px 3px rgba(15,42,63,.08),0 4px 12px rgba(15,42,63,.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;min-height:100vh}
+header{background:var(--navy);color:#fff;padding:18px 28px}
+header h1{font-size:19px;font-weight:800}
+header p{font-size:13px;color:#AFC4CE;margin-top:2px}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:22px;overflow:hidden}
+.step-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-head h2{font-size:15px;font-weight:700}
+.step-head .sub{font-size:12px;color:var(--muted);margin-left:auto}
+.step-body{padding:20px}
+.btn{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--teal2)}
+.btn:disabled{background:#A9B4B8;cursor:not-allowed}
+.btn.secondary{background:#fff;color:var(--navy);border:1px solid var(--border)}
+.btn.secondary:hover{background:#F0F3F4}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid var(--border)}
+.btn.danger:hover{background:#FBEFEC}
+.btn.small{padding:6px 11px;font-size:12px}
+input,textarea,select{width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff}
+textarea{resize:vertical;min-height:70px}
+label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+.field{margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dropzone{border:2px dashed var(--border);border-radius:var(--r);padding:36px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.dropzone:hover,.dropzone.drag{border-color:var(--teal);background:#F4FBF9}
+.dropzone .ic{font-size:28px;margin-bottom:8px}
+.muted{color:var(--muted);font-size:12.5px}
+.pill{display:inline-block;background:#E7F2EF;color:var(--teal);font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;margin:2px 4px 2px 0}
+.tag-row{margin-top:6px}
+.section-card{border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+.section-card .sname{font-weight:700;font-size:13.5px;margin-bottom:2px}
+.section-card .sdesc{font-size:12px;color:var(--muted);margin-bottom:10px}
+.row-actions{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.program-row{display:grid;grid-template-columns:1.2fr 1.4fr 1fr 1fr auto;gap:8px;align-items:start;border-bottom:1px solid var(--border);padding:10px 0}
+.program-row:last-child{border-bottom:none}
+.program-row input{font-size:12.5px}
+table.programs-head{width:100%;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;display:grid;grid-template-columns:1.2fr 1.4fr 1fr 1fr auto;gap:8px;padding-bottom:6px}
+.match-box{border-radius:8px;padding:16px;margin-top:14px}
+.match-box.pursue{background:#EAF7F1;border:1px solid #BFE3D2}
+.match-box.caution{background:#FDF4E3;border:1px solid #F0DBA8}
+.match-box.no{background:#FBEAE6;border:1px solid #ECC2B8}
+.score{font-size:32px;font-weight:900}
+.hidden{display:none !important}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:var(--sh);z-index:999;opacity:0;transform:translateY(8px);transition:all .2s}
+.toast.show{opacity:1;transform:translateY(0)}
+ul.bullets{padding-left:18px;font-size:12.5px;margin-top:4px}
+ul.bullets li{margin-bottom:2px}
+.disabled-note{font-size:12.5px;color:var(--muted);padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>IRC RFA Drafting Assistant</h1>
+  <p>Upload a grant opportunity, check it against current programs, and draft a response — section by section.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- STEP 1: UPLOAD -->
+  <div class="step">
+    <div class="step-head"><div class="step-num">1</div><h2>Upload the grant opportunity (PDF)</h2><span class="sub" id="fileLabel"></span></div>
+    <div class="step-body">
+      <div class="dropzone" id="dropzone">
+        <div class="ic">📄</div>
+        <div><strong>Click to upload</strong> or drag a PDF here</div>
+        <div class="muted">Text is extracted in your browser, then sent to AI to structure into an outline.</div>
+      </div>
+      <input type="file" id="fileInput" accept="application/pdf" class="hidden">
+      <div id="extractStatus" class="muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: EXTRACTED OUTLINE -->
+  <div class="step hidden" id="outlineStep">
+    <div class="step-head"><div class="step-num">2</div><h2>Opportunity outline</h2><span class="sub">Edit anything the AI got wrong</span></div>
+    <div class="step-body">
+      <div class="grid2">
+        <div class="field"><label>Funder</label><input id="f_funder"></div>
+        <div class="field"><label>Opportunity title</label><input id="f_title"></div>
+        <div class="field"><label>Deadline</label><input id="f_deadline"></div>
+        <div class="field"><label>Award ceiling</label><input id="f_ceiling"></div>
+        <div class="field"><label>Total funding amount</label><input id="f_total"></div>
+        <div class="field"><label>Focus areas (comma-separated)</label><input id="f_focus"></div>
+      </div>
+      <div class="field"><label>Eligibility summary</label><textarea id="f_eligibility"></textarea></div>
+      <div class="field"><label>Submission requirements (one per line)</label><textarea id="f_submission"></textarea></div>
+      <div class="field"><label>Evaluation criteria (one per line)</label><textarea id="f_evaluation"></textarea></div>
+      <div class="field">
+        <label>Required sections</label>
+        <div id="sectionsList"></div>
+        <button class="btn secondary small" id="addSectionBtn" type="button">+ Add section</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: PROGRAMS + MATCH -->
+  <div class="step hidden" id="matchStep">
+    <div class="step-head"><div class="step-num">3</div><h2>Is this a match for IRC?</h2><span class="sub">Compare against current programs/grants</span></div>
+    <div class="step-body">
+      <label>IRC current programs &amp; active grants</label>
+      <table class="programs-head"><tr><th>Name</th><th>Focus areas</th><th>Populations served</th><th>Geography</th><th></th></tr></table>
+      <div id="programsList"></div>
+      <button class="btn secondary small" id="addProgramBtn" type="button" style="margin-top:6px">+ Add program</button>
+
+      <div class="row-actions" style="margin-top:18px">
+        <button class="btn" id="checkMatchBtn" type="button">Check match</button>
+      </div>
+      <div id="matchResult"></div>
+    </div>
+  </div>
+
+  <!-- STEP 4: DRAFT -->
+  <div class="step hidden" id="draftStep">
+    <div class="step-head"><div class="step-num">4</div><h2>Draft the response</h2><span class="sub">Generate, then edit, each section</span></div>
+    <div class="step-body">
+      <div class="field"><label>Org / program context (used in every section draft)</label>
+        <textarea id="orgContext" placeholder="e.g. Proposing program: IRC [City] Economic Empowerment Program. Serves ~400 refugee &amp; asylum-seeking adults/year with job placement, ESL, and financial coaching. Key partners: ..."></textarea>
+      </div>
+      <div id="draftSections"></div>
+      <div class="row-actions" style="margin-top:10px">
+        <button class="btn secondary" id="exportBtn" type="button">Export draft (.md)</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+
+const LS_PROGRAMS = 'rfa_programs';
+const LS_SESSION = 'rfa_session';
+
+const S = {
+  opportunity: null,
+  programs: JSON.parse(localStorage.getItem(LS_PROGRAMS) || 'null') || [
+    { name: '', focus_areas: '', populations_served: '', geography: '', status: 'active' }
+  ],
+  drafts: {},
+  orgContext: '',
+};
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function saveSession(){
+  localStorage.setItem(LS_SESSION, JSON.stringify({ opportunity: S.opportunity, drafts: S.drafts, orgContext: S.orgContext }));
+}
+function saveProgramsLS(){
+  localStorage.setItem(LS_PROGRAMS, JSON.stringify(S.programs));
+}
+
+// ── STEP 1: PDF UPLOAD + EXTRACT ──────────────────────────
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+dropzone.addEventListener('click', ()=>fileInput.click());
+dropzone.addEventListener('dragover', e=>{e.preventDefault(); dropzone.classList.add('drag');});
+dropzone.addEventListener('dragleave', ()=>dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e=>{
+  e.preventDefault(); dropzone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+async function handleFile(file){
+  if (file.type !== 'application/pdf'){ toast('Please upload a PDF file'); return; }
+  document.getElementById('fileLabel').textContent = file.name;
+  const statusEl = document.getElementById('extractStatus');
+  statusEl.textContent = 'Reading PDF…';
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it=>it.str).join(' ') + '\n';
+    }
+    if (!text.trim()){ statusEl.textContent = 'Could not extract any text from this PDF (it may be scanned/image-based).'; return; }
+    statusEl.innerHTML = '<span class="spinner" style="border-top-color:var(--teal);border-color:rgba(31,122,108,.25)"></span> Asking AI to structure the outline…';
+    const res = await fetch('/api/extract', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ document_text: text }) });
+    if (!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Extraction failed'); }
+    const data = await res.json();
+    statusEl.textContent = 'Outline extracted — review and edit below.';
+    populateOutline(data);
+  } catch(err){
+    statusEl.textContent = 'Error: ' + err.message;
+  }
+}
+
+function populateOutline(data){
+  S.opportunity = data;
+  document.getElementById('f_funder').value = data.funder || '';
+  document.getElementById('f_title').value = data.opportunity_title || '';
+  document.getElementById('f_deadline').value = data.deadline || '';
+  document.getElementById('f_ceiling').value = data.award_ceiling || '';
+  document.getElementById('f_total').value = data.total_funding_amount || '';
+  document.getElementById('f_focus').value = (data.focus_areas || []).join(', ');
+  document.getElementById('f_eligibility').value = data.eligibility_summary || '';
+  document.getElementById('f_submission').value = (data.submission_requirements || []).join('\n');
+  document.getElementById('f_evaluation').value = (data.evaluation_criteria || []).join('\n');
+  renderSections(data.required_sections || []);
+  document.getElementById('outlineStep').classList.remove('hidden');
+  document.getElementById('matchStep').classList.remove('hidden');
+  document.getElementById('draftStep').classList.remove('hidden');
+  renderProgramsList();
+  renderDraftSections();
+}
+
+// ── STEP 2: SECTIONS LIST (editable) ──────────────────────
+
+function currentOutlineFromForm(){
+  return {
+    funder: document.getElementById('f_funder').value,
+    opportunity_title: document.getElementById('f_title').value,
+    deadline: document.getElementById('f_deadline').value,
+    award_ceiling: document.getElementById('f_ceiling').value,
+    total_funding_amount: document.getElementById('f_total').value,
+    focus_areas: document.getElementById('f_focus').value.split(',').map(s=>s.trim()).filter(Boolean),
+    eligibility_summary: document.getElementById('f_eligibility').value,
+    submission_requirements: document.getElementById('f_submission').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    evaluation_criteria: document.getElementById('f_evaluation').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    required_sections: S.opportunity ? S.opportunity.required_sections : [],
+  };
+}
+
+['f_funder','f_title','f_deadline','f_ceiling','f_total','f_focus','f_eligibility','f_submission','f_evaluation'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{ S.opportunity = currentOutlineFromForm(); saveSession(); });
+});
+
+function renderSections(sections){
+  const wrap = document.getElementById('sectionsList');
+  wrap.innerHTML = '';
+  sections.forEach((sec, i)=>{
+    const div = document.createElement('div');
+    div.className = 'section-card';
+    div.innerHTML = `
+      <input style="font-weight:700;margin-bottom:6px" data-i="${i}" data-f="name" value="${escapeAttr(sec.name||'')}" placeholder="Section name">
+      <textarea data-i="${i}" data-f="description" placeholder="What this section should cover" style="min-height:46px">${escapeHtml(sec.description||'')}</textarea>
+      <div style="margin-top:8px"><button class="btn danger small" data-remove="${i}" type="button">Remove</button></div>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('input[data-f],textarea[data-f]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const i = +el.dataset.i, f = el.dataset.f;
+      S.opportunity.required_sections[i][f] = el.value;
+      saveSession();
+      renderDraftSections();
+    });
+  });
+  wrap.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      S.opportunity.required_sections.splice(+btn.dataset.remove, 1);
+      renderSections(S.opportunity.required_sections);
+      renderDraftSections();
+    });
+  });
+}
+
+document.getElementById('addSectionBtn').addEventListener('click', ()=>{
+  if (!S.opportunity) S.opportunity = currentOutlineFromForm();
+  S.opportunity.required_sections = S.opportunity.required_sections || [];
+  S.opportunity.required_sections.push({ name: 'New section', description: '' });
+  renderSections(S.opportunity.required_sections);
+  renderDraftSections();
+});
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+// ── STEP 3: PROGRAMS + MATCH ──────────────────────────────
+
+function renderProgramsList(){
+  const wrap = document.getElementById('programsList');
+  wrap.innerHTML = '';
+  S.programs.forEach((p, i)=>{
+    const row = document.createElement('div');
+    row.className = 'program-row';
+    row.innerHTML = `
+      <input data-i="${i}" data-f="name" value="${escapeAttr(p.name)}" placeholder="Program name">
+      <input data-i="${i}" data-f="focus_areas" value="${escapeAttr(p.focus_areas)}" placeholder="e.g. employment, ESL, financial coaching">
+      <input data-i="${i}" data-f="populations_served" value="${escapeAttr(p.populations_served)}" placeholder="e.g. refugees, asylum seekers">
+      <input data-i="${i}" data-f="geography" value="${escapeAttr(p.geography)}" placeholder="e.g. Phoenix, AZ">
+      <button class="btn danger small" data-rmprog="${i}" type="button">✕</button>
+    `;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('input[data-f]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      S.programs[+el.dataset.i][el.dataset.f] = el.value;
+      saveProgramsLS();
+    });
+  });
+  wrap.querySelectorAll('[data-rmprog]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      S.programs.splice(+btn.dataset.rmprog, 1);
+      saveProgramsLS();
+      renderProgramsList();
+    });
+  });
+}
+document.getElementById('addProgramBtn').addEventListener('click', ()=>{
+  S.programs.push({ name:'', focus_areas:'', populations_served:'', geography:'', status:'active' });
+  renderProgramsList();
+});
+
+document.getElementById('checkMatchBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('checkMatchBtn');
+  const opp = currentOutlineFromForm();
+  const programs = S.programs.filter(p=>p.name.trim());
+  if (!programs.length){ toast('Add at least one IRC program first'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Checking…';
+  try {
+    const res = await fetch('/api/match', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ opportunity: opp, programs }) });
+    if (!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Match check failed'); }
+    const m = await res.json();
+    renderMatch(m);
+  } catch(err){
+    toast('Error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Check match';
+  }
+});
+
+function renderMatch(m){
+  const cls = m.recommendation === 'pursue' ? 'pursue' : (m.recommendation === 'do not pursue' ? 'no' : 'caution');
+  const el = document.getElementById('matchResult');
+  el.innerHTML = `
+    <div class="match-box ${cls}">
+      <div style="display:flex;align-items:baseline;gap:14px">
+        <div class="score">${m.match_score ?? '–'}</div>
+        <div>
+          <div style="font-weight:800;text-transform:capitalize">${escapeHtml(m.recommendation||'')}</div>
+          <div class="muted">Best fit: ${escapeHtml(m.best_fit_program || 'none identified')}</div>
+        </div>
+      </div>
+      <p style="margin-top:10px;font-size:13px">${escapeHtml(m.rationale||'')}</p>
+      <div class="grid2" style="margin-top:8px">
+        <div><strong style="font-size:12px">Strengths</strong><ul class="bullets">${(m.strengths||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul></div>
+        <div><strong style="font-size:12px">Gaps / risks</strong><ul class="bullets">${(m.gaps||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul></div>
+      </div>
+    </div>`;
+}
+
+// ── STEP 4: DRAFT SECTIONS ────────────────────────────────
+
+document.getElementById('orgContext').addEventListener('change', e=>{ S.orgContext = e.target.value; saveSession(); });
+
+function renderDraftSections(){
+  const wrap = document.getElementById('draftSections');
+  wrap.innerHTML = '';
+  const sections = (S.opportunity && S.opportunity.required_sections) || [];
+  if (!sections.length){
+    wrap.innerHTML = '<div class="disabled-note">No sections defined yet — add some in Step 2.</div>';
+    return;
+  }
+  sections.forEach((sec, i)=>{
+    const key = sec.name || ('section_'+i);
+    const div = document.createElement('div');
+    div.className = 'section-card';
+    div.innerHTML = `
+      <div class="sname">${escapeHtml(sec.name||'Untitled section')}</div>
+      <div class="sdesc">${escapeHtml(sec.description||'')}</div>
+      <textarea data-key="${escapeAttr(key)}" placeholder="Draft will appear here…" style="min-height:120px">${escapeHtml(S.drafts[key]||'')}</textarea>
+      <div class="row-actions" style="margin-top:8px">
+        <button class="btn small" data-gen="${i}" type="button">Generate draft</button>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('textarea[data-key]').forEach(ta=>{
+    ta.addEventListener('change', ()=>{ S.drafts[ta.dataset.key] = ta.value; saveSession(); });
+  });
+  wrap.querySelectorAll('[data-gen]').forEach(btn=>{
+    btn.addEventListener('click', ()=>generateSection(+btn.dataset.gen, btn));
+  });
+}
+
+async function generateSection(i, btn){
+  const sec = S.opportunity.required_sections[i];
+  const key = sec.name || ('section_'+i);
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Drafting…';
+  try {
+    const bestProgram = S.programs.find(p=>p.name.trim());
+    const res = await fetch('/api/draft-section', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        section_name: sec.name,
+        section_description: sec.description,
+        opportunity: currentOutlineFromForm(),
+        program: bestProgram || null,
+        other_context: S.orgContext,
+      })
+    });
+    if (!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Draft failed'); }
+    const data = await res.json();
+    S.drafts[key] = data.content;
+    saveSession();
+    renderDraftSections();
+  } catch(err){
+    toast('Error: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate draft';
+  }
+}
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const opp = currentOutlineFromForm();
+  let md = `# ${opp.opportunity_title || 'RFA Response'}\n\n`;
+  md += `**Funder:** ${opp.funder || ''}  \n**Deadline:** ${opp.deadline || ''}\n\n---\n\n`;
+  (opp.required_sections||[]).forEach(sec=>{
+    const key = sec.name || '';
+    md += `## ${sec.name}\n\n${S.drafts[key] || '*(not yet drafted)*'}\n\n`;
+  });
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (opp.opportunity_title || 'rfa-draft').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'-') + '.md';
+  a.click();
+});
+
+// ── RESTORE SESSION ────────────────────────────────────────
+
+(function restore(){
+  const saved = JSON.parse(localStorage.getItem(LS_SESSION) || 'null');
+  if (saved && saved.opportunity){
+    S.drafts = saved.drafts || {};
+    S.orgContext = saved.orgContext || '';
+    document.getElementById('orgContext').value = S.orgContext;
+    populateOutline(saved.opportunity);
+    document.getElementById('extractStatus').textContent = 'Restored your last session.';
+  } else {
+    renderProgramsList();
+  }
+})();
+</script>
+</body>
+</html>
