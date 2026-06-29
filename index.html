@@ -38,8 +38,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ── TOPBAR ── */
 .topbar{background:var(--card);color:var(--ink);padding:0 28px;height:58px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--sand)}
-.logo{display:flex;align-items:center;flex-shrink:0}
-.logo img{height:32px;width:auto;display:block}
+.logo{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.logo-icon{height:30px;width:auto;display:block}
+.logo-name{height:20px;width:auto;display:block}
 .logo-t{color:var(--forest2)}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 .topnav{display:flex;gap:2px;align-items:center}
@@ -241,8 +242,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(184,134,11,.15),transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(160,82,45,.12),transparent 50%)}
 .login-bg-mascot{position:absolute;bottom:0;right:3%;height:58vh;max-height:440px;object-fit:contain;opacity:.10;pointer-events:none;animation:mascotFloat 7s ease-in-out infinite}
 .login-card{background:var(--card);border-radius:20px;padding:40px;width:100%;max-width:480px;box-shadow:var(--shlg);position:relative;z-index:1;border:1px solid var(--sand)}
-.login-logo{display:flex;justify-content:center;margin-bottom:4px}
-.login-logo img{height:56px;width:auto;display:block}
+.login-logo{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:4px}
+.login-logo-icon{height:60px;width:auto;display:block}
+.login-logo-name{height:28px;width:auto;display:block}
 .login-tagline{color:var(--stone);font-size:14px;margin-bottom:26px}
 .login-section-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--stone);margin-bottom:10px}
 .picks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
@@ -679,7 +681,7 @@ function renderQRCheckin(){
   }
   return`<div class="login-page"><div class="login-card">
     <div style="margin-bottom:22px">
-      <div class="login-logo"><img src="https://i.ibb.co/J83KKyn/Screenshot-2026-06-29-at-7-22-51-PM.png" alt="InvolvEd"></div>
+      <div class="login-logo"><img class="login-logo-icon" src="https://i.ibb.co/d4mWTKy1/Screenshot-2026-06-29-at-7-26-51-PM-removebg-preview.png" alt="InvolvEd icon"><img class="login-logo-name" src="https://i.ibb.co/LDQkJy7m/Screenshot-2026-06-29-at-7-25-31-PM-removebg-preview.png" alt="InvolvEd"></div>
       <div class="login-tagline">Event Check-In</div>
     </div>
     <div style="background:#E8F0EB;border-radius:var(--rsm);padding:12px 14px;margin-bottom:18px;font-size:13px;color:var(--forest);font-weight:600">
@@ -700,7 +702,7 @@ function renderLogin(){
   return`<div class="login-page">
   <div class="login-card">
     <div style="margin-bottom:22px">
-      <div class="login-logo"><img src="https://i.ibb.co/J83KKyn/Screenshot-2026-06-29-at-7-22-51-PM.png" alt="InvolvEd"></div>
+      <div class="login-logo"><img class="login-logo-icon" src="https://i.ibb.co/d4mWTKy1/Screenshot-2026-06-29-at-7-26-51-PM-removebg-preview.png" alt="InvolvEd icon"><img class="login-logo-name" src="https://i.ibb.co/LDQkJy7m/Screenshot-2026-06-29-at-7-25-31-PM-removebg-preview.png" alt="InvolvEd"></div>
       <div class="login-tagline">Your skills. Your proof.</div>
     </div>
     <div style="display:flex;gap:3px;background:var(--cream2);border-radius:var(--rsm);padding:3px;margin-bottom:22px">
@@ -764,7 +766,7 @@ function renderTopbar(){
       ${lbl}${v==='tasks'&&(u.role==='officer'||u.role==='advisor')&&pending?`<span class="tnav-dot"></span>`:''}
     </button>`).join('');
   return`<div class="topbar">
-  <div class="logo"><img src="https://i.ibb.co/J83KKyn/Screenshot-2026-06-29-at-7-22-51-PM.png" alt="InvolvEd"></div>
+  <div class="logo"><img class="logo-icon" src="https://i.ibb.co/d4mWTKy1/Screenshot-2026-06-29-at-7-26-51-PM-removebg-preview.png" alt="InvolvEd icon"><img class="logo-name" src="https://i.ibb.co/LDQkJy7m/Screenshot-2026-06-29-at-7-25-31-PM-removebg-preview.png" alt="InvolvEd"></div>
   <nav class="topnav">${items}</nav>
   <div class="topbar-right">
     <div class="user-chip" onclick="openModal('myProfile')" style="cursor:pointer">
