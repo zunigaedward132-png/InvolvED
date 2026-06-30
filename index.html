@@ -626,6 +626,14 @@ const S={
 // ── UTILS ──────────────────────────────────────────────
 const getUser=id=>S.users.find(u=>u.id===id);
 const me=()=>getUser(S.uid);
+function timeAgoStr(ts){
+  if(!ts)return'';
+  if(typeof ts!=='number')return`Submitted ${ts}`;
+  const hrs=(Date.now()-ts)/36e5;
+  if(hrs<1)return'Submitted just now';
+  if(hrs<24)return`Submitted ${Math.round(hrs)}h ago`;
+  return`Submitted ${Math.round(hrs/24)}d ago`;
+}
 const initials=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const avColor=role=>role==='advisor'?'#B8860B':role==='officer'?'#A0522D':'#1E3A2F';
 
@@ -886,6 +894,14 @@ function renderDashboard(){
     const approved=S.tasks.flatMap(t=>t.submissions.filter(s=>s.status==='approved')).length;
     const pendingTasks=S.tasks.filter(t=>t.submissions.some(s=>s.status==='pending_review'));
 
+    // collect pending general task submissions (one card per submission)
+    const pendingGeneralSubs=[];
+    pendingTasks.forEach(t=>{
+      t.submissions.filter(s=>s.status==='pending_review').forEach(s=>{
+        pendingGeneralSubs.push({task:t,sub:s,member:getUser(s.userId)});
+      });
+    });
+
     // collect pending event task submissions
     const pendingEvSubs=[];
     S.clubEvents.forEach(ev=>{
@@ -896,15 +912,46 @@ function renderDashboard(){
       });
     });
 
-    const evSubHtml=pendingEvSubs.map(({ev,task,sub,member})=>`
-      <div style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh);display:flex;align-items:center;gap:12px">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:11px;color:var(--stone);margin-bottom:2px">${ev.title} · ${task.title}</div>
-          <div style="font-size:13px;font-weight:800;color:var(--ink)">${member?.name||'Unknown'}</div>
-          <div style="font-size:12px;color:var(--stone);margin-top:2px">Submitted ${sub.submittedAt||''}</div>
+    function pendingSubCard({member,titleLine,timeStr,work,approveFn,reviewFn,cardId}){
+      const initials=(member?.name||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+      return`<div id="${cardId}" style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh)">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
+              <div style="font-size:13px;font-weight:800;color:var(--ink)">${member?.name||'Unknown'}</div>
+              <div style="font-size:11px;color:var(--stone)">${timeStr}</div>
+            </div>
+            <div style="font-size:11px;color:var(--stone);margin:2px 0 6px">${titleLine}</div>
+            ${work?`<div style="font-size:13px;line-height:1.5;color:var(--ink);background:var(--bg);border-radius:8px;padding:8px 10px;max-height:64px;overflow:hidden">${work}</div>`:''}
+          </div>
         </div>
-        <button class="btn btn-pri btn-sm" onclick="openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${task.id}',userId:'${sub.userId}'})">Review →</button>
-      </div>`).join('');
+        <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="${reviewFn}">Details</button>
+          <button class="btn btn-teal btn-sm" onclick="${approveFn}">✓ Approve</button>
+        </div>
+      </div>`;
+    }
+
+    const generalSubHtml=pendingGeneralSubs.map(({task,sub,member})=>pendingSubCard({
+      member,
+      titleLine:task.title,
+      timeStr:timeAgoStr(sub.submittedAt),
+      work:sub.work,
+      approveFn:`approveSubInline('${task.id}','${sub.userId}')`,
+      reviewFn:`openModal('review','${task.id}')`,
+      cardId:`gsub-${task.id}-${sub.userId}`
+    })).join('');
+
+    const evSubHtml=pendingEvSubs.map(({ev,task,sub,member})=>pendingSubCard({
+      member,
+      titleLine:`${ev.title} · ${task.title}`,
+      timeStr:timeAgoStr(sub.submittedAt),
+      work:sub.work,
+      approveFn:`approveEventSubInline('${ev.id}','${task.id}','${sub.userId}')`,
+      reviewFn:`openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${task.id}',userId:'${sub.userId}'})`,
+      cardId:`esub-${ev.id}-${task.id}-${sub.userId}`
+    })).join('');
 
     const taskRequestsHtml=S.taskRequests.filter(r=>r.status!=='dismissed').length?S.taskRequests.filter(r=>r.status!=='dismissed').map(req=>{
       const requester=S.users.find(u=>u.id===req.userId)||S.usersList.find(u=>u.id===req.userId);
@@ -937,9 +984,14 @@ function renderDashboard(){
       <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Tasks Approved</div></div>
     </div>
-    ${pendingTasks.length||pendingEvSubs.length?`<div id="pendingReviewSection"></div>`:''}
-    ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review — General Tasks</div></div><div class="task-grid">${pendingTasks.slice(0,4).map((t,i)=>taskCard(t,i)).join('')}</div>`:''}
-    ${pendingEvSubs.length?`<div class="sec-row" style="margin-top:${pendingTasks.length?'8':'0'}px"><div class="sec-title" style="color:var(--sky)">Pending Review — Event Tasks</div><span style="font-size:12px;color:var(--stone)">${pendingEvSubs.length} submission${pendingEvSubs.length!==1?'s':''}</span></div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${evSubHtml}</div>`:''}
+    <div id="pendingReviewSection"></div>
+    ${pendingGeneralSubs.length||pendingEvSubs.length?`
+      <div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review</div><span style="font-size:12px;color:var(--stone)">${pendingGeneralSubs.length+pendingEvSubs.length} submission${(pendingGeneralSubs.length+pendingEvSubs.length)!==1?'s':''}</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${generalSubHtml}${evSubHtml}</div>`
+      :`<div style="background:var(--card);border:1px dashed var(--sand);border-radius:var(--r);padding:24px;text-align:center;margin-bottom:20px">
+        <div style="font-size:28px;margin-bottom:6px">✅</div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">All caught up — no submissions waiting on review.</div>
+      </div>`}
     <div class="sec-row" style="margin-top:8px"><div class="sec-title">Task Requests</div><span style="font-size:12px;color:var(--stone)">${S.taskRequests.length} request${S.taskRequests.length!==1?'s':''}</span></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">${taskRequestsHtml}</div>`;
   }
@@ -3054,6 +3106,45 @@ function approveSub(taskId,userId){
     closeModal();
     toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`, 'ok');
   });
+}
+
+function approveSubInline(taskId,userId){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===userId);
+  const claimer=getUser(userId);const officer=me();
+  sub.status='approved';
+  const allSkills=[...new Set([...t.skills,...(sub.aiSkills||[])])];
+  allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
+  officer.tasksApproved=(officer.tasksApproved||0)+1;
+  playInlineApprove(`gsub-${taskId}-${userId}`,()=>{
+    toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`,'ok');
+  });
+}
+
+function approveEventSubInline(evId,taskId,userId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+  const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+  if(!sub)return;
+  sub.status='approved';
+  const member=getUser(userId);
+  if(member){
+    const allSkills=[...new Set([...(task.skills||[]),...(sub.aiSkills||[])])];
+    allSkills.forEach(s=>{if(!member.skills.includes(s))member.skills.push(s)});
+  }
+  me().tasksApproved=(me().tasksApproved||0)+1;
+  playInlineApprove(`esub-${evId}-${taskId}-${userId}`,()=>{
+    toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+  });
+}
+
+function playInlineApprove(cardId,then){
+  const card=document.getElementById(cardId);
+  if(!card){render();then();return}
+  card.classList.add('approve-flash');
+  card.style.transition='opacity .35s, transform .35s';
+  card.innerHTML=`<div style="text-align:center;padding:14px"><div class="check-spring" style="font-size:28px">✅</div><div style="font-weight:800;font-size:13px;margin-top:6px;color:var(--forest)">Approved!</div></div>`;
+  setTimeout(()=>{render();then()},550);
 }
 
 function playApproveSuccess(then){
