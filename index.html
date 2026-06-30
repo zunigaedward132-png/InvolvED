@@ -121,8 +121,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-danger:hover{background:#F0D8D4}
 .btn-ai{background:var(--forest);color:#fff;box-shadow:0 2px 8px rgba(30,58,47,.3)}
 .btn-ai:hover{background:var(--forest2);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--forest);border:1.5px solid var(--forest)}
+.btn-outline:hover{background:var(--forest);color:#fff}
 .btn-sm{padding:6px 13px;font-size:12px}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.psub-card{transition:box-shadow .2s,transform .2s}
+.psub-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.1);transform:translateY(-2px)}
+.psub-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+@media (max-width:520px){.psub-actions{grid-template-columns:1fr}}
 
 /* ── FILTER TABS ── */
 .filter-row{display:flex;gap:3px;margin-bottom:22px;background:var(--card);padding:4px;border-radius:var(--rsm);border:1px solid var(--sand);width:fit-content;box-shadow:var(--sh)}
@@ -912,9 +918,9 @@ function renderDashboard(){
       });
     });
 
-    function pendingSubCard({member,titleLine,timeStr,work,fileName,fileDataUrl,approveFn,reviewFn,cardId}){
+    function pendingSubCard({member,titleLine,timeStr,work,fileName,fileDataUrl,approveFn,requestChangesFn,rejectFn,cardId}){
       const initials=(member?.name||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
-      return`<div id="${cardId}" style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh)">
+      return`<div id="${cardId}" class="psub-card" style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh);cursor:default">
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div style="width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0">${initials}</div>
           <div style="flex:1;min-width:0">
@@ -927,9 +933,10 @@ function renderDashboard(){
             ${fileName?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="file-attached">📎 ${fileName}</span>${fileDataUrl?`<button type="button" class="btn btn-ghost btn-sm" onclick='openModal("filePreview",{dataUrl:${JSON.stringify(fileDataUrl)},name:${JSON.stringify(fileName)}})'>👁 View File</button>`:''}</div>`:''}
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
-          <button class="btn btn-ghost btn-sm" onclick="${reviewFn}">Details</button>
-          <button class="btn btn-teal btn-sm" onclick="${approveFn}">✓ Approve</button>
+        <div class="psub-actions">
+          <button class="btn btn-teal" onclick="${approveFn}">✓ Approve</button>
+          <button class="btn btn-outline" onclick="${requestChangesFn}">Request Changes</button>
+          <button class="btn btn-ghost" onclick="${rejectFn}">Reject</button>
         </div>
       </div>`;
     }
@@ -942,7 +949,8 @@ function renderDashboard(){
       fileName:sub.fileName,
       fileDataUrl:sub.fileDataUrl,
       approveFn:`approveSubInline('${task.id}','${sub.userId}')`,
-      reviewFn:`openModal('review','${task.id}')`,
+      requestChangesFn:`requestChangesInline('${task.id}','${sub.userId}')`,
+      rejectFn:`rejectInline('${task.id}','${sub.userId}')`,
       cardId:`gsub-${task.id}-${sub.userId}`
     })).join('');
 
@@ -954,7 +962,8 @@ function renderDashboard(){
       fileName:sub.fileName,
       fileDataUrl:sub.fileDataUrl,
       approveFn:`approveEventSubInline('${ev.id}','${task.id}','${sub.userId}')`,
-      reviewFn:`openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${task.id}',userId:'${sub.userId}'})`,
+      requestChangesFn:`requestChangesEventInline('${ev.id}','${task.id}','${sub.userId}')`,
+      rejectFn:`rejectEventInline('${ev.id}','${task.id}','${sub.userId}')`,
       cardId:`esub-${ev.id}-${task.id}-${sub.userId}`
     })).join('');
 
@@ -3133,8 +3142,29 @@ function approveSubInline(taskId,userId){
   allSkills.forEach(s=>{if(!claimer.skills.includes(s))claimer.skills.push(s)});
   officer.tasksApproved=(officer.tasksApproved||0)+1;
   playInlineApprove(`gsub-${taskId}-${userId}`,()=>{
-    toast(`Approved! ${claimer.name.split(' ')[0]} earned ${allSkills.length} skill(s).`,'ok');
+    toast(`✓ Approved! ${claimer.name.split(' ')[0]} will see this now.`,'ok');
   });
+}
+
+function requestChangesInline(taskId,userId){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===userId);
+  const claimer=getUser(userId);
+  const fb=prompt(`What changes should ${claimer?.name?.split(' ')[0]||'the member'} make?`,'')||'';
+  sub.status='claimed';sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
+  if(fb)sub.officerFeedback=fb;
+  render();
+  toast(`Sent back for changes. ${claimer?.name?.split(' ')[0]||'Member'} can revise and resubmit.`,'');
+}
+
+function rejectInline(taskId,userId){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t.submissions.find(s=>s.userId===userId);
+  const claimer=getUser(userId);
+  if(!confirm(`Reject this submission from ${claimer?.name||'this member'}? This frees up the spot.`))return;
+  sub.status='rejected';
+  render();
+  toast('Submission rejected.','');
 }
 
 function approveEventSubInline(evId,taskId,userId){
@@ -3150,8 +3180,33 @@ function approveEventSubInline(evId,taskId,userId){
   }
   me().tasksApproved=(me().tasksApproved||0)+1;
   playInlineApprove(`esub-${evId}-${taskId}-${userId}`,()=>{
-    toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+    toast(`✓ Approved! ${member?.name?.split(' ')[0]||'Member'} will see this now.`,'ok');
   });
+}
+
+function requestChangesEventInline(evId,taskId,userId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+  const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+  if(!sub)return;
+  const member=getUser(userId);
+  const fb=prompt(`What changes should ${member?.name?.split(' ')[0]||'the member'} make?`,'')||'';
+  sub.status='claimed';sub.work=null;sub.fileName=null;sub.fileDataUrl=null;
+  if(fb)sub.officerFeedback=fb;
+  render();
+  toast(`Sent back for changes. ${member?.name?.split(' ')[0]||'Member'} can revise and resubmit.`,'');
+}
+
+function rejectEventInline(evId,taskId,userId){
+  const ev=S.clubEvents.find(e=>e.id===evId);
+  const task=(ev?.tasks||[]).find(t=>t.id===taskId);
+  const sub=(task?.submissions||[]).find(s=>s.userId===userId);
+  if(!sub)return;
+  const member=getUser(userId);
+  if(!confirm(`Reject this submission from ${member?.name||'this member'}? This frees up the spot.`))return;
+  sub.status='rejected';
+  render();
+  toast('Submission rejected.','');
 }
 
 function playInlineApprove(cardId,then){
