@@ -90,7 +90,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tcard-cat-icon{font-size:18px}
 .tcard-cat-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px}
 .tcard-title{font-size:14px;font-weight:800;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.1px}
-.tcard-desc{font-size:12px;color:var(--stone);flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;line-height:1.55}
+.tcard-desc{font-size:13px;color:var(--stone);flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;line-height:1.6}
 .tcard-skills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
 .tcard-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;gap:6px}
 .tcard-cap{font-size:11px;color:var(--stone);font-weight:600}
@@ -912,7 +912,7 @@ function renderDashboard(){
       });
     });
 
-    function pendingSubCard({member,titleLine,timeStr,work,approveFn,reviewFn,cardId}){
+    function pendingSubCard({member,titleLine,timeStr,work,fileName,fileDataUrl,approveFn,reviewFn,cardId}){
       const initials=(member?.name||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
       return`<div id="${cardId}" style="background:var(--card);border-radius:var(--r);padding:14px 16px;border:1px solid var(--sand);box-shadow:var(--sh)">
         <div style="display:flex;align-items:flex-start;gap:12px">
@@ -924,6 +924,7 @@ function renderDashboard(){
             </div>
             <div style="font-size:11px;color:var(--stone);margin:2px 0 6px">${titleLine}</div>
             ${work?`<div style="font-size:13px;line-height:1.5;color:var(--ink);background:var(--bg);border-radius:8px;padding:8px 10px;max-height:64px;overflow:hidden">${work}</div>`:''}
+            ${fileName?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="file-attached">📎 ${fileName}</span>${fileDataUrl?`<button type="button" class="btn btn-ghost btn-sm" onclick='openModal("filePreview",{dataUrl:${JSON.stringify(fileDataUrl)},name:${JSON.stringify(fileName)}})'>👁 View File</button>`:''}</div>`:''}
           </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
@@ -938,6 +939,8 @@ function renderDashboard(){
       titleLine:task.title,
       timeStr:timeAgoStr(sub.submittedAt),
       work:sub.work,
+      fileName:sub.fileName,
+      fileDataUrl:sub.fileDataUrl,
       approveFn:`approveSubInline('${task.id}','${sub.userId}')`,
       reviewFn:`openModal('review','${task.id}')`,
       cardId:`gsub-${task.id}-${sub.userId}`
@@ -948,6 +951,8 @@ function renderDashboard(){
       titleLine:`${ev.title} · ${task.title}`,
       timeStr:timeAgoStr(sub.submittedAt),
       work:sub.work,
+      fileName:sub.fileName,
+      fileDataUrl:sub.fileDataUrl,
       approveFn:`approveEventSubInline('${ev.id}','${task.id}','${sub.userId}')`,
       reviewFn:`openModal('reviewEventTask',{evId:'${ev.id}',taskId:'${task.id}',userId:'${sub.userId}'})`,
       cardId:`esub-${ev.id}-${task.id}-${sub.userId}`
@@ -1046,8 +1051,7 @@ function taskCard(task,idx=0){
     </div>
     <div class="tcard-title">${task.title}</div>
     <div class="tcard-desc">${task.desc}</div>
-    <div class="tcard-skills">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
-    ${(u.role==='member'&&!mySub&&task.skills.length)?`<div style="font-size:11px;color:var(--stone);margin:5px 0 2px">${(()=>{const cl=skillsToCareerLabel(task.skills);return cl?`<span style="font-size:12px;font-weight:700;color:var(--forest)">→ ${cl.icon} ${cl.label} path</span>`:`<span>→ +${task.skills.length} skill${task.skills.length!==1?'s':''}</span>`;})()}</div>`:''}
+    <div class="tcard-skills">${task.skills.slice(0,3).map(s=>`<span class="sk-tag">${s}</span>`).join('')}${task.skills.length>3?`<span class="sk-tag">+${task.skills.length-3}</span>`:''}</div>
     ${feedbackBox}
     <div class="tcard-footer">
       <div>
@@ -1539,6 +1543,18 @@ function renderModal(){
   const m=S.modal;const d=S.modalData;
   let html='';
 
+  if(m==='filePreview'){
+    const {dataUrl,name}=d||{};
+    const isPdf=/\.pdf$/i.test(name||'')||(dataUrl||'').startsWith('data:application/pdf');
+    html=`<div class="modal-hdr"><div class="modal-ttl">📎 ${name||'Attached File'}</div><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body" style="padding:0">
+      ${isPdf?`<iframe src="${dataUrl}" style="width:100%;height:70vh;border:none;display:block"></iframe>`
+        :`<div style="padding:40px 24px;text-align:center;font-size:13px;color:var(--stone)">Preview isn't available for this file type.<br><a href="${dataUrl}" download="${name||'file'}" class="file-attached" style="margin-top:10px;display:inline-block">⬇ Download ${name||'File'}</a></div>`}
+    </div>
+    <div class="modal-ftr"><a href="${dataUrl}" download="${name||'file'}" class="btn btn-ghost btn-sm">⬇ Download</a><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>`;
+  }
+  else
+
   if(m==='claimConfirm'){
     const task=S.tasks.find(t=>t.id===d);
     if(!task){html=`<div class="modal-body"><p>Task not found.</p></div>`;}
@@ -1724,7 +1740,7 @@ function renderModal(){
       <div style="background:#F8F7FF;border-radius:var(--rsm);padding:14px;margin-bottom:14px;border:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">📝 Submission</div>
         <div style="font-size:13px;line-height:1.6">${sub.work}</div>
-        ${sub.fileName?`<div style="margin-top:8px"><span class="file-attached">📎 ${sub.fileName}</span></div>`:''}
+        ${sub.fileName?`<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="file-attached">📎 ${sub.fileName}</span>${sub.fileDataUrl?`<button type="button" class="btn btn-ghost btn-sm" onclick='openModal("filePreview",{dataUrl:${JSON.stringify(sub.fileDataUrl)},name:${JSON.stringify(sub.fileName)}})'>👁 View File</button>`:''}</div>`:''}
         ${sub.docLink?`<div style="margin-top:8px"><a href="${sub.docLink}" target="_blank" class="file-attached">🔗 Google Doc</a></div>`:''}
         ${sub.resumeBullets?.length?`<div style="margin-top:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 12px">
           <div style="font-size:11px;font-weight:700;color:var(--forest);margin-bottom:5px">📄 RESUME BULLETS</div>
@@ -1760,7 +1776,7 @@ function renderModal(){
         <div style="background:#F8F7FF;border-radius:var(--rsm);padding:14px;margin-bottom:14px;border:1px solid var(--border)">
           <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">📝 Work Description</div>
           <div style="font-size:13px;line-height:1.6">${sub.work||'—'}</div>
-          ${sub.fileName?`<div style="margin-top:8px"><span class="file-attached">📎 ${sub.fileName}</span></div>`:''}
+          ${sub.fileName?`<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="file-attached">📎 ${sub.fileName}</span>${sub.fileDataUrl?`<button type="button" class="btn btn-ghost btn-sm" onclick='openModal("filePreview",{dataUrl:${JSON.stringify(sub.fileDataUrl)},name:${JSON.stringify(sub.fileName)}})'>👁 View File</button>`:''}</div>`:''}
           ${sub.docLink?`<div style="margin-top:8px"><a href="${sub.docLink}" target="_blank" class="file-attached">🔗 Google Doc</a></div>`:''}
           ${sub.resumeBullets?.length?`<div style="margin-top:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 12px">
             <div style="font-size:11px;font-weight:700;color:var(--forest);margin-bottom:5px">📄 RESUME BULLETS</div>
@@ -3954,6 +3970,29 @@ async function callGroq(system,user,history=[],max_tokens=512){
         {
           id:'et_recap',title:'Write meeting recap email',desc:'After the meeting, send a concise recap to all members: decisions made, next steps, key dates.',
           slots:1,signups:['u_james'],skills:['Writing','Communication'],competency:'marketing',
+          submissions:[]
+        },
+      ]
+    },
+    {
+      id:'ev_tedx',title:'TEDxRVCC',desc:'Organizing our chapter\'s TEDx event — speaker coordination, stage production, and day-of logistics.',
+      date:'April 18, 2026',color:'#E62B1E',icon:'🔴',is_open:true,createdBy:'u_edward',
+      tasks:[
+        {
+          id:'et_tedx_speakers',title:'Coordinate speaker logistics',desc:'Confirm travel, AV needs, and rehearsal times with all 6 TEDx speakers. Keep a shared logistics doc up to date.',
+          slots:1,signups:['u_natalie'],skills:['Organization','Communication','Event Planning'],competency:'leadership',
+          submissions:[
+            {userId:'u_natalie',work:'Confirmed AV requirements and rehearsal slots for all 6 speakers, built a shared logistics doc, and sent confirmation emails to each.',fileName:'TEDxRVCC_Speaker_Logistics.pdf',docLink:null,fileDataUrl:null,aiSkills:['Organization','Event Planning','Communication'],resumeBullets:['Coordinated travel, AV, and rehearsal logistics for 6 TEDx speakers ahead of a campus-wide event','Built and maintained a shared logistics tracker reducing day-of confusion for the production team'],status:'pending_review',submittedAt:Date.now()-3*36e5}
+          ]
+        },
+        {
+          id:'et_tedx_stage',title:'Design stage backdrop',desc:'Create the TEDx-branded stage backdrop and signage, following official TEDx licensing and brand guidelines.',
+          slots:1,signups:['u_diego'],skills:['Design','Creativity'],competency:'creative',
+          submissions:[]
+        },
+        {
+          id:'et_tedx_volunteers',title:'Recruit day-of volunteers',desc:'Recruit and brief 10 volunteers for ushering, registration, and speaker green room support.',
+          slots:1,signups:[],skills:['Leadership','Communication'],competency:'leadership',
           submissions:[]
         },
       ]
