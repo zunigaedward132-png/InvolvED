@@ -443,23 +443,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div id="app"></div>
 <div class="toast-wrap" id="toasts"></div>
-<button class="ai-fab" id="aiFab" onclick="toggleAI()">🤖</button>
+<button class="ai-fab" id="aiFab" onclick="toggleAI()">❓</button>
 <div class="ai-backdrop" id="aiBackdrop" onclick="toggleAI()"></div>
 <div class="ai-panel" id="aiPanel">
   <div class="ai-fs-hdr">
-    <img src="https://i.imgur.com/KaSEx7u.png" class="ai-fs-logo" onerror="this.style.display='none'">
+    <div class="ai-fs-logo" style="display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900">❓</div>
     <div>
-      <div class="ai-fs-title">InvoAI</div>
+      <div class="ai-fs-title">Inclub AI</div>
       <div class="ai-fs-tagline">Your skills. Your proof.</div>
     </div>
     <button class="ai-close" onclick="toggleAI()">✕</button>
   </div>
   <div id="aiMsgs" class="ai-msgs">
-    <div class="ai-msg ai"><div class="ai-msg-lbl">InvoAI</div>Hi! I'm your career coach. What can I help you with? 🚀</div>
+    <div class="ai-msg ai"><div class="ai-msg-lbl">Inclub AI</div>Hi! I'm your career coach. What can I help you with? 🚀</div>
   </div>
   <div class="ai-chips-row" id="aiChips"></div>
   <div class="ai-input-row">
-    <input class="ai-input" id="aiInput" placeholder="Ask InvoAI anything..." onkeydown="if(event.key==='Enter')sendAI()">
+    <input class="ai-input" id="aiInput" placeholder="Ask Inclub AI anything..." onkeydown="if(event.key==='Enter')sendAI()">
     <button class="btn btn-ai" onclick="sendAI()">Send</button>
   </div>
 </div>
@@ -771,9 +771,9 @@ function renderLogin(){
 function renderTopbar(){
   const u=me();
   const navs={
-    member: [['dashboard','Home'],['events','Events'],['resume','Career Ready'],['addme','Add Me']],
-    officer:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['users','Users']],
-    advisor:[['dashboard','Home'],['events','Events'],['resume','Career Ready'],['members','Members'],['users','Users']],
+    member: [['dashboard','Home'],['events','Events'],['resume','Portfolio'],['addme','Add Me']],
+    officer:[['dashboard','Home'],['events','Events'],['resume','Portfolio'],['members','Members'],['users','Users']],
+    advisor:[['dashboard','Home'],['events','Events'],['resume','Portfolio'],['members','Members'],['users','Users']],
   };
   const pending=S.tasks.reduce((n,t)=>n+t.submissions.filter(s=>s.status==='pending_review').length,0);
   const items=(navs[u.role]||navs.member).map(([v,lbl])=>`
@@ -1302,12 +1302,12 @@ function renderResume(){
   }
 
   const bulletsHTML=S.aiResumeBullets===null
-    ?`<div style="font-size:13px;color:var(--stone);font-style:italic">${done.length?'Click "Generate Bullets" to get personalized resume bullets from InvoAI.':'Complete tasks first to generate resume bullets.'}</div>`
+    ?`<div style="font-size:13px;color:var(--stone);font-style:italic">${done.length?'Click "Generate Bullets" to get personalized resume bullets from Inclub AI.':'Complete tasks first to generate resume bullets.'}</div>`
     :S.aiResumeBullets==='loading'
-    ?`<div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is writing your bullets…</span></div>`
+    ?`<div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">Inclub AI is writing your bullets…</span></div>`
     :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).slice(0,4).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
   return`<div class="page-hdr">
-  <div><div class="page-title">Career Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
+  <div><div class="page-title">Portfolio</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
   <button class="btn btn-teal" onclick="exportResume()">📥 Download PDF</button>
 </div>
 ${officerSkillsOverview}
@@ -1316,7 +1316,7 @@ ${careerIdentityCard}
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
     <div>
       <div style="font-size:15px;font-weight:800;color:var(--ink)">🤖 AI Resume Bullets</div>
-      <div style="font-size:12px;color:var(--stone);margin-top:2px">InvoAI writes precise, quantifiable bullets from your completed work</div>
+      <div style="font-size:12px;color:var(--stone);margin-top:2px">Inclub AI writes precise, quantifiable bullets from your completed work</div>
     </div>
     <div style="display:flex;gap:6px">
       <button class="btn btn-ai btn-sm" onclick="generateAIResumeBullets()" ${!done.length?'disabled':''}>Generate Bullets</button>
@@ -1354,7 +1354,7 @@ ${careerIdentityCard}
 ${(()=>{
   const portfolioCount=done.length+S.clubEvents.reduce((n,ev)=>n+ev.tasks.filter(t=>t.submissions?.find(s=>s.userId===u.id)).length,0);
   return`<div class="sec-row" style="cursor:pointer" onclick="S.portfolioOpen=!S.portfolioOpen;render()">
-    <div class="sec-title" style="margin:0">📁 Portfolio</div>
+    <div class="sec-title" style="margin:0">📁 Submissions</div>
     <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">${portfolioCount} ${portfolioCount===1?'entry':'entries'} <span style="font-size:11px;transition:transform .18s;transform:rotate(${S.portfolioOpen?'180':'0'}deg)">▾</span></span>
   </div>`;
 })()}
@@ -1370,7 +1370,7 @@ ${!S.portfolioOpen?'':(()=>{
       <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add Note'}</button>
     </div>
     ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
-      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets <span style="font-weight:400;font-style:italic;color:var(--stone)">— edit before sharing</span></div>
+      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 Inclub AI Resume Bullets <span style="font-weight:400;font-style:italic;color:var(--stone)">— edit before sharing</span></div>
       ${bullets.map((b,bi)=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:8px;align-items:flex-start">
         <span style="color:var(--forest);font-weight:800;flex-shrink:0;margin-top:2px">•</span>
         <span style="flex:1">${b}</span>
@@ -1402,7 +1402,7 @@ ${!S.portfolioOpen?'':(()=>{
     </div>
     ${sub.officerFeedback&&sub.status==='rejected'?`<div style="font-size:12px;background:#FEF9C3;border-radius:6px;padding:8px 10px;margin-top:8px;border-left:3px solid #D97706">💬 <strong>Officer feedback:</strong> ${sub.officerFeedback}</div>`:''}
     ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
-      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets</div>
+      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 Inclub AI Resume Bullets</div>
       ${bullets.map(b=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:6px"><span style="color:var(--forest);font-weight:800;flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
     </div>`:`<div style="margin-top:8px;font-size:12px;color:var(--muted)">${sub.status==='rejected'?'Fix and resubmit to generate bullets.':'Bullets will appear here after officer approval.'}</div>`}
     ${sub.aiSkills?.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${sub.aiSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
@@ -1654,7 +1654,7 @@ function renderModal(){
         html=`<div class="modal-hdr"><div class="modal-ttl">📤 Analyzing…</div><button class="close-btn" onclick="closeModal()">×</button></div>
         <div class="modal-body" style="text-align:center;padding:40px 24px">
           <div class="ai-loading-row" style="justify-content:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <div style="font-size:13px;color:var(--stone);margin-top:14px">InvoAI is analyzing your submission…</div>
+          <div style="font-size:13px;color:var(--stone);margin-top:14px">Inclub AI is analyzing your submission…</div>
         </div>`;
       }else{
         const questions=analysis?.metrics_questions||['How many people did this impact?','What was the end result or outcome?','How much time did you spend on this?'];
@@ -1712,16 +1712,16 @@ function renderModal(){
       </div>
       <div class="modal-ftr">
         <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-teal" onclick="proceedEventSubmitStep2('${evId}','${taskId}')">Continue with InvoAI →</button>
+        <button class="btn btn-teal" onclick="proceedEventSubmitStep2('${evId}','${taskId}')">Continue with Inclub AI →</button>
       </div>`;
     }else{
       const analysis=S.submitAnalysis;
       const isAnalyzing=S.submitAnalyzing;
       if(isAnalyzing){
-        html=`<div class="modal-hdr"><div class="modal-ttl">🤖 InvoAI Analyzing…</div><button class="close-btn" onclick="closeModal()">×</button></div>
+        html=`<div class="modal-hdr"><div class="modal-ttl">🤖 Inclub AI Analyzing…</div><button class="close-btn" onclick="closeModal()">×</button></div>
         <div class="modal-body" style="text-align:center;padding:40px 24px">
           <div class="ai-loading-row" style="justify-content:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <div style="font-size:13px;color:var(--stone);margin-top:14px">InvoAI is reading your submission and building targeted questions…</div>
+          <div style="font-size:13px;color:var(--stone);margin-top:14px">Inclub AI is reading your submission and building targeted questions…</div>
         </div>`;
       }else{
         const questions=analysis?.metrics_questions||['How many people were impacted?','What was the measurable outcome or result?','How much time or effort did you invest?'];
@@ -1729,7 +1729,7 @@ function renderModal(){
         html=`<div class="modal-hdr"><div class="modal-ttl">📊 Prove Your Impact</div><button class="close-btn" onclick="closeModal()">×</button></div>
         <div class="modal-body">
           <div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--forest2)">
-            <strong>Why this matters:</strong> Specific numbers make your resume bullet 3× more credible to employers. InvoAI will craft professional bullets from your answers.
+            <strong>Why this matters:</strong> Specific numbers make your resume bullet 3× more credible to employers. Inclub AI will craft professional bullets from your answers.
           </div>
           ${skills.length?`<div class="fg"><label class="fl">✨ Competencies Detected (tap to deselect)</label><div style="display:flex;flex-wrap:wrap;gap:6px">
             ${skills.map((s,i)=>`<button type="button" class="ai-skill-chip" id="dskill2_${i}" onclick="this.classList.toggle('off')">${s}</button>`).join('')}
@@ -1851,11 +1851,11 @@ function renderModal(){
   else if(m==='createClubEvent'){
     const ICONS=['🎪','🏆','🎉','📚','🎤','🌟','🤝','🎨','🚀','🏅'];
     const taskListHTML=S.aiEventTasks==='loading'
-    ?`<div class="ai-loading-row" style="margin-top:14px;background:var(--cream2);border-radius:var(--rsm);padding:14px;border:1px solid var(--sand)"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is generating tasks…</span></div>`
+    ?`<div class="ai-loading-row" style="margin-top:14px;background:var(--cream2);border-radius:var(--rsm);padding:14px;border:1px solid var(--sand)"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">Inclub AI is generating tasks…</span></div>`
     :Array.isArray(S.aiEventTasks)&&S.aiEventTasks.length?`
     <div style="margin-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:800;color:var(--ink)">✅ InvoAI Generated ${S.aiEventTasks.length} Tasks — Edit Below</div>
+        <div style="font-size:13px;font-weight:800;color:var(--ink)">✅ Inclub AI Generated ${S.aiEventTasks.length} Tasks — Edit Below</div>
         <button class="btn btn-ghost btn-sm" onclick="S.aiEventTasks=[];render()">Clear All</button>
       </div>
       ${S.aiEventTasks.map((t,i)=>`<div style="background:var(--cream);border:1.5px solid var(--sand);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px">
@@ -1877,7 +1877,7 @@ function renderModal(){
     html=`<div class="modal-hdr"><div class="modal-ttl">🎪 Create New Event</div><button class="close-btn" onclick="closeModal()">×</button></div>
     <div class="modal-body">
       <div class="fg"><label class="fl">Event Title *</label><input class="fi" id="ceTitle" value="${(pf.title||'').replace(/"/g,'&quot;')}" placeholder="e.g. TEDxTalk, Club Fair, Fundraiser"></div>
-      <div class="fg"><label class="fl">Describe the event for InvoAI</label><textarea class="fta" id="ceDesc" style="min-height:85px" placeholder="What is this event about? How many people involved? What needs to happen? Be specific — InvoAI will create tasks from this.">${pf.desc||''}</textarea></div>
+      <div class="fg"><label class="fl">Describe the event for Inclub AI</label><textarea class="fta" id="ceDesc" style="min-height:85px" placeholder="What is this event about? How many people involved? What needs to happen? Be specific — Inclub AI will create tasks from this.">${pf.desc||''}</textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg"><label class="fl">Date</label><input class="fi" id="ceDate" value="${pf.date||''}" placeholder="e.g. May 30, 2025"></div>
         <div class="fg"><label class="fl">Event Color</label><input type="color" id="ceColor" value="${pf.color||'#1E3A2F'}" style="width:100%;height:42px;border:2px solid var(--border);border-radius:var(--rsm);cursor:pointer;padding:2px"></div>
@@ -1886,7 +1886,7 @@ function renderModal(){
         <div style="display:flex;flex-wrap:wrap;gap:6px">${ICONS.map(ic=>`<button type="button" class="skill-pick-toggle ico-pick${ic===(pf.icon||'🎪')?' on':''}" style="font-size:18px;padding:6px 10px" onclick="document.getElementById('ceIcon').value=this.dataset.ico;document.querySelectorAll('.ico-pick').forEach(b=>b.classList.remove('on'));this.classList.add('on');S.pendingEventForm.icon=this.dataset.ico" data-ico="${ic}">${ic}</button>`).join('')}</div>
         <input type="hidden" id="ceIcon" value="${pf.icon||'🎪'}">
       </div>
-      <button class="btn btn-ai" id="aiGenBtn" style="width:100%;justify-content:center" onclick="aiGenerateEventTasks()">🤖 Generate Tasks with InvoAI</button>
+      <button class="btn btn-ai" id="aiGenBtn" style="width:100%;justify-content:center" onclick="aiGenerateEventTasks()">🤖 Generate Tasks with Inclub AI</button>
       ${taskListHTML}
     </div>
     <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-pri" onclick="createClubEvent()">Create Event →</button></div>`;
@@ -2110,12 +2110,12 @@ function renderModal(){
         </div>`:''}
         <div style="margin-bottom:16px">
           <div style="font-size:12px;font-weight:800;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Career Aspirations</div>
-          ${careerL?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:20px">${careerL.icon}</span><div style="font-weight:700;color:var(--forest)">${careerL.label}</div></div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No career identity set — visit Career Ready</div>'}
+          ${careerL?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:20px">${careerL.icon}</span><div style="font-weight:700;color:var(--forest)">${careerL.label}</div></div>`:'<div style="font-size:13px;color:var(--stone);font-style:italic;margin-bottom:10px">No career identity set — visit Portfolio</div>'}
           ${topSkills.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${topSkills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>`:''}
-          ${bulletPreview?`<div style="background:var(--cream2);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:12px;line-height:1.6;color:var(--ink)">${bulletPreview}</div>`:`<div style="font-size:12px;color:var(--stone);font-style:italic">Visit Career Ready to generate AI resume bullets</div>`}
+          ${bulletPreview?`<div style="background:var(--cream2);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:12px;line-height:1.6;color:var(--ink)">${bulletPreview}</div>`:`<div style="font-size:12px;color:var(--stone);font-style:italic">Visit Portfolio to generate AI resume bullets</div>`}
         </div>
       </div>
-      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-pri" onclick="closeModal();nav('resume')">Career Ready →</button></div>`;
+      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-pri" onclick="closeModal();nav('resume')">Portfolio →</button></div>`;
     }
   }
 
@@ -2701,7 +2701,7 @@ function renderDistributionPanel(ev){
   if(d.loading){
     return`<div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:18px 20px;margin-bottom:16px">
       <div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      <span style="margin-left:10px;font-size:13px;color:var(--stone);font-weight:600">InvoAI is analyzing members and tasks…</span></div>
+      <span style="margin-left:10px;font-size:13px;color:var(--stone);font-weight:600">Inclub AI is analyzing members and tasks…</span></div>
     </div>`;
   }
 
@@ -2735,7 +2735,7 @@ function renderDistributionPanel(ev){
   return`<div style="background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border:1.5px solid var(--sage2);border-radius:var(--r);padding:18px 20px;margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
-        <div style="font-size:14px;font-weight:800;color:var(--ink)">🤖 InvoAI Suggested Assignments</div>
+        <div style="font-size:14px;font-weight:800;color:var(--ink)">🤖 Inclub AI Suggested Assignments</div>
         <div style="font-size:11px;color:var(--stone);margin-top:2px">Click a name to assign them to that task</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="S.aiDistribution=null;render()">✕ Close</button>
@@ -2781,7 +2781,7 @@ async function distributeEventWithAI(evId){
 
     if(!tasks.length)throw new Error('No assignments generated');
     S.aiDistribution={evId,loading:false,tasks};
-    toast(`InvoAI suggested assignments for ${tasks.length} task${tasks.length!==1?'s':''}!`,'ok');
+    toast(`Inclub AI suggested assignments for ${tasks.length} task${tasks.length!==1?'s':''}!`,'ok');
   }catch(e){
     S.aiDistribution=null;
     toast('Could not generate assignments: '+e.message,'err');
@@ -3063,7 +3063,7 @@ async function generateEventBulletsAndSubmit(evId,taskId){
   const confirmedSkills=[...document.querySelectorAll('.ai-skill-chip:not(.off)')].map(c=>c.textContent.trim());
   const questions=S.submitAnalysis?.metrics_questions||[];
 
-  toast('InvoAI is writing your resume bullets…','');
+  toast('Inclub AI is writing your resume bullets…','');
   let bullets=[];
   try{
     const res=await callGroq(
@@ -3082,7 +3082,7 @@ async function generateEventBulletsAndSubmit(evId,taskId){
   const submission={userId:S.uid,work:S.submitDesc,fileName:S.pendingFile?.name||null,docLink:S.submitDocLink||null,aiSkills:confirmedSkills,resumeBullets:bullets,status:'pending_review',submittedAt:new Date().toLocaleDateString()};
   if(existing){Object.assign(existing,submission);}else{task.submissions.push(submission);}
 
-  // Also save to backend for Career Ready tracking
+  // Also save to backend for Portfolio tracking
   const u=me();
   try{
     await fetch(`${API_URL}/activities`,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -3091,7 +3091,7 @@ async function generateEventBulletsAndSubmit(evId,taskId){
 
   S.pendingFile=null;S.submitDocLink=null;
   closeModal();
-  toast('Submitted! InvoAI built your resume bullets. Officer will review soon. 🚀','ok');
+  toast('Submitted! Inclub AI built your resume bullets. Officer will review soon. 🚀','ok');
 }
 
 async function submitWork(taskId){
@@ -3267,7 +3267,7 @@ function approveEventSub(evId,taskId,userId){
   me().tasksApproved=(me().tasksApproved||0)+1;
   playApproveSuccess(()=>{
     closeModal();
-    toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Career Ready.`,'ok');
+    toast(`Approved! ${member?.name?.split(' ')[0]||'Member'}'s work is now in Portfolio.`,'ok');
   });
 }
 
@@ -3305,14 +3305,14 @@ async function suggestDistribution(){
   const desc=document.getElementById('tDesc')?.value||'';
   const cap=document.getElementById('tCap')?.value||'1';
   const box=document.getElementById('distSugg');
-  if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">InvoAI thinking...</span></div>`;
+  if(box)box.innerHTML=`<div class="ai-loading-row" style="margin-top:10px"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">Inclub AI thinking...</span></div>`;
   const memberProfiles=members().map(m=>`${m.name}: skills=[${m.skills.join(', ')||'none'}], completed ${approvedByUser(m.id).length} tasks`).join('\n');
   try{
     const res=await callGroq(
       'You help club officers distribute tasks. Given a task and member profiles, suggest who would benefit most (based on skill gaps and growth). Be concise — 2-3 sentences.',
       `Task: ${title}\nDescription: ${desc}\nCapacity: ${cap} member(s)\n\nMembers:\n${memberProfiles}`
     );
-    if(box)box.innerHTML=`<div class="ai-suggestion-box"><strong style="color:var(--pri);font-size:11px;text-transform:uppercase;letter-spacing:.4px">💡 InvoAI Suggestion</strong><div style="margin-top:6px">${res}</div></div>`;
+    if(box)box.innerHTML=`<div class="ai-suggestion-box"><strong style="color:var(--pri);font-size:11px;text-transform:uppercase;letter-spacing:.4px">💡 Inclub AI Suggestion</strong><div style="margin-top:6px">${res}</div></div>`;
   }catch(e){
     if(box)box.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">Couldn't connect. Check your API key.</div>`;
   }
@@ -3475,12 +3475,12 @@ function showTaskBubbles(){
       <div class="tb-title">${t.title}</div>
     </div>`;
   }).join('')}</div>`;
-  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Here are the open tasks you can claim:<br>${html}`);
+  appendAIMsg('ai',`<div class="ai-msg-lbl">Inclub AI</div>Here are the open tasks you can claim:<br>${html}`);
 }
 
 function showSummaryCard(){
   const u=me();const done=approvedByUser(u.id).length;
-  const html=`<div class="ai-msg-lbl">InvoAI</div>Here's your progress snapshot:
+  const html=`<div class="ai-msg-lbl">Inclub AI</div>Here's your progress snapshot:
   <div class="summary-card">
     <div class="summary-row">
       <div class="summary-stat"><div class="summary-stat-v">${done}</div><div class="summary-stat-l">Tasks Done</div></div>
@@ -3499,7 +3499,7 @@ function showInternshipCard(){
   }).sort((a,b)=>b.have.length-a.have.length).slice(0,4);
   const liSkills=u.skills.map(s=>LINKEDIN_SKILL_MAP[s]?.liKeyword).filter(Boolean);
   const qualified=matches.filter(m=>m.qualified);
-  const html=`<div class="ai-msg-lbl">InvoAI</div>
+  const html=`<div class="ai-msg-lbl">Inclub AI</div>
   <div style="font-size:13px;margin-bottom:8px">${qualified.length?`🎯 You qualify for <strong>${qualified.length}</strong> internship type${qualified.length>1?'s':''}!`:'Keep building skills — here\'s where you stand:'}</div>
   ${matches.map(m=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 8px;background:${m.qualified?'#D1FAE5':'var(--bg)'};border-radius:8px">
     <span>${m.icon}</span>
@@ -3510,13 +3510,13 @@ function showInternshipCard(){
     <span style="font-size:11px;font-weight:700;color:${m.qualified?'#059669':'var(--muted)'}">${m.pct}%</span>
   </div>`).join('')}
   ${liSkills.length?`<div style="font-size:11px;color:#3730A3;margin-top:8px">📎 Add to LinkedIn: ${liSkills.slice(0,4).join(' · ')}</div>`:''}
-  <button onclick="toggleAI();nav('resume')" style="margin-top:8px;background:var(--pri);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">View Career Ready →</button>`;
+  <button onclick="toggleAI();nav('resume')" style="margin-top:8px;background:var(--pri);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">View Portfolio →</button>`;
   appendAIMsg('ai',html);
 }
 
 function claimFromAI(taskId){
   claimTask(taskId);
-  appendAIMsg('ai',`<div class="ai-msg-lbl">InvoAI</div>Task claimed! 💪 Head to Events to submit your work when you're done.<div style="margin-top:8px"><button onclick="toggleAI();nav('events')" class="btn btn-teal btn-sm">Go to Events →</button></div>`);
+  appendAIMsg('ai',`<div class="ai-msg-lbl">Inclub AI</div>Task claimed! 💪 Head to Events to submit your work when you're done.<div style="margin-top:8px"><button onclick="toggleAI();nav('events')" class="btn btn-teal btn-sm">Go to Events →</button></div>`);
 }
 
 const aiMsgHistory=[];
@@ -3568,16 +3568,16 @@ function buildSys(u,done,isDistribute=false){
     return have.length>=r.required;
   }).map(r=>r.title);
   if(isDistribute){
-    return`You are InvoAI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills and competency areas (marketing, finance, tech, leadership, research, creative, community). Aim to cover different competency areas and maximize the number of members involved. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
+    return`You are Inclub AI, an officer assistant for a community college club. You help officers distribute event tasks among members based on their skills and competency areas (marketing, finance, tech, leadership, research, creative, community). Aim to cover different competency areas and maximize the number of members involved. Be specific, fair, and concise — use a clear bullet-point assignment list. Format: "• [Task]: [Member name] — because [1 sentence reason]". Keep it short and actionable.`;
   }
 
   // Build context about open tasks and upcoming events
   const openTaskTitles=S.tasks.filter(t=>taskStatus(t)==='open'&&!t.submissions.some(s=>s.userId===u.id)).map(t=>t.title).slice(0,5).join(', ')||'none';
   const upcomingEvents=S.clubEvents.filter(ev=>getEventStatus(ev)!=='past').map(ev=>`${ev.title} (${ev.date})`).slice(0,4).join(', ')||'none';
 
-  return`You are InvoAI, the smart assistant for InvolvED — a college club management app. Be short, direct, and helpful. Never give long paragraphs. Use 1-3 sentences max per response.
+  return`You are Inclub AI, the smart assistant for InvolvED — a college club management app. Be short, direct, and helpful. Never give long paragraphs. Use 1-3 sentences max per response.
 
-Pages available: Home (dashboard), Events (club events and tasks), Career Ready (resume bullets and skills), Add Me (request tasks), Members (officer only), Users (officer only).
+Pages available: Home (dashboard), Events (club events and tasks), Portfolio (resume bullets and skills), Add Me (request tasks), Members (officer only), Users (officer only).
 
 Current club data will be provided in context. When a student asks about a specific task or event that exists in the data, ALWAYS end your response with a JSON navigation hint like: {"nav":"events","label":"View Events"} or {"nav":"addme","label":"Request This Skill"}.
 
@@ -3633,7 +3633,7 @@ function appendAIMsg(role,content,loading=false){
   const msgs=document.getElementById('aiMsgs');if(!msgs)return;
   const d=document.createElement('div');
   d.className=`ai-msg ${role}`;d.id=loading?'aiLoading':'';
-  d.innerHTML=role==='ai'?`<div class="ai-msg-lbl">InvoAI</div>${content}`:content;
+  d.innerHTML=role==='ai'?`<div class="ai-msg-lbl">Inclub AI</div>${content}`:content;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
 }
 
@@ -3664,7 +3664,7 @@ function replaceLastAIMsg(content){
   const loading=document.getElementById('aiLoading');
   if(loading){
     const{displayContent,extraHTML}=parseAINavHints(content);
-    loading.innerHTML=`<div class="ai-msg-lbl">InvoAI</div>${displayContent}${extraHTML}`;
+    loading.innerHTML=`<div class="ai-msg-lbl">Inclub AI</div>${displayContent}${extraHTML}`;
     loading.removeAttribute('id');
   }
   const msgs=document.getElementById('aiMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
@@ -3872,7 +3872,7 @@ async function aiGenerateEventTasks(){
       skills:Array.isArray(t.skills)?t.skills:Array.isArray(t.required_skills)?t.required_skills:typeof t.skills==='string'?[t.skills]:[],
       competency:t.competency||t.category||t.area||'leadership'
     }));
-    toast(`InvoAI created ${S.aiEventTasks.length} tasks! Review and edit below.`,'ok');
+    toast(`Inclub AI created ${S.aiEventTasks.length} tasks! Review and edit below.`,'ok');
   }catch(e){
     S.aiEventTasks=[];
     toast('Could not generate tasks: '+e.message,'err');
