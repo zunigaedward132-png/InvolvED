@@ -613,6 +613,8 @@ const S={
   aiEventTasks:[],
   showLogin:false,
   aiResumeBullets:null,
+  skillsBankOpen:false,
+  portfolioOpen:false,
   qrCheckinSuccess:false,
   aiDistribution:null,
   viewingMemberId:null,
@@ -1268,10 +1270,11 @@ function renderResume(){
   const careerIdentityCard=`<div style="background:var(--card);border-radius:var(--r);padding:20px 22px;border:1px solid var(--sand);box-shadow:var(--sh);margin-bottom:20px">
     <div style="font-size:15px;font-weight:800;margin-bottom:4px">🎯 Your Career Identity</div>
     <div style="font-size:12px;color:var(--stone);margin-bottom:14px">Choose a label that reflects your interests — this shows on your profile instead of 'member'</div>
-    ${selectedLabel?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:22px">${selectedLabel.icon}</span><div><div style="font-size:15px;font-weight:800;color:var(--forest)">You are a ${selectedLabel.icon} ${selectedLabel.label}</div><div style="font-size:12px;color:var(--stone)">Click another to change</div></div></div>`:''}
-    <div class="career-label-grid">
-      ${CAREER_LABELS.map(c=>`<button class="career-label-btn${u.careerLabel===c.id?' active':''}" onclick="setCareerLabel('${c.id}')">${u.careerLabel===c.id?'✓ ':''}${c.icon} ${c.label}</button>`).join('')}
-    </div>
+    ${selectedLabel?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:22px">${selectedLabel.icon}</span><div><div style="font-size:15px;font-weight:800;color:var(--forest)">You are a ${selectedLabel.icon} ${selectedLabel.label}</div><div style="font-size:12px;color:var(--stone)">Choose another below to change</div></div></div>`:''}
+    <select class="fsel" onchange="setCareerLabel(this.value)" style="max-width:340px">
+      <option value="" ${!u.careerLabel?'selected':''} disabled>Select a career identity…</option>
+      ${CAREER_LABELS.map(c=>`<option value="${c.id}" ${u.careerLabel===c.id?'selected':''}>${c.icon} ${c.label}</option>`).join('')}
+    </select>
   </div>`;
 
   // Officer: Member Skills Overview
@@ -1302,7 +1305,7 @@ function renderResume(){
     ?`<div style="font-size:13px;color:var(--stone);font-style:italic">${done.length?'Click "Generate Bullets" to get personalized resume bullets from InvoAI.':'Complete tasks first to generate resume bullets.'}</div>`
     :S.aiResumeBullets==='loading'
     ?`<div class="ai-loading-row"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px;font-size:13px;color:var(--stone)">InvoAI is writing your bullets…</span></div>`
-    :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
+    :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).slice(0,4).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
   return`<div class="page-hdr">
   <div><div class="page-title">Career Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
   <button class="btn btn-teal" onclick="exportResume()">📥 Download PDF</button>
@@ -1323,8 +1326,11 @@ ${careerIdentityCard}
   ${bulletsHTML}
 </div>
 <div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:16px">
-  <div class="sec-row"><div class="sec-title" style="margin:0">🛠️ Skills Bank</div><span style="font-size:12px;color:var(--muted)">${u.skills.length} skills earned</span></div>
-  ${u.skills.length?(()=>{
+  <div class="sec-row" style="cursor:pointer" onclick="S.skillsBankOpen=!S.skillsBankOpen;render()">
+    <div class="sec-title" style="margin:0">🛠️ Skills Bank</div>
+    <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">${u.skills.length} skills earned <span style="font-size:11px;transition:transform .18s;transform:rotate(${S.skillsBankOpen?'180':'0'}deg)">▾</span></span>
+  </div>
+  ${!S.skillsBankOpen?'':u.skills.length?(()=>{
     return`<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">${u.skills.map(s=>{
       const fromTasks=S.tasks.filter(t=>t.skills.includes(s)&&t.submissions.some(sub=>sub.userId===u.id&&sub.status==='approved'));
       const fromEventTasks=S.clubEvents.flatMap(ev=>ev.tasks.filter(t=>(t.skills||[]).includes(s)&&(t.submissions||[]).some(sub=>sub.userId===u.id&&sub.status==='approved')));
@@ -1345,8 +1351,14 @@ ${careerIdentityCard}
     }).join('')}</div>`;
   })():`<div class="empty" style="padding:20px"><div class="empty-ico">🌱</div><div class="empty-ttl">No skills yet</div><div>Complete tasks to earn skills.</div></div>`}
 </div>
-<div class="sec-title">📁 Resume Portfolio</div>
 ${(()=>{
+  const portfolioCount=done.length+S.clubEvents.reduce((n,ev)=>n+ev.tasks.filter(t=>t.submissions?.find(s=>s.userId===u.id)).length,0);
+  return`<div class="sec-row" style="cursor:pointer" onclick="S.portfolioOpen=!S.portfolioOpen;render()">
+    <div class="sec-title" style="margin:0">📁 Portfolio</div>
+    <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">${portfolioCount} ${portfolioCount===1?'entry':'entries'} <span style="font-size:11px;transition:transform .18s;transform:rotate(${S.portfolioOpen?'180':'0'}deg)">▾</span></span>
+  </div>`;
+})()}
+${!S.portfolioOpen?'':(()=>{
   // General tasks with approved submissions
   const generalCards=done.map(task=>{
     const e=u.portfolioEntries.find(e=>e.taskId===task.id);
@@ -3880,8 +3892,8 @@ async function generateAIResumeBullets(){
   }).join('\n');
   try{
     const res=await callGroq(
-      'You are a professional resume writer for college students. Generate precise, quantifiable resume bullet points. Use strong action verbs. Be specific about what was done. Include numbers where possible (team size, audience size, % improvement). Format: one bullet per line. No headers, no lists — just the bullets. 3-5 bullets maximum.',
-      `Student: ${u.name}\nCompleted tasks:\n${taskSummary}\n\nGenerate 3-5 strong resume bullets. Start each with an action verb. Include quantifiable impact where possible. Focus on transferable business/professional skills.`
+      'You are a professional resume writer for college students. Write a concise overall summary of a member\'s contributions to their club, not a list of every task. Generate precise, quantifiable resume bullet points. Use strong action verbs. Be specific about impact. Include numbers where possible (team size, audience size, % improvement). Format: one bullet per line. No headers, no lists — just the bullets. Exactly 4 bullets — pick only the 4 most relevant and impressive.',
+      `Student: ${u.name}\nClub: Business Club\nCompleted tasks:\n${taskSummary}\n\nSummarize what this member has done for Business Club overall. Generate exactly 4 resume bullets covering only the most relevant, highest-impact contributions — do not list every task. Start each with an action verb. Include quantifiable impact where possible. Focus on transferable business/professional skills.`
     );
     S.aiResumeBullets=res;
   }catch(e){S.aiResumeBullets=null;toast('Could not generate bullets','err');}
