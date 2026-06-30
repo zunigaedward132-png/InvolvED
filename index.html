@@ -802,11 +802,15 @@ function renderDashboard(){
     const evTaskCard=({ev,task,sub})=>{
       const statusColor=sub?.status==='approved'?'#059669':sub?.status==='pending_review'?'#D97706':sub?.status==='rejected'?'#DC2626':'var(--forest)';
       const statusLabel=sub?.status==='approved'?'✅ Approved':sub?.status==='pending_review'?'⏳ Under Review':sub?.status==='rejected'?'❌ Needs Revision':'📤 Needs Submission';
+      const hoursAgo=sub?.submittedAt?Math.round((Date.now()-sub.submittedAt)/36e5):null;
+      const timeNote=hoursAgo!==null?(hoursAgo<1?'Submitted just now':hoursAgo<24?`Submitted ${hoursAgo}h ago`:`Submitted ${Math.round(hoursAgo/24)}d ago`):'';
+      const overdueNote=hoursAgo>=24?`<div style="font-size:11px;color:#DC2626;margin-top:4px;font-weight:600">⚠️ Pending over 24 hours — consider messaging your officer</div>`:'';
       return`<div style="background:var(--card);border:1.5px solid var(--sand);border-left:4px solid ${statusColor};border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${task.title}</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">${ev.icon} ${ev.title}</div>
-          <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}</div>
+          <div style="font-size:11px;font-weight:700;color:${statusColor};margin-top:4px">${statusLabel}${timeNote?` · ${timeNote}`:''}</div>
+          ${overdueNote}
           ${sub?.officerFeedback?`<div style="font-size:12px;color:var(--ink);margin-top:5px;background:#FEF9C3;border-radius:6px;padding:6px 8px">💬 <strong>Officer:</strong> ${sub.officerFeedback}</div>`:''}
         </div>
         ${!sub||sub.status==='rejected'?`<button class="btn btn-pri btn-sm" onclick="nav('events');setTimeout(()=>openEvent('${ev.id}'),100)">Submit Work →</button>`
@@ -929,10 +933,11 @@ function renderDashboard(){
     <div class="page-hdr"><div><div class="page-title">Officer Dashboard</div><div class="page-sub">Manage tasks, review submissions, grow your club.</div></div><button class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Export</button></div>
     <div class="stat-grid">
       <div class="stat-card" style="border-top:3px solid var(--forest)"><div class="stat-ico">📋</div><div class="stat-val">${S.tasks.length}</div><div class="stat-lbl">Total Tasks</div></div>
-      <div class="stat-card" style="border-top:3px solid var(--sky)"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending+pendingEvSubs.length}</div><div class="stat-lbl">Needs Review</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--sky);cursor:pointer" onclick="document.getElementById('pendingReviewSection')?.scrollIntoView({behavior:'smooth'})"><div class="stat-ico">⏳</div><div class="stat-val" style="color:var(--sky)">${pending+pendingEvSubs.length}</div><div class="stat-lbl">Needs Review ↓</div></div>
       <div class="stat-card" style="border-top:3px solid var(--green)"><div class="stat-ico">👥</div><div class="stat-val" style="color:var(--green)">${members().length}</div><div class="stat-lbl">Members</div></div>
       <div class="stat-card" style="border-top:3px solid var(--terra)"><div class="stat-ico">✅</div><div class="stat-val" style="color:var(--terra)">${approved}</div><div class="stat-lbl">Tasks Approved</div></div>
     </div>
+    ${pendingTasks.length||pendingEvSubs.length?`<div id="pendingReviewSection"></div>`:''}
     ${pendingTasks.length?`<div class="sec-row"><div class="sec-title" style="color:var(--sky)">Pending Review — General Tasks</div></div><div class="task-grid">${pendingTasks.slice(0,4).map((t,i)=>taskCard(t,i)).join('')}</div>`:''}
     ${pendingEvSubs.length?`<div class="sec-row" style="margin-top:${pendingTasks.length?'8':'0'}px"><div class="sec-title" style="color:var(--sky)">Pending Review — Event Tasks</div><span style="font-size:12px;color:var(--stone)">${pendingEvSubs.length} submission${pendingEvSubs.length!==1?'s':''}</span></div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${evSubHtml}</div>`:''}
     <div class="sec-row" style="margin-top:8px"><div class="sec-title">Task Requests</div><span style="font-size:12px;color:var(--stone)">${S.taskRequests.length} request${S.taskRequests.length!==1?'s':''}</span></div>
@@ -966,7 +971,7 @@ function taskCard(task,idx=0){
   else stChip=`<span class="s-chip s-full">Full</span>`;
 
   if(u.role==='member'){
-    if(!mySub&&st==='open')action=`<button class="btn btn-teal btn-sm" onclick="claimTask('${task.id}')">Claim</button>`;
+    if(!mySub&&st==='open')action=`<button class="btn btn-teal btn-sm" onclick="openModal('claimConfirm','${task.id}')">Claim</button>`;
     else if(mySub?.status==='claimed')action=`<button class="btn btn-pri btn-sm" onclick="openModal('submit','${task.id}')">Submit</button>`;
     else if(mySub?.status==='pending_review')action=`<button class="btn btn-ghost btn-sm" disabled>⏳ In Review</button>`;
     else if(mySub?.status==='approved')action=`<button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">+ Portfolio</button>`;
@@ -1200,7 +1205,7 @@ function renderResume(){
     <div style="font-size:12px;color:var(--stone);margin-bottom:14px">Choose a label that reflects your interests — this shows on your profile instead of 'member'</div>
     ${selectedLabel?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:#E8F0EB;border-radius:var(--rsm);padding:10px 14px"><span style="font-size:22px">${selectedLabel.icon}</span><div><div style="font-size:15px;font-weight:800;color:var(--forest)">You are a ${selectedLabel.icon} ${selectedLabel.label}</div><div style="font-size:12px;color:var(--stone)">Click another to change</div></div></div>`:''}
     <div class="career-label-grid">
-      ${CAREER_LABELS.map(c=>`<button class="career-label-btn${u.careerLabel===c.id?' active':''}" onclick="setCareerLabel('${c.id}')">${c.icon} ${c.label}</button>`).join('')}
+      ${CAREER_LABELS.map(c=>`<button class="career-label-btn${u.careerLabel===c.id?' active':''}" onclick="setCareerLabel('${c.id}')">${u.careerLabel===c.id?'✓ ':''}${c.icon} ${c.label}</button>`).join('')}
     </div>
   </div>`;
 
@@ -1235,7 +1240,7 @@ function renderResume(){
     :`<div style="display:flex;flex-direction:column;gap:8px">${S.aiResumeBullets.split('\n').filter(l=>l.trim()).map(line=>`<div style="background:var(--card);border:1px solid var(--sand);border-left:3px solid var(--forest);border-radius:var(--rsm);padding:10px 14px;font-size:13px;line-height:1.6">${line.replace(/^[•\-\*\d\.]+\s*/,'')}</div>`).join('')}</div>`;
   return`<div class="page-hdr">
   <div><div class="page-title">Career Ready</div><div class="page-sub">Skills auto-built from approved work. Export when ready.</div></div>
-  <button class="btn btn-teal" onclick="exportResume()">⬇ Export</button>
+  <button class="btn btn-teal" onclick="exportResume()">📥 Download PDF</button>
 </div>
 ${officerSkillsOverview}
 ${careerIdentityCard}
@@ -1254,7 +1259,26 @@ ${careerIdentityCard}
 </div>
 <div style="background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);margin-bottom:16px">
   <div class="sec-row"><div class="sec-title" style="margin:0">🛠️ Skills Bank</div><span style="font-size:12px;color:var(--muted)">${u.skills.length} skills earned</span></div>
-  ${u.skills.length?`<div class="skill-bank">${u.skills.map(s=>`<span class="skill-bank-tag">${s}</span>`).join('')}</div>`:`<div class="empty" style="padding:20px"><div class="empty-ico">🌱</div><div class="empty-ttl">No skills yet</div><div>Complete tasks to earn skills.</div></div>`}
+  ${u.skills.length?(()=>{
+    return`<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">${u.skills.map(s=>{
+      const fromTasks=S.tasks.filter(t=>t.skills.includes(s)&&t.submissions.some(sub=>sub.userId===u.id&&sub.status==='approved'));
+      const fromEventTasks=S.clubEvents.flatMap(ev=>ev.tasks.filter(t=>(t.skills||[]).includes(s)&&(t.submissions||[]).some(sub=>sub.userId===u.id&&sub.status==='approved')));
+      const count=fromTasks.length+fromEventTasks.length;
+      const stars=count>=3?'★★★':count===2?'★★☆':'★☆☆';
+      const level=count>=3?'Advanced':count===2?'Intermediate':'Beginner';
+      const sources=[...fromTasks.map(t=>t.title),...fromEventTasks.map(t=>t.title)];
+      return`<div style="background:#F5F8F2;border:1px solid var(--sand);border-radius:var(--rsm);padding:12px 14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:13px;font-weight:800">${s}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;color:var(--gold);letter-spacing:2px">${stars}</span>
+            <span style="font-size:10px;color:var(--stone);font-weight:600">${level}</span>
+          </div>
+        </div>
+        ${sources.length?`<div style="font-size:11px;color:var(--stone);margin-top:4px">Earned from: ${sources.join(' · ')}</div>`:'<div style="font-size:11px;color:var(--stone);margin-top:4px;font-style:italic">Seeded at signup</div>'}
+      </div>`;
+    }).join('')}</div>`;
+  })():`<div class="empty" style="padding:20px"><div class="empty-ico">🌱</div><div class="empty-ttl">No skills yet</div><div>Complete tasks to earn skills.</div></div>`}
 </div>
 <div class="sec-title">📁 Resume Portfolio</div>
 ${(()=>{
@@ -1269,8 +1293,16 @@ ${(()=>{
       <button class="btn btn-ghost btn-sm" onclick="openModal('portfolio','${task.id}')">${e?'Edit':'+ Add Note'}</button>
     </div>
     ${bullets.length?`<div style="margin-top:12px;background:linear-gradient(135deg,#EEF4EC,#F5F8F2);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--forest)">
-      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets</div>
-      ${bullets.map(b=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:6px"><span style="color:var(--forest);font-weight:800;flex-shrink:0">•</span><span>${b}</span></div>`).join('')}
+      <div style="font-size:11px;font-weight:800;color:var(--forest);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📄 InvoAI Resume Bullets <span style="font-weight:400;font-style:italic;color:var(--stone)">— edit before sharing</span></div>
+      ${bullets.map((b,bi)=>`<div style="display:flex;gap:8px;font-size:12.5px;line-height:1.65;margin-bottom:8px;align-items:flex-start">
+        <span style="color:var(--forest);font-weight:800;flex-shrink:0;margin-top:2px">•</span>
+        <span style="flex:1">${b}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="editTaskBullet('${task.id}',${bi})" style="background:none;border:1px solid var(--sand);border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;color:var(--stone)" title="Edit">✏️</button>
+          <button onclick="navigator.clipboard?.writeText('${b.replace(/'/g,"\\'")}');toast('Copied!','ok')" style="background:none;border:1px solid var(--sand);border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;color:var(--stone)" title="Copy">📋</button>
+          <button onclick="deleteTaskBullet('${task.id}',${bi})" style="background:none;border:1px solid var(--sand);border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;color:var(--red)" title="Delete">🗑</button>
+        </div>
+      </div>`).join('')}
     </div>`:`<div style="margin-top:8px"><button class="btn btn-ai btn-sm" onclick="openModal('submit','${task.id}')">🤖 Generate Bullets</button></div>`}
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div>
     </div>`;
@@ -1331,7 +1363,7 @@ function renderAddMe(){
   </div>
   <div style="background:var(--card);border-radius:var(--r);padding:22px 24px;border:1px solid var(--sand);box-shadow:var(--sh);margin-bottom:24px">
     <div class="fg"><label class="fl">What skill area are you interested in?</label><select class="fsel" id="reqArea"><option value="">— Select an area —</option>${areaOptions}</select></div>
-    <div class="fg"><label class="fl">What could you work on?</label><textarea class="fta" id="reqComment" placeholder="Be specific about your ideas — what task or project would you like to contribute to?"></textarea></div>
+    <div class="fg"><label class="fl">What could you work on?</label><textarea class="fta" id="reqComment" placeholder="Example: I want to help design the club's social media graphics and learn Figma in the process."></textarea></div>
     <button class="btn btn-pri" onclick="submitTaskRequest()">Submit Request →</button>
   </div>
   ${myRequests.length?`<div class="sec-title">Your Requests</div>
@@ -1346,7 +1378,12 @@ function renderAddMe(){
         <span class="status-badge ${r.status==='seen'?'past':'upcoming'}">${r.status}</span>
       </div>
     </div>`).join('')}
-  </div>`:`<div class="empty" style="padding:32px"><div class="empty-ico">✋</div><div class="empty-ttl">No requests yet</div><div>Submit your first request above!</div></div>`}
+  </div>`:`<div class="empty" style="padding:32px">
+    <div class="empty-ico">👋</div>
+    <div class="empty-ttl">No requests yet</div>
+    <div style="margin-bottom:16px">Pick a skill area above and let your officer know what you want to work on.</div>
+    <button class="btn btn-ghost btn-sm" onclick="nav('events')">Browse Open Opportunities →</button>
+  </div>`}
 </div>`;
 }
 
@@ -1449,6 +1486,27 @@ function renderModal(){
   if(!S.modal)return'';
   const m=S.modal;const d=S.modalData;
   let html='';
+
+  if(m==='claimConfirm'){
+    const task=S.tasks.find(t=>t.id===d);
+    if(!task){html=`<div class="modal-body"><p>Task not found.</p></div>`;}
+    else{
+      const cat=CAT[task.cat]||CAT.general;
+      const active=task.submissions.filter(s=>s.status!=='rejected');
+      const spotsLeft=task.capacity-active.length;
+      html=`<div class="modal-hdr"><div class="modal-ttl">${cat.icon} ${task.title}</div><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:var(--stone);line-height:1.65;margin-bottom:16px">${task.desc}</div>
+        ${task.skills.length?`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--stone);text-transform:uppercase;margin-bottom:6px">Skills You'll Earn</div><div style="display:flex;flex-wrap:wrap;gap:5px">${task.skills.map(s=>`<span class="sk-tag">${s}</span>`).join('')}</div></div>`:''}
+        ${task.capacity>1?`<div style="font-size:12px;color:var(--stone);margin-bottom:10px">👥 ${spotsLeft} of ${task.capacity} spots remaining</div>`:''}
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--rsm);padding:12px 14px;font-size:13px;color:var(--forest)">
+          <strong>What happens next:</strong> After claiming, go to this task and click <strong>Submit</strong> when you're done. Your work will go to an officer for review.
+        </div>
+      </div>
+      <div class="modal-ftr"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-teal" onclick="closeModal();claimTask('${task.id}')">Claim Task →</button></div>`;
+    }
+  }
+  else
 
   if(m==='createTask'){
     const prefillTitle=d?.prefillTitle||'';
@@ -2711,6 +2769,21 @@ function coachForRole(roleId){
 function openModal(m,d=null){S.modal=m;S.modalData=d;S.pendingAISkills=[];S.modalAILoading=false;S.pendingFile=null;render()}
 function closeModal(){S.modal=null;S.modalData=null;S.aiEventTasks=[];S.pendingEventForm={title:'',desc:'',date:'',color:'#1E3A2F',icon:'🎪'};S.submitStep=1;S.submitDesc='';S.submitAnalysis=null;S.submitAnalyzing=false;render()}
 
+function editTaskBullet(taskId,idx){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t?.submissions?.find(s=>s.userId===S.uid&&s.status==='approved');
+  if(!sub?.resumeBullets)return;
+  const cur=sub.resumeBullets[idx];
+  const newText=prompt('Edit resume bullet:',cur);
+  if(newText&&newText!==cur){sub.resumeBullets[idx]=newText;render();}
+}
+function deleteTaskBullet(taskId,idx){
+  const t=S.tasks.find(t=>t.id===taskId);
+  const sub=t?.submissions?.find(s=>s.userId===S.uid&&s.status==='approved');
+  if(!sub?.resumeBullets)return;
+  sub.resumeBullets.splice(idx,1);render();
+}
+
 function claimTask(id){
   const t=S.tasks.find(t=>t.id===id);if(!t)return;
   const u=me();
@@ -2830,6 +2903,7 @@ async function generateBulletsAndSubmit(taskId){
 
   // Mark as pending_review
   sub.status='pending_review';
+  sub.submittedAt=Date.now();
   sub.work=S.submitDesc;
   sub.fileName=S.pendingFile?.name||null;
   sub.fileDataUrl=S.pendingFile?.dataUrl||null;
