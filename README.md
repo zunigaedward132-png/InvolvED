@@ -127,19 +127,21 @@ Students can track their extracurricular involvement,
 earned competencies, completed tasks, and opportunities
 for professional development.
 
-![Student Dashboard](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 15 24 AM" src="https://github.com/user-attachments/assets/f0262286-88e5-475d-a741-5e5c48047176" />
+
 
 ### 3. Organization Management
 
 Student leaders can coordinate projects, manage members,
 review submissions, and approve completed work.
 
-![Officer Dashboard](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 21 AM" src="https://github.com/user-attachments/assets/ae608770-01a1-439a-b4cc-cbbc4d5d2067" />
 
 Organizations can structure events into individual tasks
 associated with career-relevant skills and competencies.
 
-![Event Management](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 45 AM" src="https://github.com/user-attachments/assets/c5777b8e-0702-4b09-9136-495bdf592168" />
+
 
 ### 4. AI-Powered Innovation — Invo AI
 
@@ -147,13 +149,14 @@ Invo AI assists organization leaders in generating
 actionable tasks based on event descriptions and
 organizational needs.
 
-![AI Task Generation](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 20 13 AM" src="https://github.com/user-attachments/assets/25969ac4-bb69-416c-bebf-c1f52573b7a3" />
 
 Students can also receive personalized career guidance,
 involvement recommendations, resume writing assistance,
 and participation insights.
 
-![Invo AI Career Assistant](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 16 41 AM" src="https://github.com/user-attachments/assets/1bbed2c9-f4fb-43fb-a90d-65a701124726" />
+
 
 ### 5. Professional Development
 
@@ -161,4 +164,5 @@ InvolvEd connects approved extracurricular work with
 professional competencies, helping students build
 documented and exportable professional portfolios.
 
-![Professional Portfolio](IMAGE_URL)
+
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attachments/assets/5b528cd4-9b7d-4314-9daf-b55e0a0eb331" />
