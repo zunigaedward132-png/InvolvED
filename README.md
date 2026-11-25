@@ -118,10 +118,8 @@ InvolvEd provides distinct experiences for student members
 and organization officers. Visitors can explore both
 interfaces through the available preview modes.
 
-<p align="center">
-  <img src="img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 03 AM" src="https://github.com/user-attachments/assets/936c0df6-cfff-42e5-b09e-118b9fbebe0b" width="800"
-       alt="InvolvEd Student Dashboard">
-</p>
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 03 AM" src="https://github.com/user-attachments/assets/208d12ff-d9c6-4be1-9ac3-0daa845b4163" />
+
 
 ### 2. Student Experience
 
