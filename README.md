@@ -171,7 +171,7 @@ InvolvEd connects approved extracurricular work with
 professional competencies, helping students build
 documented and exportable professional portfolios.
 
-<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 45 AM" src="https://github.com/user-attachments/assets/927d7036-02dd-430c-9d50-3f1691b338f7" />
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attachments/assets/4c1a4942-a4cf-4bb5-b5c6-231b0cc88823" />
 
 
 Students can establish a career identity, generate 
