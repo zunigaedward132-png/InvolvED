@@ -108,3 +108,55 @@ InvolvEd originated from an interest in how student involvement can create meani
 
 
 **InvolvEd — Turning experiences into opportunities.**
+
+## Platform Preview
+
+### 1. Platform Introduction
+
+InvolvEd provides distinct experiences for student members
+and organization officers. Visitors can explore both
+interfaces through the available preview modes.
+
+![Login Interface](IMAGE_URL)
+
+### 2. Student Experience
+
+Students can track their extracurricular involvement,
+earned competencies, completed tasks, and opportunities
+for professional development.
+
+![Student Dashboard](IMAGE_URL)
+
+### 3. Organization Management
+
+Student leaders can coordinate projects, manage members,
+review submissions, and approve completed work.
+
+![Officer Dashboard](IMAGE_URL)
+
+Organizations can structure events into individual tasks
+associated with career-relevant skills and competencies.
+
+![Event Management](IMAGE_URL)
+
+### 4. AI-Powered Innovation — Invo AI
+
+Invo AI assists organization leaders in generating
+actionable tasks based on event descriptions and
+organizational needs.
+
+![AI Task Generation](IMAGE_URL)
+
+Students can also receive personalized career guidance,
+involvement recommendations, resume writing assistance,
+and participation insights.
+
+![Invo AI Career Assistant](IMAGE_URL)
+
+### 5. Professional Development
+
+InvolvEd connects approved extracurricular work with
+professional competencies, helping students build
+documented and exportable professional portfolios.
+
+![Professional Portfolio](IMAGE_URL)
