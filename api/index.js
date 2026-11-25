@@ -79,7 +79,7 @@ module.exports = async (req, res) => {
       const { system, messages, max_tokens = 512 } = body;
       const groq = getGroq();
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [{ role: 'system', content: system }, ...messages],
         max_tokens,
         temperature: 0.5,
@@ -98,7 +98,7 @@ module.exports = async (req, res) => {
       const activity = actData[0];
 
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: 'Extract structured signals from this student activity. Return ONLY valid JSON with keys: action_verb, quantifiable_metric, competency_tags (array 2-5 items), linkedin_keywords (array 1-4 items).' },
           { role: 'user', content: raw_submission },
