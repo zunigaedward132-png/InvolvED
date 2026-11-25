@@ -171,9 +171,9 @@ InvolvEd connects approved extracurricular work with
 professional competencies, helping students build
 documented and exportable professional portfolios.
 
-<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attac
-  hments/assets/5b528cd4-9b7d-4314-9daf-b55e0a0eb331" />
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attachments/assets/1aa7a321-0904-472e-9742-f928bed4d4f3" />
 
+-
 
 Students can establish a career identity, generate 
 AI-assisted resume bullets, track acquired skills, 
@@ -181,6 +181,7 @@ and export their portfolios as PDF documents.
 
 <img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 30 56 AM" src="https://github.com/user-attachments/assets/6e3595ca-9c1f-4d86-9a0c-418acaa9e320" />
 
+-
 
 The platform also connects individual competencies 
 to completed projects and documented submissions, 
