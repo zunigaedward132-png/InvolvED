@@ -1,3 +1,5 @@
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 03 AM" src="https://github.com/user-attachments/assets/8b309b98-a818-40ec-bd01-20518540a4c2" />
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 03 AM" src="https://github.com/user-attachments/assets/89656c13-ec4a-4b58-a2fb-33c7f5a3441f" />
 # InvolvEd
 
 **Turn involvement into opportunity.**
@@ -117,7 +119,7 @@ InvolvEd provides distinct experiences for student members
 and organization officers. Visitors can explore both
 interfaces through the available preview modes.
 
-![Login Interface](IMAGE_URL)
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 03 AM" src="https://github.com/user-attachments/assets/936c0df6-cfff-42e5-b09e-118b9fbebe0b" />
 
 ### 2. Student Experience
 
