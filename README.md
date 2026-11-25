@@ -114,6 +114,7 @@ InvolvEd originated from an interest in how student involvement can create meani
 
 ### 1. Platform Introduction
 
+
 InvolvEd provides distinct experiences for student members
 and organization officers. Visitors can explore both
 interfaces through the available preview modes.
@@ -122,6 +123,7 @@ interfaces through the available preview modes.
 
 
 ### 2. Student Experience
+
 
 Students can track their extracurricular involvement,
 earned competencies, completed tasks, and opportunities
@@ -132,10 +134,12 @@ for professional development.
 
 ### 3. Organization Management
 
+
 Student leaders can coordinate projects, manage members,
 review submissions, and approve completed work.
 
 <img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 21 AM" src="https://github.com/user-attachments/assets/ae608770-01a1-439a-b4cc-cbbc4d5d2067" />
+
 
 Organizations can structure events into individual tasks
 associated with career-relevant skills and competencies.
@@ -145,11 +149,13 @@ associated with career-relevant skills and competencies.
 
 ### 4. AI-Powered Innovation — Invo AI
 
+
 Invo AI assists organization leaders in generating
 actionable tasks based on event descriptions and
 organizational needs.
 
 <img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 20 13 AM" src="https://github.com/user-attachments/assets/25969ac4-bb69-416c-bebf-c1f52573b7a3" />
+
 
 Students can also receive personalized career guidance,
 involvement recommendations, resume writing assistance,
@@ -160,9 +166,25 @@ and participation insights.
 
 ### 5. Professional Development
 
+
 InvolvEd connects approved extracurricular work with
 professional competencies, helping students build
 documented and exportable professional portfolios.
 
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attac
+  hments/assets/5b528cd4-9b7d-4314-9daf-b55e0a0eb331" />
 
-<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 14 54 AM" src="https://github.com/user-attachments/assets/5b528cd4-9b7d-4314-9daf-b55e0a0eb331" />
+
+Students can establish a career identity, generate 
+AI-assisted resume bullets, track acquired skills, 
+and export their portfolios as PDF documents.
+
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 30 56 AM" src="https://github.com/user-attachments/assets/6e3595ca-9c1f-4d86-9a0c-418acaa9e320" />
+
+
+The platform also connects individual competencies 
+to completed projects and documented submissions, 
+allowing students to review, edit, and communicate 
+their professional accomplishments.
+
+<img width="1710" height="978" alt="Screenshot 2026-11-25 at 10 31 06 AM" src="https://github.com/user-attachments/assets/b578bb14-51e4-425a-89a7-4ad22e272955" />
